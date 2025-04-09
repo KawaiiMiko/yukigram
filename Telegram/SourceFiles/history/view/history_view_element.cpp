@@ -1552,14 +1552,6 @@ bool Element::unwrapped() const {
 	return true;
 }
 
-bool Element::hasFastReply() const {
-	return false;
-}
-
-bool Element::displayFastReply() const {
-	return false;
-}
-
 bool Element::displayFastForward() const {
 	return false;
 }
