@@ -2645,7 +2645,6 @@ void ShowNewForwardMessagesBox(
                            {},
 			               no_quote),
 						.filterCallback = std::move(filterCallback),
-						.title = no_quote ? tr::lng_title_forward_as_copy() : tr::lng_title_multiple_forward(),
 						.forwardOptions = {
 							.sendersCount = ItemsForwardSendersCount(items),
 							.captionsCount = ItemsForwardCaptionsCount(items),
