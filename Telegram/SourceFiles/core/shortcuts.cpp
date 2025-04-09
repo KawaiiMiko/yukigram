@@ -111,6 +111,7 @@ const auto CommandByName = base::flat_map<QString, Command>{
 	{ u"read_chat"_q         , Command::ReadChat },
 
 	{ u"show_chat_menu"_q    , Command::ShowChatMenu },
+	{ u"show_chat_preview"_q , Command::ShowChatPreview },
 
 	// Shortcuts that have no default values.
 	{ u"message"_q                       , Command::JustSendMessage },
@@ -512,6 +513,7 @@ void Manager::fillDefaults() {
 	set(u"alt+c"_q, Command::FastCopy);
 
 	set(u"ctrl+\\"_q, Command::ShowChatMenu);
+	set(u"ctrl+]"_q, Command::ShowChatPreview);
 
 	_defaults = keysCurrents();
 }
