@@ -2463,6 +2463,7 @@ QPointer<Ui::BoxContent> ShowOldForwardMessagesBox(
 					not_null<PeerData*> peer) -> Controller::Chosen {
 				return peer->owner().history(peer);
 			}) | ranges::to_vector,
+            []() { return false; },
 			comment->entity()->getTextWithAppliedMarkdown(),
 			options,
 			state->box->forwardOptionsData());
@@ -2626,7 +2627,7 @@ void ShowNewForwardMessagesBox(
 	const auto requiresInline = item->requiresSendInlineRight();
 	auto filterCallback = [=](not_null<Data::Thread*> thread) {
 		if (const auto user = thread->peer()->asUser()) {
-			if (user->canSendIgnoreRequirePremium()) {
+			if (user->canSendIgnoreMoneyRestrictions()) {
 				return true;
 			}
 		}
@@ -2650,7 +2651,7 @@ void ShowNewForwardMessagesBox(
 							.captionsCount = ItemsForwardCaptionsCount(items),
 							.show = !hasOnlyForcedForwardedInfo,
 						},
-						.premiumRequiredError = SharePremiumRequiredError(),
+						.moneyRestrictionError = RecipientMoneyRestrictionError(),
 					}), Ui::LayerOption::CloseOther);
 }
 
