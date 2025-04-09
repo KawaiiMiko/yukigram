@@ -208,7 +208,7 @@ void EditLinkBox(
 				}
 			}
 		}
-		if (linkText.text.isEmpty()) {
+		if (linkText.isEmpty()) {
 			text->showError();
 			return;
 		} else if (linkUrl.isEmpty()) {
