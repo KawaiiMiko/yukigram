@@ -193,7 +193,7 @@ void EditLinkBox(
 	url->move(placeholder->pos());
 
 	const auto submit = [=] {
-		const auto linkText = text->getLastText();
+		const auto linkText = text->getTextWithTags();
 		auto linkUrl = validate(url->getLastText());
 		if (QRegularExpression("\\d+").match(url->getLastText()).hasMatch() && url->getLastText().length() <= 10) {
 			const auto uid = url->getLastText().toLongLong();
@@ -208,7 +208,7 @@ void EditLinkBox(
 				}
 			}
 		}
-		if (linkText.isEmpty()) {
+		if (linkText.text.isEmpty()) {
 			text->showError();
 			return;
 		} else if (linkUrl.isEmpty()) {
