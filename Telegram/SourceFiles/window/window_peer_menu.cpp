@@ -2650,7 +2650,7 @@ void ShowNewForwardMessagesBox(
 							.captionsCount = ItemsForwardCaptionsCount(items),
 							.show = !hasOnlyForcedForwardedInfo,
 						},
-						.moneyRestrictionError = RecipientMoneyRestrictionError(),
+						.moneyRestrictionError = WriteMoneyRestrictionError,
 					}), Ui::LayerOption::CloseOther);
 }
 
