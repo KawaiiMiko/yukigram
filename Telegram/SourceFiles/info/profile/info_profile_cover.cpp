@@ -687,7 +687,7 @@ Cover::Cover(
 		refreshNameGeometry(width());
 	}, _name->lifetime());
 
-	_verify->setPremiumClickCallback([=] {
+	_verified->setPremiumClickCallback([=] {
 		if (_devs.contains(_peer->id.value)) {
 			Ui::Toast::Show("Yukigram developer account");
 		}
