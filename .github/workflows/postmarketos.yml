@@ -72,7 +72,7 @@ jobs:
           pip3 install tomli
           pip3 install https://gitlab.postmarketos.org/postmarketOS/pmbootstrap/-/archive/master.tar.gz
 
-          printf '\n' | pmbootstrap init || true
+          yes '' | pmbootstrap init || true
 
           sudo rm -rf ~/.local/var/pmbootstrap/config_abuild
           mkdir ~/.local/var/pmbootstrap/config_abuild
@@ -81,39 +81,6 @@ jobs:
           echo 'PACKAGER_PRIVKEY="/home/pmos/.abuild/yukigram.github.io.rsa"' > ~/.local/var/pmbootstrap/config_abuild/abuild.conf
           mkdir -p ~/.local/var/pmbootstrap/config_apk_keys
           sudo cp ~/.local/var/pmbootstrap/config_abuild/yukigram.github.io.rsa.pub ~/.local/var/pmbootstrap/config_apk_keys
-
-          cat > ~/.config/pmbootstrap.cfg << EOF
-          [pmbootstrap]
-          aports = $HOME/.local/var/pmbootstrap/cache_git/pmaports
-          ccache_size = 5G
-          is_default_channel = False
-          device = qemu-amd64
-          extra_packages =
-          hostname = localhost
-          build_pkgs_on_install = True
-          jobs = 5
-          kernel = 
-          keymap =
-          locale = en_US.UTF-8
-          mirror_alpine = http://dl-cdn.alpinelinux.org/alpine/
-          mirrors_postmarketos = http://mirror.postmarketos.org/postmarketos/
-          nonfree_firmware = True
-          nonfree_userland = False
-          ssh_keys = False
-          ssh_key_glob = ~/.ssh/id_*.pub
-          timezone = Europe/Moscow
-          ui = xfce4
-          ui_extras = False
-          user = $(whoami)
-          work = $HOME/.local/var/pmbootstrap
-          boot_size = 256
-          extra_space = 0
-          sudo_timer = True
-          qemu_redir_stdio = False
-          build_default_device_arch = False
-  
-          [providers]
-          EOF
 
           pushd "$REPO_NAME"
           pkgver="$(grep ^AppVersionStrSmall Telegram/build/version | grep -o '[0-9].*')"
@@ -129,7 +96,6 @@ jobs:
           pkgver=$pkgver
           pkgrel=$pkgrel
           pkgdesc="Yukigram (Telegram Desktop fork) messaging app"
-          makedepends="\$makedepends glibmm2.68-dev ada-dev"
           depends="\$depends ada"
           source="\${source/https:*.tar.gz/yukigram.tar.gz}"
           builddir="\$srcdir/$REPO_NAME"
