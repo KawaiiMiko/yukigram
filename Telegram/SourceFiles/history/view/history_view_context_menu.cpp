@@ -1492,9 +1492,9 @@ base::unique_qptr<Ui::PopupMenu> FillContextMenu(
 
 	AddReplyToMessageAction(result, request, list);
 
-	if (hasWhoReactedItem) {
-		AddWhoReactedAction(result, list, item, list->controller());
-	}
+	// if (hasWhoReactedItem) {
+	// 	AddWhoReactedAction(result, list, item, list->controller());
+	// }
 	if (request.overSelection
 		&& !list->hasCopyRestrictionForSelected()
 		&& !list->getSelectedText().empty()) {
