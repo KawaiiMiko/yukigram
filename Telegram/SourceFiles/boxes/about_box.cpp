@@ -160,6 +160,5 @@ QString currentVersionText() {
 	} else if (Platform::IsWindowsARM64()) {
 		result += " arm64";
 	}
-	result += QString("｜v%1").arg(UpstreamVersion);
 	return result;
 }
