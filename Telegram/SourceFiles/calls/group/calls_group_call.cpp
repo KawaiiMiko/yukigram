@@ -3036,12 +3036,12 @@ bool GroupCall::tryCreateController() {
 			});
 			return result;
 		},
+        .e2eEncryptDecrypt = (_e2eEncryptDecrypt
+			? _e2eEncryptDecrypt->callback()
+			: nullptr),
 		.enableStereoMode = GetEnhancedBool("stereo_mode"),
 		.customBitrate = getCustomBitrate(),
 		.enableHDVideo = GetEnhancedBool("hd_video"),
-		.e2eEncryptDecrypt = (_e2eEncryptDecrypt
-			? _e2eEncryptDecrypt->callback()
-			: nullptr),
 	};
 	if (Logs::DebugEnabled()) {
 		auto callLogFolder = cWorkingDir() + u"DebugLogs"_q;
@@ -3093,11 +3093,11 @@ bool GroupCall::tryCreateScreencast() {
 		.createAudioDeviceModule = Webrtc::LoopbackAudioDeviceModuleCreator(),
 		.videoCapture = _screenCapture,
 		.videoContentType = tgcalls::VideoContentType::Screencast,
-		.enableHDVideo = GetEnhancedBool("hd_video"),
-		.videoCodecPreferences = lookupVideoCodecPreferences(),
+        .videoCodecPreferences = lookupVideoCodecPreferences(),
 		.e2eEncryptDecrypt = (_e2eEncryptDecrypt
 			? _e2eEncryptDecrypt->callback()
 			: nullptr),
+		.enableHDVideo = GetEnhancedBool("hd_video"),
 	};
 
 	LOG(("Call Info: Creating group screen instance"));
