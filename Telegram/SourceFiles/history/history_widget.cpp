@@ -4771,7 +4771,7 @@ void HistoryWidget::toggleMuteUnmute() {
 
 void HistoryWidget::goToDiscussionGroup() {
 	const auto channel = _peer ? _peer->asChannel() : nullptr;
-	const auto chat = channel ? channel->linkedChat() : nullptr;
+	const auto chat = channel ? channel->discussionLink() : nullptr;
 	if (!chat) {
 		return;
 	}
@@ -7805,7 +7805,7 @@ bool HistoryWidget::hasHiddenPinnedMessage(not_null<PeerData*> peer) {
 	auto result = false;
 	auto &session = peer->session();
 	const auto migrated = peer->migrateFrom();
-	const auto top = Data::ResolveTopPinnedId(peer, 0, migrated);
+	const auto top = Data::ResolveTopPinnedId(peer, MsgId(0), PeerId(0), migrated);
 	const auto universal = !top
 						   ? int32(0)
 						   : (migrated && !top)
@@ -7828,14 +7828,14 @@ bool HistoryWidget::switchPinnedHidden(not_null<PeerData*> peer, bool hidden) {
 	auto &session = peer->session();
 	if (hidden) {
 		const auto migrated = peer->migrateFrom();
-		const auto top = Data::ResolveTopPinnedId(peer, 0, migrated);
+		const auto top = Data::ResolveTopPinnedId(peer, MsgId(0), PeerId(0), migrated);
 		const auto universal = !top
 							   ? int32(0)
 							   : (migrated && !top)
 							   ? (top.msg - ServerMaxMsgId)
 							   : top.msg;
 		if (universal) {
-			session.settings().setHiddenPinnedMessageId(peer->id, 0, universal);
+			session.settings().setHiddenPinnedMessageId(peer->id, MsgId(0), PeerId(0), universal);
 			session.saveSettingsDelayed();
 			result = true;
 		} else {
@@ -7844,7 +7844,7 @@ bool HistoryWidget::switchPinnedHidden(not_null<PeerData*> peer, bool hidden) {
 	} else {
 		const auto hiddenId = session.settings().hiddenPinnedMessageId(peer->id);
 		if (hiddenId != 0) {
-			session.settings().setHiddenPinnedMessageId(peer->id, 0, 0);
+			session.settings().setHiddenPinnedMessageId(peer->id, 0, 0, 0);
 			session.saveSettingsDelayed();
 			result = true;
 		}
