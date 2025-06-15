@@ -3327,28 +3327,20 @@ void ChatWidget::confirmDeleteSelected() {
 	ConfirmDeleteSelectedItems(_inner);
 }
 
-void RepliesWidget::confirmOldForwardSelected() {
+void ChatWidget::confirmOldForwardSelected() {
 	ConfirmOldForwardSelectedItems(_inner);
-}
-
-void RepliesWidget::confirmForwardSelected() {
-	ConfirmForwardSelectedItems(_inner);
-}
-
-void RepliesWidget::confirmForwardNoQuoteSelected() {
-	ConfirmForwardNoQuoteSelectedItems(_inner);
-}
-
-void RepliesWidget::confirmForwardSelectedToSavedMessages() {
-	ConfirmForwardSelectedToSavedMessagesItems(_inner);
-}
-
-void RepliesWidget::clearSelected() {
-    _inner->cancelSelection();
 }
 
 void ChatWidget::confirmForwardSelected() {
 	ConfirmForwardSelectedItems(_inner);
+}
+
+void ChatWidget::confirmForwardNoQuoteSelected() {
+	ConfirmForwardNoQuoteSelectedItems(_inner);
+}
+
+void ChatWidget::confirmForwardSelectedToSavedMessages() {
+	ConfirmForwardSelectedToSavedMessagesItems(_inner);
 }
 
 void ChatWidget::clearSelected() {
