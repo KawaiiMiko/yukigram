@@ -1869,6 +1869,9 @@ void AddWhoReactedAction(
 						whoReadIds)));
 		}
 	};
+    if (!menu->empty()) {
+		menu->addSeparator(&st::expandedMenuSeparator);
+	}
 	if (item->history()->peer->isUser()) {
 		AddWhenEditedForwardedAuthorActionHelper(
 			menu,
