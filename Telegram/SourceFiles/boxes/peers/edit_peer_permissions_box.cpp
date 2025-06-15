@@ -53,6 +53,7 @@ namespace {
 constexpr auto kSlowmodeValues = 7;
 constexpr auto kBoostsUnrestrictValues = 5;
 constexpr auto kForceDisableTooltipDuration = 3 * crl::time(1000);
+constexpr auto kDefaultChargeStars = 10;
 
 [[nodiscard]] auto Dependencies(PowerSaving::Flags)
 -> std::vector<std::pair<PowerSaving::Flag, PowerSaving::Flag>> {
@@ -1123,7 +1124,7 @@ void ShowEditPeerPermissionsBox(
 				result.emplace(
 					Flag::ChangeInfo | Flag::PinMessages,
 					tr::lng_rights_permission_unavailable(tr::now));
-			} else if (channel->isMegagroup() && channel->linkedChat()) {
+			} else if (channel->isMegagroup() && channel->discussionLink()) {
 				result.emplace(
 					Flag::ChangeInfo | Flag::PinMessages,
 					tr::lng_rights_permission_in_discuss(tr::now));
@@ -1181,7 +1182,8 @@ void ShowEditPeerPermissionsBox(
 		state->starsPerMessage = SetupChargeSlider(
 			chargeInner,
 			peer,
-			starsPerMessage);
+			(starsPerMessage > 0) ? starsPerMessage : std::optional<int>(),
+			kDefaultChargeStars);
 	}
 
 	static constexpr auto kSendRestrictions = Flag::EmbedLinks
