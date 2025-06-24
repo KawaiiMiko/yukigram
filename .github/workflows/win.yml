@@ -121,7 +121,7 @@ jobs:
       - name: Read configuration matrix.
         shell: bash
         run: |
-          ARTIFACT_NAME="Telegram"
+          ARTIFACT_NAME="Yukigram"
 
           ARCH=""
           if [ -n "${{ matrix.arch }}" ]; then
