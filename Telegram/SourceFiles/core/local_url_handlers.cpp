@@ -662,7 +662,7 @@ bool ResolveUsernameOrPhone(
 		.videoTimestamp = (!videot.isEmpty()
 			? ParseVideoTimestamp(videot)
 			: std::optional<TimeId>()),
-		.text = params.value(u"text"_q).replace(u"@"_q, u"@\\"_q),
+		.text = params.value(u"text"_q),
 		.repliesInfo = commentId
 			? Window::RepliesByLinkInfo{
 				Window::CommentId{ commentId }
