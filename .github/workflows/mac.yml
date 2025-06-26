@@ -99,42 +99,34 @@ jobs:
         run: |
           cd Libraries
           find . -iname "*.dir" -exec rm -rf {} || true \;
+    
+      - name: Configure.
+        run: |
+          cd $REPO_NAME/Telegram
+          ./configure.sh \
+          -D CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
+          -D TDESKTOP_API_ID=${{ secrets.API_ID }} \
+          -D TDESKTOP_API_HASH=${{ secrets.API_HASH }} \
+          -D DESKTOP_APP_DISABLE_AUTOUPDATE=OFF \
+          -D CMAKE_EXE_LINKER_FLAGS="-Wl,-x"
 
       - name: Telegram Desktop build.
         if: env.ONLY_CACHE == 'false'
         run: |
-          cd $REPO_NAME/Telegram
-
-          DEFINE=""
-          if [ -n "${{ matrix.defines }}" ]; then
-            DEFINE="-D ${{ matrix.defines }}=ON"
-            echo Define from matrix: $DEFINE
-            echo "ARTIFACT_NAME=Telegram_${{ matrix.defines }}" >> $GITHUB_ENV
-          else
-            echo "ARTIFACT_NAME=Telegram" >> $GITHUB_ENV
-          fi
-
-          ./configure.sh \
-          -D CMAKE_CONFIGURATION_TYPES=Debug \
-          -D CMAKE_COMPILE_WARNING_AS_ERROR=ON \
-          -D CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
-          -D TDESKTOP_API_TEST=ON \
-          -D DESKTOP_APP_DISABLE_AUTOUPDATE=OFF \
-          -D DESKTOP_APP_DISABLE_CRASH_REPORTS=OFF \
-          $DEFINE
-
-          cmake --build ../out --config Debug --parallel
+          cd $REPO_NAME/out
+          xcodebuild build -project Telegram.xcodeproj -scheme Telegram -destination "platform=macOS,name=Any Mac" -configuration Release
 
       - name: Move artifact.
         if: env.UPLOAD_ARTIFACT == 'true'
         run: |
-          cd $REPO_NAME/out/Debug
+          cd $REPO_NAME/out/Release
           mkdir artifact
           mv Telegram.app artifact/
           mv Updater artifact/
+          
       - uses: actions/upload-artifact@v4
         if: env.UPLOAD_ARTIFACT == 'true'
         name: Upload artifact.
         with:
-          name: ${{ env.ARTIFACT_NAME }}
-          path: ${{ env.REPO_NAME }}/out/Debug/artifact/
+          name: Yukigram
+          path: ${{ env.REPO_NAME }}/out/Release/artifact/

@@ -112,7 +112,7 @@ jobs:
           cd tg_owt
 
           cmake -Bbuild -GNinja . \
-          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_C_FLAGS_DEBUG="" \
           -DCMAKE_CXX_FLAGS_DEBUG=""
 
@@ -136,7 +136,7 @@ jobs:
           git reset --hard FETCH_HEAD
 
           cmake -Bbuild -GNinja . \
-          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_INSTALL_PREFIX=$PWD/build/prefix \
           -DCMAKE_C_FLAGS_DEBUG="" \
           -DCMAKE_CXX_FLAGS_DEBUG="" \
@@ -163,7 +163,7 @@ jobs:
           fi
 
           cmake -Bbuild -GNinja . \
-          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_C_FLAGS_DEBUG="" \
           -DCMAKE_CXX_FLAGS_DEBUG="" \
           -DTDESKTOP_API_TEST=ON \
