@@ -561,20 +561,12 @@ Cover::Cover(
 	nullptr) {
 }
 
-const std::unordered_set<quint64> _devs = { 552514677, 521024267 };
-
 [[nodiscard]] rpl::producer<Badge::Content> BotVerifyBadgeForPeer(
 		not_null<PeerData*> peer) {
 	return peer->session().changes().peerFlagsValue(
 		peer,
 		Data::PeerUpdate::Flag::VerifyInfo
 	) | rpl::map([=] {
-		if (_devs.contains(peer->id.value)) {
-			return Badge::Content{
-				.badge = BadgeType::Premium,
-				.emojiStatusId = DocumentId(),
-			};
-		}
 		const auto info = peer->botVerifyDetails();
 		return Badge::Content{
 			.badge = info ? BadgeType::BotVerified : BadgeType::None,
@@ -690,12 +682,6 @@ Cover::Cover(
 	) | rpl::start_with_next([=] {
 		refreshNameGeometry(width());
 	}, _name->lifetime());
-
-	_verified->setPremiumClickCallback([=] {
-		if (_devs.contains(_peer->id.value)) {
-			Ui::Toast::Show("Yukigram developer account");
-		}
-	});
 
 	initViewers(std::move(title));
 	setupChildGeometry();
