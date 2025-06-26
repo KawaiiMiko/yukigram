@@ -172,11 +172,11 @@ jobs:
           cmake --build build --parallel
 
           cd build
-          macdeployqt Telegram.app
-          codesign --remove-signature Telegram.app
+          macdeployqt Yukigram.app
+          codesign --remove-signature Yukigram.app
 
           mkdir dmgsrc
-          mv Telegram.app dmgsrc
+          mv Yukigram.app dmgsrc
           hdiutil create -volname Telegram -srcfolder dmgsrc -ov -format UDZO Telegram.dmg
 
       - name: Move artifact.

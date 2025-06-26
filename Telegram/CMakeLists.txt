@@ -1878,7 +1878,7 @@ else()
     if (LINUX AND DESKTOP_APP_USE_PACKAGED)
         set(output_name "yukigram")
     else()
-        set(output_name "Telegram")
+        set(output_name "Yukigram")
     endif()
 endif()
 
