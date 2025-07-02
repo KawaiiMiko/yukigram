@@ -635,7 +635,7 @@ void AddRepeaterAction(
 				}, &st::menuIconFave);
 			}
 			if (!fwdSubmenu->empty()) {
-				menu->addAction(tr::lng_context_forward(tr::now), std::move(fwdSubmenu), &st::menuIconForward);
+				menu->addAction(tr::lng_context_forward_msg(tr::now), std::move(fwdSubmenu), &st::menuIconForward);
 			}
 			if (GetEnhancedBool("show_repeater_option") && !repeatSubmenu->empty()) {
 				menu->addAction(tr::lng_context_repeater(tr::now), std::move(repeatSubmenu), &st::menuIconDiscussion);

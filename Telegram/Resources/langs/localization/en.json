@@ -98,7 +98,7 @@
     "lng_title_forward_as_copy": "Copy to...",
     "lng_title_multiple_forward": "Forward to...",
 
-    "lng_context_forward_msg": "Multi-Forward",
+    "lng_context_forward_msg_multi": "Multi-Forward",
     "lng_context_forward_msg_old": "Single Forward",
     "lng_context_show_messages_from": "Msgs From User",
     "lng_context_repeat_msg": "Repeat as Forward",
@@ -106,7 +106,7 @@
     "lng_context_forward_msg_no_quote": "Forward as copy",
     "lng_forward_to_saved_message": "Forward to Saved",
     "lng_context_repeater": "Repeater",
-    "lng_context_forward": "Forward",
+    "lng_context_forward_msg": "Forward",
 
     "lng_settings_enable_hd_video": "Higher video bitrate",
     "lng_hd_video_hint": "Video bitrate is changed! Rejoin a voice chat if you've already joined.",
