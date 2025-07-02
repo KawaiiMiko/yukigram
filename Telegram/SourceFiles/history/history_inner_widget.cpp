@@ -2858,7 +2858,7 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 					fwdSubmenu->addAction(tr::lng_context_forward_msg_old(tr::now), [=] {
 						oldForwardItem(itemId);
 					}, &st::menuIconForward);
-					fwdSubmenu->addAction(tr::lng_context_forward_msg(tr::now), [=] {
+					fwdSubmenu->addAction(tr::lng_context_forward_msg_multi(tr::now), [=] {
 						forwardItem(itemId);
 					}, &st::menuIconForward);
 					fwdSubmenu->addAction(tr::lng_context_forward_msg_no_quote(tr::now), [=] {
@@ -3234,7 +3234,7 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 					fwdSubmenu->addAction(tr::lng_context_forward_msg_old(tr::now), [=] {
 						oldForwardAsGroup(itemId);
 					}, &st::menuIconForward);
-					fwdSubmenu->addAction(tr::lng_context_forward_msg(tr::now), [=] {
+					fwdSubmenu->addAction(tr::lng_context_forward_msg_multi(tr::now), [=] {
 						forwardAsGroup(itemId);
 					}, &st::menuIconForward);
 					fwdSubmenu->addAction(tr::lng_context_forward_msg_no_quote(tr::now), [=] {
