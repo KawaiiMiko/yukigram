@@ -582,12 +582,9 @@ mac:
 stage('mozjpeg', """
     git clone -b v4.1.5 https://github.com/mozilla/mozjpeg.git
     cd mozjpeg
-winarm:
-    SET "WIN32X64=arm64"
 win:
     cmake . ^
         -A %WIN32X64% ^
-        -DCMAKE_SYSTEM_PROCESSOR=%WIN32X64% ^
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ^
         -DWITH_JPEG8=ON ^
         -DPNG_SUPPORTED=OFF
