@@ -47,7 +47,7 @@ jobs:
 
     strategy:
       matrix:
-        arch: [Win32, x64]
+        arch: [Win32, x64, amd64_arm64]
         generator: [""]
 
     env:
@@ -128,10 +128,11 @@ jobs:
           if [ -n "${{ matrix.arch }}" ]; then
             case "${{ matrix.arch }}" in
               Win32) ARCH="x86";;
+              amd64_arm64) ARCH="arm";;
               *) ARCH="${{ matrix.arch }}";;
             esac
             echo "Architecture from matrix: $ARCH"
-            ARTIFACT_NAME="${ARTIFACT_NAME}_${{ matrix.arch }}"
+            ARTIFACT_NAME="${ARTIFACT_NAME}_${ARCH}"
           fi
 
           GENERATOR=""
@@ -172,7 +173,8 @@ jobs:
           -D CMAKE_CXX_FLAGS="/WX" ^
           -D DESKTOP_APP_DISABLE_AUTOUPDATE=ON ^
           -D DESKTOP_APP_DISABLE_CRASH_REPORTS=OFF ^
-          -D DESKTOP_APP_NO_PDB=ON -U DESKTOP_APP_DISABLE_X11_INTEGRATION
+          -D DESKTOP_APP_NO_PDB=ON ^
+          -U DESKTOP_APP_DISABLE_X11_INTEGRATION
 
           cmake --build ..\out --config Release --parallel
 
@@ -182,6 +184,7 @@ jobs:
           set OUT=%TBUILD%\%REPO_NAME%\out\Release
           mkdir artifact
           move %OUT%\Yukigram.exe artifact/
+
       - uses: actions/upload-artifact@v4
         name: Upload artifact.
         if: (env.UPLOAD_ARTIFACT == 'true') || (github.ref == 'refs/heads/nightly')
