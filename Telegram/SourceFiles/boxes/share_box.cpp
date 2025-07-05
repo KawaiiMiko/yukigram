@@ -285,7 +285,7 @@ void ShareBox::prepare() {
 
 	setTitle(_descriptor.titleOverride
 		? std::move(_descriptor.titleOverride)
-		: header);
+		: tr::lng_share_title());
 
 	_inner = setInnerWidget(
 		object_ptr<Inner>(this, _descriptor, uiShow()),
