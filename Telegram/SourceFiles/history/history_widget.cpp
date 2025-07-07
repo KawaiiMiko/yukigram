@@ -5480,7 +5480,17 @@ bool HistoryWidget::isBlocked() const {
 
 bool HistoryWidget::isJoinChannel() const {
 	if (const auto channel = _peer ? _peer->asChannel() : nullptr) {
-		return !channel->amIn() && !channel->isMonoforum();
+		// If not in channel and not a monoforum
+		if (channel->amIn() || channel->isMonoforum()) {
+			return false;
+		}
+		
+		// Hide join button if group has linked channel and doesn't require join request
+		if (channel->discussionLink() && !channel->joinToWrite()) {
+			return false;
+		}
+		
+		return true;
 	}
 	return false;
 }

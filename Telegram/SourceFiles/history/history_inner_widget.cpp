@@ -5311,7 +5311,7 @@ bool CanSendReply(not_null<const HistoryItem*> item) {
 		if (const auto sublist = item->savedSublist()) {
 			return (sublist->sublistPeer() != peer);
 		}
-		return channel->amIn();
+		return channel->amIn() || !channel->joinToWrite();
 	}
 	return true;
 }

@@ -1639,10 +1639,15 @@ void ChatWidget::refreshJoinGroupButton() {
 	const auto canSend = !channel->isForum()
 		? Data::CanSendAnything(channel)
 		: (_topic && Data::CanSendAnything(_topic));
-	if (channel->amIn() || canSend) {
+	
+	// Check if should hide join button for groups with linked channel that don't require join request
+	const auto shouldHideJoinButton = channel->discussionLink() && !channel->joinToWrite();
+	
+	if (channel->amIn() || canSend || shouldHideJoinButton) {
 		_canSendTexts = true;
 		set(nullptr);
-	} else {
+	}
+    else {
 		_canSendTexts = false;
 		if (!_joinGroup) {
 			set(std::make_unique<Ui::FlatButton>(
