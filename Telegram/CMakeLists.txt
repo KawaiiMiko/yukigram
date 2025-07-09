@@ -1577,6 +1577,8 @@ PRIVATE
     support/support_templates.h
     tde2e/tde2e_integration.cpp
     tde2e/tde2e_integration.h
+    translate/google_translate.cpp
+    translate/google_translate.h
     ui/boxes/edit_invite_link_session.cpp
     ui/boxes/edit_invite_link_session.h
     ui/boxes/peer_qr_box.cpp

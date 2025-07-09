@@ -371,6 +371,20 @@ namespace Settings {
 			EnhancedSettings::Write();
 		}, container->lifetime());
 
+		AddButtonWithIcon(
+				inner,
+				tr::lng_settings_use_gt_api(),
+				st::settingsButtonNoIcon
+		)->toggleOn(
+				rpl::single(GetEnhancedBool("use_gt_api"))
+		)->toggledChanges(
+		) | rpl::filter([=](bool toggled) {
+			return (toggled != GetEnhancedBool("use_gt_api"));
+		}) | rpl::start_with_next([=](bool toggled) {
+			SetEnhancedValue("use_gt_api", toggled);
+			EnhancedSettings::Write();
+		}, container->lifetime());
+
 		QString langPackBaseId = Lang::GetInstance().baseId();
 		if (langPackBaseId == "zh-hant-raw" || langPackBaseId == "zh-hans-raw") {
 			AddButtonWithIcon(
