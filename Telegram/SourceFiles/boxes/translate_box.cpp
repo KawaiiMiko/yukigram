@@ -19,6 +19,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "main/main_session.h"
 #include "mtproto/sender.h"
 #include "spellcheck/platform/platform_language.h"
+#include "translate/google_translate.h"
 #include "ui/boxes/choose_language_box.h"
 #include "ui/effects/loading_element.h"
 #include "ui/layers/generic_box.h"
@@ -108,9 +109,11 @@ void TranslateBox(
 
 		MTP::Sender api;
 		rpl::variable<LanguageId> to;
+		GTranslate* translate;
 	};
 	const auto state = box->lifetime().make_state<State>(&peer->session());
 	state->to = ChooseTranslateTo(peer->owner().history(peer));
+	state->translate = new GTranslate();
 
 	if (!IsServerMsgId(msgId)) {
 		msgId = 0;
@@ -227,39 +230,49 @@ void TranslateBox(
 		loading->show(anim::type::instant);
 		translated->hide(anim::type::instant);
 		auto toTC = GetEnhancedBool("translate_to_tc"); // Override translate setting :)
-		state->api.request(MTPmessages_TranslateText(
-			MTP_flags(flags),
-			msgId ? peer->input : MTP_inputPeerEmpty(),
-			(msgId
-				? MTP_vector<MTPint>(1, MTP_int(msgId))
-				: MTPVector<MTPint>()),
-			(msgId
-				? MTPVector<MTPTextWithEntities>()
-				: MTP_vector<MTPTextWithEntities>(1, MTP_textWithEntities(
-					MTP_string(text.text),
-					Api::EntitiesToMTP(
-						&peer->session(),
-						text.entities,
-						Api::ConvertOption::SkipLocal)))),
-			MTP_string(toTC ? "zh-Hant" : to.twoLetterCode())
-		)).done([=](const MTPmessages_TranslatedText &result) {
-			const auto &data = result.data();
-			const auto &list = data.vresult().v;
-			if (list.isEmpty()) {
+		auto useGTApi = GetEnhancedBool("use_gt_api");
+
+		if (useGTApi) {
+			auto result = [=](QString result) {
+				showText(TextWithEntities{ .text = result });
+			};
+
+			state->translate->translate("auto", toTC ? "zh-Hant" : to.twoLetterCode(), text.text, result);
+		} else {
+			state->api.request(MTPmessages_TranslateText(
+				MTP_flags(flags),
+				msgId ? peer->input : MTP_inputPeerEmpty(),
+				(msgId
+					? MTP_vector<MTPint>(1, MTP_int(msgId))
+					: MTPVector<MTPint>()),
+				(msgId
+					? MTPVector<MTPTextWithEntities>()
+					: MTP_vector<MTPTextWithEntities>(1, MTP_textWithEntities(
+						MTP_string(text.text),
+						Api::EntitiesToMTP(
+							&peer->session(),
+							text.entities,
+							Api::ConvertOption::SkipLocal)))),
+				MTP_string(toTC ? "zh-Hant" : to.twoLetterCode())
+			)).done([=](const MTPmessages_TranslatedText &result) {
+				const auto &data = result.data();
+				const auto &list = data.vresult().v;
+				if (list.isEmpty()) {
+					showText(
+						Ui::Text::Italic(tr::lng_translate_box_error(tr::now)));
+				} else {
+					showText(TextWithEntities{
+						.text = qs(list.front().data().vtext()),
+						.entities = Api::EntitiesFromMTP(
+							&peer->session(),
+							list.front().data().ventities().v),
+					});
+				}
+			}).fail([=](const MTP::Error &error) {
 				showText(
 					Ui::Text::Italic(tr::lng_translate_box_error(tr::now)));
-			} else {
-				showText(TextWithEntities{
-					.text = qs(list.front().data().vtext()),
-					.entities = Api::EntitiesFromMTP(
-						&peer->session(),
-						list.front().data().ventities().v),
-				});
-			}
-		}).fail([=](const MTP::Error &error) {
-			showText(
-				Ui::Text::Italic(tr::lng_translate_box_error(tr::now)));
-		}).send();
+			}).send();
+		}
 	};
 	state->to.value() | rpl::start_with_next(send, box->lifetime());
 

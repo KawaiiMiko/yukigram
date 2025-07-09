@@ -313,6 +313,7 @@ namespace EnhancedSettings {
 		settings.insert(qsl("show_group_sender_avatar"), false);
 		settings.insert(qsl("show_seconds"), false);
 		settings.insert(qsl("hide_counter"), false);
+		settings.insert(qsl("use_gt_api"), false);
 		settings.insert(qsl("translate_to_tc"), false);
 		settings.insert(qsl("hide_stories"), false);
 		settings.insert(qsl("no_animoji"), false);
@@ -375,6 +376,7 @@ namespace EnhancedSettings {
 		settings.insert(qsl("show_group_sender_avatar"), GetEnhancedBool("show_group_sender_avatar"));
 		settings.insert(qsl("show_seconds"), GetEnhancedBool("show_seconds"));
 		settings.insert(qsl("hide_counter"), GetEnhancedBool("hide_counter"));
+		settings.insert(qsl("use_gt_api"), GetEnhancedBool("use_gt_api"));
 		settings.insert(qsl("translate_to_tc"), GetEnhancedBool("translate_to_tc"));
 		settings.insert(qsl("hide_stories"), GetEnhancedBool("hide_stories"));
 		settings.insert(qsl("no_animoji"), GetEnhancedBool("no_animoji"));
