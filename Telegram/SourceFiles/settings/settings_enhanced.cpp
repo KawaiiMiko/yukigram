@@ -246,6 +246,20 @@ namespace Settings {
 			EnhancedSettings::Write();
 		}, container->lifetime());
 
+        AddButtonWithIcon(
+				inner,
+				tr::lng_settings_show_view_as_json(),
+				st::settingsButtonNoIcon
+		)->toggleOn(
+				rpl::single(GetEnhancedBool("show_view_as_json"))
+		)->toggledChanges(
+		) | rpl::filter([=](bool toggled) {
+			return (toggled != GetEnhancedBool("show_view_as_json"));
+		}) | rpl::start_with_next([=](bool toggled) {
+			SetEnhancedValue("show_view_as_json", toggled);
+			EnhancedSettings::Write();
+		}, container->lifetime());
+
 		if (GetEnhancedBool("show_repeater_option")) {
 			AddButtonWithIcon(
 					inner,

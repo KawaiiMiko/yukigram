@@ -6842,6 +6842,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_settings_button" = "Button";
 "lng_settings_show_emoji_button_as_text" = "Show emoji button as text";
 "lng_settings_show_repeater_option" = "Show repeater option";
+"lng_settings_show_view_as_json" = "Show view as json option";
 "lng_settings_repeater_reply_to_orig_msg" = "Reply to original message";
 "lng_settings_disable_cloud_draft_sync" = "Stop syncing drafts from cloud";
 "lng_settings_hide_classic_forward" = "Hide Classic Forward";
