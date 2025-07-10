@@ -1110,7 +1110,7 @@ bool Application::openInternalUrl(const QString &url, QVariant context) {
 }
 
 QString Application::changelogLink() const {
-	return "https://t.me/sylfngram";
+	return "https://t.me/RuaDevs";
 }
 
 bool Application::openCustomUrl(

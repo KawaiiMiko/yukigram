@@ -38,11 +38,11 @@ rpl::producer<TextWithEntities> Text2() {
 		lt_gpl_link,
 		rpl::single(Ui::Text::Link(
 			"GNU GPL",
-			"https://github.com/yukigram/yukigram/blob/dev/LICENSE")),
+			"https://github.com/Revincx/yukigram/blob/dev/LICENSE")),
 		lt_github_link,
 		rpl::single(Ui::Text::Link(
 			"GitHub",
-			"https://github.com/yukigram/yukigram")),
+			"https://github.com/Revincx/yukigram")),
 		Ui::Text::WithEntities);
 }
 
