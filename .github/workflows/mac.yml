@@ -123,10 +123,12 @@ jobs:
           mkdir artifact
           mv Yukigram.app artifact/
           mv Updater artifact/
-          
+          echo "VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+          echo "ARTIFACT_NAME=Yukigram_${VERSION}_Universal" >> $GITHUB_ENV
+
       - uses: actions/upload-artifact@v4
         if: env.UPLOAD_ARTIFACT == 'true'
         name: Upload artifact.
         with:
-          name: Yukigram
+          name: ${{ env.ARTIFACT_NAME }}
           path: ${{ env.REPO_NAME }}/out/Release/artifact/

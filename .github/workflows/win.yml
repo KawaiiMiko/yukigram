@@ -123,6 +123,7 @@ jobs:
         shell: bash
         run: |
           ARTIFACT_NAME="Yukigram"
+          VERSION=$(git describe --tags --abbrev=0)
 
           ARCH=""
           if [ -n "${{ matrix.arch }}" ]; then
@@ -131,14 +132,14 @@ jobs:
               *) ARCH="${{ matrix.arch }}";;
             esac
             echo "Architecture from matrix: $ARCH"
-            ARTIFACT_NAME="${ARTIFACT_NAME}_${{ matrix.arch }}"
+            ARTIFACT_NAME="${ARTIFACT_NAME}_${VERSION}_${ARCH}"
           fi
 
           GENERATOR=""
           if [ -n "${{ matrix.generator }}" ]; then
             GENERATOR="-G \"${{ matrix.generator }}\""
             echo "Generator from matrix: $GENERATOR"
-            ARTIFACT_NAME="${ARTIFACT_NAME}_${{ matrix.generator }}"
+            ARTIFACT_NAME="${ARTIFACT_NAME}_${VERSION}_${ARCH}_${{ matrix.generator }}"
           fi
           echo "TDESKTOP_BUILD_GENERATOR=$GENERATOR" >> $GITHUB_ENV
 
