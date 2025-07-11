@@ -45,8 +45,8 @@ jobs:
 
     strategy:
       matrix:
-        defines:
-          - ""
+        arch: [x86_64, arm64]
+
     env:
       UPLOAD_ARTIFACT: "true"
       ONLY_CACHE: "false"
@@ -109,22 +109,29 @@ jobs:
           -D TDESKTOP_API_HASH=${{ secrets.API_HASH }} \
           -D DESKTOP_APP_DISABLE_AUTOUPDATE=OFF \
           -D CMAKE_EXE_LINKER_FLAGS="-Wl,-x"
+          -D CMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}"
 
       - name: Telegram Desktop build.
         if: env.ONLY_CACHE == 'false'
         run: |
           cd $REPO_NAME/out
-          xcodebuild build -project Telegram.xcodeproj -scheme Telegram -destination "platform=macOS,name=Any Mac" -configuration Release
+          xcodebuild build -project Telegram.xcodeproj -scheme Telegram -arch ${{ matrix.arch }} -destination "platform=macOS,arch=${{ matrix.arch }}" -configuration Release
+
 
       - name: Move artifact.
         if: env.UPLOAD_ARTIFACT == 'true'
         run: |
+          if [ "${{ matrix.arch }}" = "x86_64" ]; then
+            TARGET=Intel
+          else
+            TARGET=AppleSilicon
+          fi
           cd $REPO_NAME/out/Release
           mkdir artifact
           mv Yukigram.app artifact/
           mv Updater artifact/
           echo "VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
-          echo "ARTIFACT_NAME=Yukigram_${VERSION}_Universal" >> $GITHUB_ENV
+          echo "ARTIFACT_NAME=Yukigram_${VERSION}_${TARGET}" >> $GITHUB_ENV
 
       - uses: actions/upload-artifact@v4
         if: env.UPLOAD_ARTIFACT == 'true'
