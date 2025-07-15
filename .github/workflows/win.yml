@@ -78,6 +78,8 @@ jobs:
       - name: Clone.
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
+          fetch-tags: true
           submodules: recursive
           path: ${{ env.TBUILD }}\${{ env.REPO_NAME }}
 
@@ -122,6 +124,7 @@ jobs:
       - name: Read configuration matrix.
         shell: bash
         run: |
+          cd "$TBUILD/$REPO_NAME"
           ARTIFACT_NAME="Yukigram"
           VERSION=$(git describe --tags --abbrev=0)
 
