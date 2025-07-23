@@ -64,9 +64,8 @@ void TranslateTracker::setup() {
 	using namespace rpl::mappers;
 	_trackingLanguage = rpl::combine(
 		Core::App().settings().translateChatEnabledValue(),
-		Data::AmPremiumValue(&_history->session()),
 		std::move(autoTranslationValue),
-		_1 && (_2 || _3));
+		_1 || _2);
 	_trackingLanguage.value() | rpl::start_with_next([=](bool tracking) {
 		_trackingLifetime.destroy();
 		if (tracking) {
