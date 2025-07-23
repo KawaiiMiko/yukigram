@@ -2287,11 +2287,16 @@ Ui::MultiSlideTracker DetailsFiller::fillDiscussionButtons(
 		tracker);
 
 	// Add join group button logic
+	auto isForumOrMonoforum = rpl::single(
+		channel->isForum() || channel->isMonoforum()
+	);
+
 	auto joinGroupVisible = rpl::combine(
 		AmInChannelValue(channel) | rpl::map(!_1),
-		rpl::duplicate(viewDiscussionVisible) | rpl::map(!_1)
-	) | rpl::map([](bool notInChannel, bool discussionNotVisible) {
-		return notInChannel && discussionNotVisible;
+		rpl::duplicate(viewDiscussionVisible) | rpl::map(!_1),
+		std::move(isForumOrMonoforum) | rpl::map(!_1)
+	) | rpl::map([](bool notInChannel, bool discussionNotVisible, bool notForumOrMonoforum) {
+		return notInChannel && discussionNotVisible && notForumOrMonoforum;
 	});
 
     AddMainButton(
