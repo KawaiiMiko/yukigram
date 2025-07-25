@@ -780,32 +780,14 @@ void StickerSetBox::updateButtons() {
             }
         };
 		if (_inner->notInstalled()) {
-			if (!_session->premium()
-				&& _session->premiumPossible()
-				&& _inner->premiumEmojiSet()) {
-				const auto &st = st::premiumPreviewDoubledLimitsBox;
-				setStyle(st);
-				auto button = CreateUnlockButton(
-					this,
-					tr::lng_premium_unlock_emoji());
-				button->resizeToWidth(st::boxWideWidth
-					- st.buttonPadding.left()
-					- st.buttonPadding.left());
-				button->setClickedCallback([=] {
-					if (const auto window = _show->resolveWindow()) {
-						Settings::ShowPremium(window, u"animated_emoji"_q);
-					}
-				});
-				addButton(std::move(button));
-			} else {
-				auto addText = (type == Data::StickersType::Emoji)
-					? tr::lng_stickers_add_emoji()
-					: (type == Data::StickersType::Masks)
-					? tr::lng_stickers_add_masks()
-					: tr::lng_stickers_add_pack();
-				addButton(std::move(addText), [=] { addStickers(); });
-				addButton(tr::lng_cancel(), [=] { closeBox(); });
-			}
+
+			auto addText = (type == Data::StickersType::Emoji)
+				? tr::lng_stickers_add_emoji()
+				: (type == Data::StickersType::Masks)
+				? tr::lng_stickers_add_masks()
+				: tr::lng_stickers_add_pack();
+			addButton(std::move(addText), [=] { addStickers(); });
+			addButton(tr::lng_cancel(), [=] { closeBox(); });
 
 			if (!_inner->shortName().isEmpty()) {
 				const auto top = addTopButton(st::infoTopBarMenu);
