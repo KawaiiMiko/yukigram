@@ -432,7 +432,7 @@ bool AddForwardSelectedAction(
 				strong->cancelSelection();
 			}
 		});
-        
+		
 	}, &st::menuIconFave);
 	return true;
 }
@@ -457,11 +457,11 @@ bool AddForwardMessageAction(
 		}
 	}
 	const auto itemId = item->fullId();
-    const auto controller = request.navigation->parentController();
+	const auto controller = request.navigation->parentController();
 
-    auto fwdSubmenu = std::make_unique<Ui::PopupMenu>(list, st::popupMenuWithIcons);
+	auto fwdSubmenu = std::make_unique<Ui::PopupMenu>(list, st::popupMenuWithIcons);
 
-    fwdSubmenu->addAction(tr::lng_context_forward_msg_old(tr::now), [=] {
+	fwdSubmenu->addAction(tr::lng_context_forward_msg_old(tr::now), [=] {
 		if (const auto item = owner->message(itemId)) {
 			Window::ShowForwardMessagesBox(controller, { 1, itemId });
 		}
@@ -488,7 +488,7 @@ bool AddForwardMessageAction(
 		}
 	}, &st::menuIconForward);
 
-    fwdSubmenu->addAction(tr::lng_forward_to_saved_message(tr::now), [=] {
+	fwdSubmenu->addAction(tr::lng_forward_to_saved_message(tr::now), [=] {
 		if (item->id <= 0) return;
 		const auto api = &item->history()->peer->session().api();
 		auto action = Api::SendAction(item->history()->peer->owner().history(api->session().user()->asUser()));
@@ -502,7 +502,7 @@ bool AddForwardMessageAction(
 		});
 	}, &st::menuIconFave);
 
-    if (!fwdSubmenu->empty()) {
+	if (!fwdSubmenu->empty()) {
 		menu->addAction(tr::lng_context_forward_msg(tr::now), std::move(fwdSubmenu), &st::menuIconForward);
 	}
 	return true;
@@ -1273,7 +1273,7 @@ void AddMessageActions(
 		const ContextMenuRequest &request,
 		not_null<ListWidget*> list) {
 	AddPostLinkAction(menu, request);
-    AddMsgsFromUserAction(menu, request, list);
+	AddMsgsFromUserAction(menu, request, list);
 	AddForwardAction(menu, request, list);
 	AddRepeaterAction(menu, request, list);
 	AddSendNowAction(menu, request, list);
@@ -1912,7 +1912,7 @@ void AddWhoReactedAction(
 						whoReadIds)));
 		}
 	};
-    if (!menu->empty()) {
+	if (!menu->empty()) {
 		menu->addSeparator(&st::expandedMenuSeparator);
 	}
 	if (item->history()->peer->isUser()) {

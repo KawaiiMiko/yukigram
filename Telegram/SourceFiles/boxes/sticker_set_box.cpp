@@ -761,24 +761,24 @@ void StickerSetBox::updateButtons() {
 					&st::menuIconManage);
 			});
 		}();
-        const auto author = [=] {
-            auto ownerId = _inner->setId() >> 32;
-            if ((_inner->setId() >> 16 & 0xff) == 0x3f) {
-                ownerId |= 0x80000000;
-            }
-            if (_inner->setId() >> 24 & 0xff) {
-                ownerId += 0x100000000;
-            }
-            const auto peer = _session->data().peerLoaded(static_cast<PeerId>(ownerId));
-            if (peer != nullptr) {
-                if (const auto window = _session->tryResolveWindow()) {
-                    window->showPeerInfo(peer);
-                }
-            } else {
-                QGuiApplication::clipboard()->setText(QString::number(ownerId));
-                showToast(tr::lng_code_copied(tr::now));
-            }
-        };
+		const auto author = [=] {
+			auto ownerId = _inner->setId() >> 32;
+			if ((_inner->setId() >> 16 & 0xff) == 0x3f) {
+				ownerId |= 0x80000000;
+			}
+			if (_inner->setId() >> 24 & 0xff) {
+				ownerId += 0x100000000;
+			}
+			const auto peer = _session->data().peerLoaded(static_cast<PeerId>(ownerId));
+			if (peer != nullptr) {
+				if (const auto window = _session->tryResolveWindow()) {
+					window->showPeerInfo(peer);
+				}
+			} else {
+				QGuiApplication::clipboard()->setText(QString::number(ownerId));
+				showToast(tr::lng_code_copied(tr::now));
+			}
+		};
 		if (_inner->notInstalled()) {
 
 			auto addText = (type == Data::StickersType::Emoji)
@@ -864,10 +864,10 @@ void StickerSetBox::updateButtons() {
 							archive,
 							&st::menuIconArchive);
 					}
-                    (*menu)->addAction(
-                            tr::lng_channel_admin_status_creator(tr::now),
-                            [=] { author(); },
-                            &st::menuIconProfile);
+					(*menu)->addAction(
+							tr::lng_channel_admin_status_creator(tr::now),
+							[=] { author(); },
+							&st::menuIconProfile);
 					(*menu)->popup(QCursor::pos());
 					return true;
 				});

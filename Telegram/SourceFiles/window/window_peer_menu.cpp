@@ -2834,7 +2834,7 @@ QPointer<Ui::BoxContent> ShowOldForwardMessagesBox(
 					not_null<PeerData*> peer) -> Controller::Chosen {
 				return peer->owner().history(peer);
 			}) | ranges::to_vector,
-            []() { return false; },
+			[]() { return false; },
 			comment->entity()->getTextWithAppliedMarkdown(),
 			options,
 			state->box->forwardOptionsData());
@@ -3011,12 +3011,12 @@ void ShowNewForwardMessagesBox(
 						.session = session,
 						.submitCallback = ShareBox::DefaultForwardCallback(
 						   navigation->parentController()->uiShow(),
-			               history,
-			               msgIds,
-                           {},
-			               no_quote),
+						   history,
+						   msgIds,
+						   {},
+						   no_quote),
 						.filterCallback = std::move(filterCallback),
-                        .titleOverride = no_quote ? tr::lng_title_forward_as_copy() : tr::lng_title_multiple_forward(),
+						.titleOverride = no_quote ? tr::lng_title_forward_as_copy() : tr::lng_title_multiple_forward(),
 						.forwardOptions = {
 							.sendersCount = ItemsForwardSendersCount(items),
 							.captionsCount = ItemsForwardCaptionsCount(items),

@@ -3040,7 +3040,7 @@ bool GroupCall::tryCreateController() {
 			});
 			return result;
 		},
-        .e2eEncryptDecrypt = (_e2eEncryptDecrypt
+		.e2eEncryptDecrypt = (_e2eEncryptDecrypt
 			? _e2eEncryptDecrypt->callback()
 			: nullptr),
 		.enableStereoMode = GetEnhancedBool("stereo_mode"),
@@ -3097,7 +3097,7 @@ bool GroupCall::tryCreateScreencast() {
 		.createAudioDeviceModule = Webrtc::LoopbackAudioDeviceModuleCreator(),
 		.videoCapture = _screenCapture,
 		.videoContentType = tgcalls::VideoContentType::Screencast,
-        .videoCodecPreferences = lookupVideoCodecPreferences(),
+		.videoCodecPreferences = lookupVideoCodecPreferences(),
 		.e2eEncryptDecrypt = (_e2eEncryptDecrypt
 			? _e2eEncryptDecrypt->callback()
 			: nullptr),

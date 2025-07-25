@@ -1326,7 +1326,7 @@ CustomLangPack::CustomLangPack() = default;
 
 void CustomLangPack::initInstance() {
 	if (!instance)
-    	instance = new CustomLangPack;
+		instance = new CustomLangPack;
 }
 
 CustomLangPack *CustomLangPack::currentInstance() {

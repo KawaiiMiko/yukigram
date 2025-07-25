@@ -1673,7 +1673,7 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 		not_null<History*> history,
 		MessageIdsList msgIds,
 		std::optional<TimeId> videoTimestamp,
-        bool no_quote) {
+		bool no_quote) {
 	struct State final {
 		base::flat_set<mtpRequestId> requests;
 	};
@@ -1718,9 +1718,9 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 				| ((forwardOptions == Data::ForwardOptions::NoNamesAndCaptions)
 					? Flag::f_drop_media_captions
 					: Flag(0))
-			    | (videoTimestamp.has_value()
-				    ? Flag::f_video_timestamp
-    				: Flag(0));
+				| (videoTimestamp.has_value()
+					? Flag::f_video_timestamp
+					: Flag(0));
 		}
 
 		auto mtpMsgIds = QVector<MTPint>();
@@ -1931,7 +1931,7 @@ void FastShareMessage(
 			show,
 			history,
 			msgIds,
-            {},
+			{},
 			false),
 		.filterCallback = std::move(filterCallback),
 		.st = st,

@@ -75,9 +75,9 @@ constexpr auto kTypesDuration = 4 * crl::time(1000);
 constexpr auto kCodeLanguageLimit = 32;
 
 constexpr auto kLinkProtocols = {
-    "http://",
-    "https://",
-    "tonsite://"
+	"http://",
+	"https://",
+	"tonsite://"
 };
 
 // For mention / custom emoji tags save and validate selfId,

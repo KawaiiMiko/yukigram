@@ -1641,7 +1641,7 @@ void ChatWidget::refreshJoinGroupButton() {
 		_canSendTexts = true;
 		set(nullptr);
 	}
-    else {
+	else {
 		_canSendTexts = false;
 		if (!_joinGroup) {
 			set(std::make_unique<Ui::FlatButton>(

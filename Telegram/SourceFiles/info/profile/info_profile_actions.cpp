@@ -2299,17 +2299,17 @@ Ui::MultiSlideTracker DetailsFiller::fillDiscussionButtons(
 		return notInChannel && discussionNotVisible && notForumOrMonoforum;
 	});
 
-    AddMainButton(
-        _wrap,
-        (channel->requestToJoin() && !channel->amCreator())
-            ? tr::lng_profile_apply_to_join_group()
-            : tr::lng_profile_join_group(),
-        std::move(joinGroupVisible),
-        [=]
-        { channel->session().api().joinChannel(channel); },
-        tracker);
+	AddMainButton(
+		_wrap,
+		(channel->requestToJoin() && !channel->amCreator())
+			? tr::lng_profile_apply_to_join_group()
+			: tr::lng_profile_join_group(),
+		std::move(joinGroupVisible),
+		[=]
+		{ channel->session().api().joinChannel(channel); },
+		tracker);
 
-    if (const auto forum = channel->forum()) {
+	if (const auto forum = channel->forum()) {
 		if (channel->useSubsectionTabs()) {
 			addShowTopicsListButton(tracker, forum);
 		}

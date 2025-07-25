@@ -246,7 +246,7 @@ namespace Settings {
 			EnhancedSettings::Write();
 		}, container->lifetime());
 
-        AddButtonWithIcon(
+		AddButtonWithIcon(
 				inner,
 				tr::lng_settings_show_view_as_json(),
 				st::settingsButtonNoIcon

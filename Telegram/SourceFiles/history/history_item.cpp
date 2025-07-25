@@ -4443,7 +4443,7 @@ void HistoryItem::createComponents(const MTPDmessage &data, bool blocked) {
 	config.postAuthor = qs(data.vpost_author().value_or_empty());
 	config.restrictions = Data::UnavailableReason::Extract(
 		data.vrestriction_reason());
-    config.suggest = HistoryMessageSuggestInfo(data.vsuggested_post());
+	config.suggest = HistoryMessageSuggestInfo(data.vsuggested_post());
 	if (_media && _media->document() && _media->document()->sticker()) {
 		if (blocked) {
 			config.originalDate = 1;

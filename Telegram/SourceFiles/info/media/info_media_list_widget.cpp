@@ -1233,7 +1233,7 @@ void ListWidget::forwardItems(MessageIdsList &&items) {
 			_controller,
 			std::move(items),
 			std::move(callback))
-        );
+		);
 	}
 }
 

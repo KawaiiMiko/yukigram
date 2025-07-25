@@ -81,10 +81,10 @@ crl::time LastSettingsQueryMs/* = 0*/;
 			hint-inputId="fastReply"/>
 )";
 	const auto markAsRead = LR"(
-        <action
-            content=""
-            arguments="action=mark&amp;)" + wid + LR"("
-            activationType="background"/>
+		<action
+			content=""
+			arguments="action=mark&amp;)" + wid + LR"("
+			activationType="background"/>
 )";
 	const auto actions = (options.hideReplyButton ? L"" : fastReply)
 		+ (options.hideMarkAsRead ? L"" : markAsRead);

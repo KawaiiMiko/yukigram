@@ -2872,7 +2872,7 @@ void Controller::upgradeWithConfirmation() {
 	const auto chat = _peer->asChat();
 	Assert(chat != nullptr);
 
-    auto text = tr::lng_sure_upgrade_group(tr::now);
+	auto text = tr::lng_sure_upgrade_group(tr::now);
 	text.append("\n\n" + tr::lng_profile_convert_feature2(tr::now));
 	text.append("\n" + tr::lng_profile_convert_feature4(tr::now));
 	text.append("\n\n" + tr::lng_chat_upgrade_warning(tr::now));
