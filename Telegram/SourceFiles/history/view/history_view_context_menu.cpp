@@ -457,7 +457,17 @@ bool AddForwardMessageAction(
 		}
 	}
 	const auto itemId = item->fullId();
-	menu->addAction(tr::lng_context_forward_msg(tr::now), [=] {
+    const auto controller = request.navigation->parentController();
+
+    auto fwdSubmenu = std::make_unique<Ui::PopupMenu>(list, st::popupMenuWithIcons);
+
+    fwdSubmenu->addAction(tr::lng_context_forward_msg_old(tr::now), [=] {
+		if (const auto item = owner->message(itemId)) {
+			Window::ShowForwardMessagesBox(controller, { 1, itemId });
+		}
+	}, &st::menuIconForward);
+
+	fwdSubmenu->addAction(tr::lng_context_forward_msg_multi(tr::now), [=] {
 		if (const auto item = owner->message(itemId)) {
 			Window::ShowNewForwardMessagesBox(
 				request.navigation,
@@ -466,7 +476,8 @@ bool AddForwardMessageAction(
 					: MessageIdsList{ 1, itemId }), false);
 		}
 	}, &st::menuIconForward);
-	menu->addAction(tr::lng_context_forward_msg_no_quote(tr::now), [=] {
+
+	fwdSubmenu->addAction(tr::lng_context_forward_msg_no_quote(tr::now), [=] {
 		if (const auto item = owner->message(itemId)) {
 			Window::ShowNewForwardMessagesBox(
 					request.navigation,
@@ -476,6 +487,24 @@ bool AddForwardMessageAction(
 					true);
 		}
 	}, &st::menuIconForward);
+
+    fwdSubmenu->addAction(tr::lng_forward_to_saved_message(tr::now), [=] {
+		if (item->id <= 0) return;
+		const auto api = &item->history()->peer->session().api();
+		auto action = Api::SendAction(item->history()->peer->owner().history(api->session().user()->asUser()));
+		action.clearDraft = false;
+		action.generateLocal = false;
+
+		const auto history = item->history()->peer->owner().history(api->session().user()->asUser());
+		auto resolved = history->resolveForwardDraft(Data::ForwardDraft{ .ids = MessageIdsList(1, itemId) });
+		api->forwardMessages(std::move(resolved), action, [] {
+			Ui::Toast::Show(tr::lng_share_done(tr::now));
+		});
+	}, &st::menuIconFave);
+
+    if (!fwdSubmenu->empty()) {
+		menu->addAction(tr::lng_context_forward_msg(tr::now), std::move(fwdSubmenu), &st::menuIconForward);
+	}
 	return true;
 }
 
@@ -522,7 +551,6 @@ void AddRepeaterAction(
 	}
 	const auto itemId = item->fullId();
 	const auto _history = item->history();
-	auto fwdSubmenu = std::make_unique<Ui::PopupMenu>(list, st::popupMenuWithIcons);
 	auto repeatSubmenu = std::make_unique<Ui::PopupMenu>(list, st::popupMenuWithIcons);
 	if ((item->history()->peer->isMegagroup() || item->history()->peer->isChat() || item->history()->peer->isUser())) {
 		if (GetEnhancedBool("show_repeater_option")) {
@@ -618,25 +646,6 @@ void AddRepeaterAction(
 						Api::SendExistingDocument(std::move(message), document);
 					}, &st::menuIconDiscussion);
 				}
-			}
-			if (item->allowsForward()) {
-				fwdSubmenu->addAction(tr::lng_forward_to_saved_message(tr::now), [=] {
-					if (item->id <= 0) return;
-					const auto api = &item->history()->peer->session().api();
-					auto action = Api::SendAction(item->history()->peer->owner().history(api->session().user()->asUser()));
-					action.clearDraft = false;
-					action.generateLocal = false;
-
-					const auto history = item->history()->peer->owner().history(api->session().user()->asUser());
-					auto resolved = history->resolveForwardDraft(Data::ForwardDraft{ .ids = MessageIdsList(1, itemId) });
-
-					api->forwardMessages(std::move(resolved), action, [] {
-						Ui::Toast::Show(tr::lng_share_done(tr::now));
-					});
-				}, &st::menuIconFave);
-			}
-			if (!fwdSubmenu->empty()) {
-				menu->addAction(tr::lng_context_forward_msg(tr::now), std::move(fwdSubmenu), &st::menuIconForward);
 			}
 			if (GetEnhancedBool("show_repeater_option") && !repeatSubmenu->empty()) {
 				menu->addAction(tr::lng_context_repeater(tr::now), std::move(repeatSubmenu), &st::menuIconDiscussion);
@@ -1264,8 +1273,8 @@ void AddMessageActions(
 		const ContextMenuRequest &request,
 		not_null<ListWidget*> list) {
 	AddPostLinkAction(menu, request);
+    AddMsgsFromUserAction(menu, request, list);
 	AddForwardAction(menu, request, list);
-	AddMsgsFromUserAction(menu, request, list);
 	AddRepeaterAction(menu, request, list);
 	AddSendNowAction(menu, request, list);
 	AddDeleteAction(menu, request, list);
