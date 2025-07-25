@@ -76,15 +76,12 @@ void NetBoostBox::save() {
 		Core::Restart();
 	};
 
-	const auto box = std::make_shared<QPointer<BoxContent>>();
-
-	*box = getDelegate()->show(
-		Ui::MakeConfirmBox({
-				.text = tr::lng_net_boost_restart_desc(tr::now),
-				.confirmed = changeBoost,
-				.confirmText = tr::lng_settings_restart_now(tr::now),
-				.cancelText = tr::lng_cancel(tr::now),
-		}));
+	getDelegate()->show(Ui::MakeConfirmBox({
+		.text = tr::lng_net_boost_restart_desc(tr::now),
+		.confirmed = std::move(changeBoost),
+		.confirmText = tr::lng_settings_restart_now(tr::now),
+		.cancelText = tr::lng_cancel(tr::now),
+	}));
 }
 
 AlwaysDeleteBox::AlwaysDeleteBox(QWidget *parent) {
