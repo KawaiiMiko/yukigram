@@ -9232,7 +9232,7 @@ void HistoryWidget::forwardSelectedToSavedMessages() {
 	if (!_list) {
 		return;
 	}
-	const auto weak = Ui::MakeWeak(this);
+	const auto weak = base::make_weak(this);
 
 	const auto items = getSelectedItems();
 	const auto item = controller()->session().data().message(items[0]);
@@ -9251,7 +9251,7 @@ void HistoryWidget::forwardSelectedToSavedMessages() {
 	api->forwardMessages(std::move(resolved), action, [=] {
 		Ui::Toast::Show(tr::lng_share_done(tr::now));
 
-		if (const auto strong = weak.data()) {
+		if (const auto strong = weak.get()) {
 			strong->clearSelected();
 		}
 	});

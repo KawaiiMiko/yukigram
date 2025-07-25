@@ -2796,11 +2796,11 @@ QPointer<Ui::BoxContent> ShowOldForwardMessagesBox(
 			};
 		auto callback = [=, chosen = std::move(chosen)](
 			Controller::Chosen thread) mutable {
-				const auto weak = Ui::MakeWeak(state->box);
+				const auto weak = base::make_weak(state->box);
 				if (!chosen(thread)) {
 					return;
 				}
-				else if (const auto strong = weak.data()) {
+				else if (const auto strong = weak.get()) {
 					strong->closeBox();
 				}
 				if (successCallback) {
