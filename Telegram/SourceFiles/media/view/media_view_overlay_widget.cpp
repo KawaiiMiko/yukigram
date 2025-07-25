@@ -3387,7 +3387,7 @@ void OverlayWidget::refreshCaption() {
 			: Ui::ItemTextDefaultOptions()),
 		context);
 	if (_caption.hasSpoilers()) {
-		const auto weak = Ui::MakeWeak(widget());
+		const auto weak = base::make_weak(widget());
 		_caption.setSpoilerLinkFilter([=](const ClickContext &context) {
 			return (weak != nullptr);
 		});
@@ -4300,7 +4300,7 @@ void OverlayWidget::initThemePreview() {
 	const auto weakSession = base::make_weak(&_document->session());
 	const auto path = _document->location().name();
 	const auto id = _themePreviewId = base::RandomValue<uint64>();
-	const auto weak = Ui::MakeWeak(_widget);
+	const auto weak = base::make_weak(_widget);
 	crl::async([=, data = std::move(current)]() mutable {
 		auto preview = GeneratePreview(
 			bytes,
@@ -6462,7 +6462,7 @@ bool OverlayWidget::handleTouchEvent(not_null<QTouchEvent*> e) {
 		if (!_touchPress) {
 			break;
 		}
-		auto weak = Ui::MakeWeak(_widget);
+		auto weak = base::make_weak(_widget);
 		if (!_touchMove) {
 			const auto button = _touchRightButton
 				? Qt::RightButton
