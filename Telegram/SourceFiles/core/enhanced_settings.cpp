@@ -328,6 +328,7 @@ namespace EnhancedSettings {
 		settings.insert(qsl("mpris_call_hangup"), false);
 		settings.insert(qsl("recent_display_limit"), 20);
 		settings.insert(qsl("screenshot_mode"), false);
+        settings.insert(qsl("hide_star_ratings"), false);
 
 		auto document = QJsonDocument();
 		document.setObject(settings);
@@ -392,6 +393,7 @@ namespace EnhancedSettings {
 		settings.insert(qsl("mpris_call_hangup"), GetEnhancedBool("mpris_call_hangup"));
 		settings.insert(qsl("recent_display_limit"), GetEnhancedInt("recent_display_limit"));
 		settings.insert(qsl("screenshot_mode"), GetEnhancedBool("screenshot_mode"));
+        settings.insert(qsl("hide_star_ratings"), GetEnhancedBool("hide_star_ratings"));
 
 		auto document = QJsonDocument();
 		document.setObject(settings);
