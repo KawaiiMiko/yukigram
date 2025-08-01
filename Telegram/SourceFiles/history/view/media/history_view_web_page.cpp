@@ -387,7 +387,7 @@ QSize WebPage::countOptimalSize() {
 
 	// Detect _openButtonWidth before counting paddings.
 	_openButton = Ui::Text::String();
-	if ((_data->iv != nullptr || _data->siteName == "Ad") && HasButton(_data)) {
+	if (HasButton(_data)) {
 		const auto context = Core::TextContext({
 			.session = &_data->session(),
 			.customEmojiLoopLimit = 1,
@@ -1445,7 +1445,7 @@ TextState WebPage::textState(QPoint point, StateRequest request) const {
 	} else if (sponsored && outer.contains(point)) {
 		result.link = sponsored->link;
 	}
-	if (_data->iv) {
+	if (!result.link && outer.contains(point)) {
 		result.link = _openl;
 	}
 	if (const auto hint = hintData()) {
