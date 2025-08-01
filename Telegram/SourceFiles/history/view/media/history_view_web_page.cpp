@@ -352,22 +352,22 @@ void WebPage::setupAdditionalData() {
 			}
 		}
 	} else if (_data->stickerSet) {
-		//_additionalData = std::make_unique<AdditionalData>(StickerSetData());
-		//const auto raw = stickerSetData();
-		//for (const auto &sticker : _data->stickerSet->items) {
-		//	if (!sticker->sticker()) {
-		//		continue;
-		//	}
-		//	raw->views.push_back(
-		//		std::make_unique<Sticker>(_parent, sticker, true));
-		//}
-		//const auto side = std::ceil(std::sqrt(raw->views.size()));
-		//const auto box = UnitedLineHeight() * kStickerSetLines;
-		//const auto single = box / side;
-		//for (const auto &view : raw->views) {
-		//	view->setWebpagePart();
-		//	view->initSize(single);
-		//}
+		_additionalData = std::make_unique<AdditionalData>(StickerSetData());
+		const auto raw = stickerSetData();
+		for (const auto &sticker : _data->stickerSet->items) {
+			if (!sticker->sticker()) {
+				continue;
+			}
+			raw->views.push_back(
+				std::make_unique<Sticker>(_parent, sticker, true));
+		}
+		const auto side = std::ceil(std::sqrt(raw->views.size()));
+		const auto box = UnitedLineHeight() * kStickerSetLines;
+		const auto single = box / side;
+		for (const auto &view : raw->views) {
+			view->setWebpagePart();
+			view->initSize(single);
+		}
 	} else if (_data->type == WebPageType::Factcheck) {
 		_additionalData = std::make_unique<AdditionalData>(FactcheckData());
 	}
@@ -986,7 +986,7 @@ void WebPage::draw(Painter &p, const PaintContext &context) const {
 		}
 		paintw -= box;
 	}
-	if (asArticle()) {
+	else if (asArticle()) {
 		ensurePhotoMediaCreated();
 
 		auto pix = QPixmap();
