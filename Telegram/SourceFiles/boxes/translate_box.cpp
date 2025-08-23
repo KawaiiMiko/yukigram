@@ -260,18 +260,16 @@ void TranslateBox(
 				if (list.isEmpty()) {
 					showText(
 						Ui::Text::Italic(tr::lng_translate_box_error(tr::now)));
-				} else {
-					showText(TextWithEntities{
-						.text = qs(list.front().data().vtext()),
-						.entities = Api::EntitiesFromMTP(
-							&peer->session(),
-							list.front().data().ventities().v),
-					});
-				}
-			}).fail([=](const MTP::Error &error) {
-				showText(
-					Ui::Text::Italic(tr::lng_translate_box_error(tr::now)));
-			}).send();
+				
+			    } else {
+				    showText(Api::ParseTextWithEntities(
+					    &peer->session(),
+					    list.front()));
+			    }
+		    }).fail([=](const MTP::Error &error) {
+			    showText(
+				    Ui::Text::Italic(tr::lng_translate_box_error(tr::now)));
+		    }).send();
 		}
 	};
 	state->to.value() | rpl::start_with_next(send, box->lifetime());

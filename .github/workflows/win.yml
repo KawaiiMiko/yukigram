@@ -5,8 +5,8 @@ on:
   push:
     paths-ignore:
       - 'docs/**'
-      - '!docs/building-win*.md'
       - '**.md'
+      - '!docs/building-win*.md'
       - 'changelog.txt'
       - 'LEGAL'
       - 'LICENSE'
@@ -24,8 +24,8 @@ on:
   pull_request:
     paths-ignore:
       - 'docs/**'
-      - '!docs/building-win*.md'
       - '**.md'
+      - '!docs/building-win*.md'
       - 'changelog.txt'
       - 'LEGAL'
       - 'LICENSE'

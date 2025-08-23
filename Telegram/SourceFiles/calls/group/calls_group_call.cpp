@@ -4037,7 +4037,7 @@ void GroupCall::inviteUsers(
 		}
 	};
 
-	if (const auto call = _conferenceCall.get()) {
+	if (_conferenceCall.get()) {
 		for (const auto &request : requests) {
 			inviteToConference(request, [=] {
 				return &state->result;
