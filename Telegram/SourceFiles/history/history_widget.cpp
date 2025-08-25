@@ -5509,7 +5509,7 @@ bool HistoryWidget::isJoinChannel() const {
 		}
 		
 		// Hide join button if group has linked channel and doesn't require join request
-		if (channel->discussionLink() && !channel->joinToWrite()) {
+		if (channel->discussionLink() && !channel->joinToWrite() && (channel->isMegagroup() || channel->isGigagroup())) {
 			return false;
 		}
 		

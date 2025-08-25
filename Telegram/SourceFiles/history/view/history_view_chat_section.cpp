@@ -1640,7 +1640,8 @@ void ChatWidget::refreshJoinGroupButton() {
 		: (_topic && Data::CanSendAnything(_topic));
 	
 	// Check if should hide join button for groups with linked channel that don't require join request
-	const auto shouldHideJoinButton = channel->discussionLink() && !channel->joinToWrite();
+	const auto shouldHideJoinButton = 
+		(channel->isMegagroup() || channel->isGigagroup()) && channel->discussionLink() && !channel->joinToWrite();
 	
 	if (channel->amIn() || canSend || shouldHideJoinButton) {
 		_canSendTexts = true;
