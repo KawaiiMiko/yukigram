@@ -59,8 +59,6 @@ jobs:
       - name: Clone.
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          fetch-tags: true
           submodules: recursive
           path: ${{ env.REPO_NAME }}
 
@@ -121,12 +119,13 @@ jobs:
       - name: Move artifact.
         if: env.UPLOAD_ARTIFACT == 'true'
         run: |
+          cd $REPO_NAME
+          VERSION=$(grep 'AppVersionStr' Telegram/SourceFiles/core/version.h | cut -d '"' -f 2)
           cd $REPO_NAME/out/Release
-          VERSION=$(git describe --tags --abbrev=0)
           mkdir artifact
           mv Yukigram.app artifact/
           mv Updater artifact/
-          echo "ARTIFACT_NAME=Yukigram_${VERSION}_Universal" >> $GITHUB_ENV
+          echo "ARTIFACT_NAME=Yukigram_v${VERSION}_Universal" >> $GITHUB_ENV
 
       - uses: actions/upload-artifact@v4
         if: env.UPLOAD_ARTIFACT == 'true'

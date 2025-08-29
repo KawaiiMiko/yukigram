@@ -75,8 +75,6 @@ jobs:
       - name: Clone.
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          fetch-tags: true
           submodules: recursive
           path: ${{ env.TBUILD }}\${{ env.REPO_NAME }}
 
@@ -136,7 +134,7 @@ jobs:
         run: |
           cd "$TBUILD/$REPO_NAME"
           ARTIFACT_NAME="Yukigram"
-          VERSION=$(git describe --tags --abbrev=0)
+          VERSION=$(grep 'AppVersionStr' Telegram/SourceFiles/core/version.h | cut -d '"' -f 2)
 
           ARCH=""
           if [ -n "${{ matrix.arch }}" ]; then
@@ -145,14 +143,14 @@ jobs:
               *) ARCH="${{ matrix.arch }}";;
             esac
             echo "Architecture from matrix: $ARCH"
-            ARTIFACT_NAME="${ARTIFACT_NAME}_${VERSION}_${ARCH}"
+            ARTIFACT_NAME="${ARTIFACT_NAME}_v${VERSION}_${ARCH}"
           fi
 
           GENERATOR=""
           if [ -n "${{ matrix.generator }}" ]; then
             GENERATOR="-G \"${{ matrix.generator }}\""
             echo "Generator from matrix: $GENERATOR"
-            ARTIFACT_NAME="${ARTIFACT_NAME}_${VERSION}_${ARCH}_${{ matrix.generator }}"
+            ARTIFACT_NAME="${ARTIFACT_NAME}_v${VERSION}_${ARCH}_${{ matrix.generator }}"
           fi
           echo "TDESKTOP_BUILD_GENERATOR=$GENERATOR" >> $GITHUB_ENV
 
