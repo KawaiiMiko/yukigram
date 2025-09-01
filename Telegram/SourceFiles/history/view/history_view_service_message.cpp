@@ -473,14 +473,6 @@ QSize Service::performCountCurrentSize(int newWidth) {
 	if (mediaDisplayed && media->hideServiceText()) {
 		newHeight += media->resizeGetHeight(newWidth) + marginBottom();
 	} else if (!text().isEmpty()) {
-		if (!GetEnhancedBool("wide_messages") && delegate()->elementChatMode() == ElementChatMode::Wide) {
-			accumulate_min(contentWidth, st::msgMaxWidth + 2 * st::msgPhotoSkip + 2 * st::msgMargin.left());
-		}
-		contentWidth -= st::msgServiceMargin.left() + st::msgServiceMargin.left(); // two small margins
-		if (contentWidth < st::msgServicePadding.left() + st::msgServicePadding.right() + 1) {
-			contentWidth = st::msgServicePadding.left() + st::msgServicePadding.right() + 1;
-		}
-
 		auto nwidth = qMax(contentWidth - st::msgServicePadding.left() - st::msgServicePadding.right(), 0);
 		newHeight += (contentWidth >= maxWidth())
 			? minHeight()
