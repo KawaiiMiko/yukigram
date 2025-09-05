@@ -41,9 +41,12 @@ inline auto PreviewPath(int i) {
 
 const auto kSets = {
 	Set{ { 0,    0,         0, "Mac" },       PreviewPath(0) },
-	Set{ { 1, 1804, 8'115'639, "Android" },   PreviewPath(1) },
-	Set{ { 2, 1805, 5'481'197, "Twemoji" },   PreviewPath(2) },
-	Set{ { 3, 1806, 7'047'594, "JoyPixels" }, PreviewPath(3) },
+	Set{ { 1, 2290, 8'306'943, "Android" },   PreviewPath(1) },
+	Set{ { 2, 2291, 5'694'303, "Twemoji" },   PreviewPath(2) },
+	Set{ { 3, 2292, 7'261'223, "JoyPixels" }, PreviewPath(3) },
+	// Yukigram Extra Emoji set
+	Set{ { 101, 4, 6'090'430, "Fluent Emoji Flat" },   PreviewPath(101) },
+	Set{ { 102, 5, 7'411'307, "Fluent Emoji Color" },   PreviewPath(102) },
 };
 
 using Loading = MTP::DedicatedLoader::Progress;
@@ -134,7 +137,7 @@ int64 GetDownloadSize(int id) {
 MTP::DedicatedLoader::Location GetDownloadLocation(int id) {
 	const auto i = ranges::find(kSets, id, &Set::id);
 	const auto postId = i->postId;
-	const auto username = (postId >= 0 ? kCloudLocationUsername.utf16() : "fwdyap"_cs.utf16());
+	const auto username = (id<= 100 ? kCloudLocationUsername.utf16() : "rua_files"_cs.utf16());
 	return MTP::DedicatedLoader::Location{ username, abs(postId) };
 }
 
