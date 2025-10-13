@@ -93,7 +93,7 @@ jobs:
 
       - name: Libraries.
         run: |
-          ./$REPO_NAME/Telegram/build/prepare/mac.sh skip-release silent
+          ./$REPO_NAME/Telegram/build/prepare/mac.sh skip-debug silent
 
       - name: Free up some disk space.
         run: |
@@ -104,7 +104,7 @@ jobs:
         run: |
           cd $REPO_NAME/Telegram
           ./configure.sh \
-          -D CMAKE_CONFIGURATION_TYPES=Debug \
+          -D CMAKE_CONFIGURATION_TYPES=Release \
           -D CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
           -D TDESKTOP_API_ID=${{ secrets.API_ID }} \
           -D TDESKTOP_API_HASH=${{ secrets.API_HASH }} \
@@ -115,14 +115,14 @@ jobs:
         if: env.ONLY_CACHE == 'false'
         run: |
           cd $REPO_NAME/out
-          xcodebuild build -project Telegram.xcodeproj -scheme Telegram -destination "platform=macOS,name=Any Mac" -configuration Debug
+          xcodebuild build -project Telegram.xcodeproj -scheme Telegram -destination "platform=macOS,name=Any Mac" -configuration Release
 
       - name: Move artifact.
         if: env.UPLOAD_ARTIFACT == 'true'
         run: |
           cd $REPO_NAME
           VERSION=$(grep 'AppVersionStr' Telegram/SourceFiles/core/version.h | cut -d '"' -f 2)
-          cd out/Debug
+          cd out/Release
           mkdir artifact
           mv Yukigram.app artifact/
           mv Updater artifact/
@@ -133,4 +133,4 @@ jobs:
         name: Upload artifact.
         with:
           name: ${{ env.ARTIFACT_NAME }}
-          path: ${{ env.REPO_NAME }}/out/Debug/artifact/
+          path: ${{ env.REPO_NAME }}/out/Release/artifact/
