@@ -631,13 +631,13 @@ mac:
 stage('openssl3', """
     git clone -b openssl-3.2.1 https://github.com/openssl/openssl openssl3
     cd openssl3
-win32_debug:
+win32:
     perl Configure no-shared no-tests debug-VC-WIN32 /FS
-win64_debug:
+win64:
     perl Configure no-shared no-tests debug-VC-WIN64A /FS
-winarm_debug:
+winarm:
     perl Configure no-shared no-tests debug-VC-WIN64-ARM /FS
-win_debug:
+win:
     jom -j%NUMBER_OF_PROCESSORS% build_libs
     mkdir out.dbg
     move libcrypto.lib out.dbg
