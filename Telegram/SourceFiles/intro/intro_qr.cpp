@@ -79,7 +79,19 @@ namespace {
 	auto palettes = rpl::single(rpl::empty) | rpl::then(
 		style::PaletteChanged()
 	);
-	auto result = Ui::CreateChild<Ui::RpWidget>(parent.get());
+	class QrWidget final : public Ui::RpWidget {
+	public:
+		using RpWidget::RpWidget;
+
+		QAccessible::Role accessibilityRole() override {
+			return QAccessible::Role::Graphic;
+		}
+		QString accessibilityName() override {
+			return tr::lng_intro_qr_title(tr::now);
+		}
+
+	};
+	auto result = Ui::CreateChild<QrWidget>(parent.get());
 	const auto state = result->lifetime().make_state<State>(
 		[=] { result->update(); });
 	state->waiting.start();
@@ -195,6 +207,24 @@ QrWidget::QrWidget(
 		api().request(base::take(_requestId)).cancel();
 		refreshCode();
 	}, lifetime());
+}
+
+QString QrWidget::accessibilityName() {
+	return tr::lng_intro_qr_title(tr::now);
+}
+
+QString QrWidget::accessibilityDescription() {
+	const auto phrases = {
+		tr::lng_intro_qr_step1,
+		tr::lng_intro_qr_step2,
+		tr::lng_intro_qr_step3,
+	};
+	auto result = QString();
+	auto index = 0;
+	for (const auto &phrase : phrases) {
+		result.append(QString::number(++index)).append(". ").append(phrase(tr::now)).append('\n');
+	}
+	return result;
 }
 
 int QrWidget::errorTop() const {
@@ -410,6 +440,10 @@ void QrWidget::sendCheckPasswordRequest() {
 void QrWidget::activate() {
 	Step::activate();
 	showChildren();
+
+	if (const auto skipButton = findChild<Ui::LinkButton*>()) {
+		skipButton->setFocus(Qt::OtherFocusReason);
+	}
 }
 
 void QrWidget::finished() {
