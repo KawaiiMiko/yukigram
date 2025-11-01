@@ -165,7 +165,7 @@ jobs:
           mv Updater artifact/
           echo "name=Yukigram_v${VERSION}_Universal" >> $GITHUB_OUTPUT
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: env.UPLOAD_ARTIFACT == 'true'
         name: Upload artifact.
         with:
