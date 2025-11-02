@@ -549,29 +549,7 @@ void TopBar::setupActions(not_null<Window::SessionController*> controller) {
 	const auto chechMax = [&, max = 3] {
 		return buttons.size() >= max;
 	};
-	const auto addMore = [&] {
-		if ([&]() -> bool {
-			if (isSide) {
-				return false;
-			}
-			const auto guard = gsl::finally([&] { _peerMenu = nullptr; });
-			showTopBarMenu(controller, true);
-			return _peerMenu;
-		}()) {
-			const auto moreButton = Ui::CreateChild<TopBarActionButton>(
-				this,
-				tr::lng_profile_action_short_more(tr::now),
-				st::infoProfileTopBarActionMore);
-			moreButton->setClickedCallback([=] {
-				showTopBarMenu(controller, false);
-			});
-			_actionMore = moreButton;
-			_actions->add(moreButton);
-			buttons.push_back(moreButton);
-		}
-	};
 	const auto guard = gsl::finally([&] {
-		addMore();
 		_edgeColor.value() | rpl::map(mapped) | rpl::start_with_next([=](
 				TopBarActionButtonStyle st) {
 			for (const auto &button : buttons) {
@@ -678,11 +656,7 @@ void TopBar::setupActions(not_null<Window::SessionController*> controller) {
 					}
 				}) | rpl::to_empty,
 				makeThread,
-				controller->uiShow(),
-				[=, skip = st::infoProfileTopBarActionMenuSkip] {
-					return notifications->mapToGlobal(
-						QPoint(0, notifications->height() + skip));
-				});
+				controller->uiShow());
 		buttons.push_back(notifications);
 		_actions->add(notifications);
 		_edgeColor.value() | rpl::start_with_next([=](
@@ -1419,7 +1393,7 @@ void TopBar::setupButtons(
 }
 
 void TopBar::addTopBarMenuButton(
-		not_null<Controller*> controller,
+		not_null<Window::SessionController*> controller,
 		Wrap wrap,
 		bool shouldUseColored) {
 	{
@@ -1453,7 +1427,7 @@ void TopBar::addTopBarMenuButton(
 
 	Shortcuts::Requests(
 	) | rpl::filter([=] {
-		return (controller->section().type() == Section::Type::Profile);
+		return (_source == Source::Profile);
 	}) | rpl::start_with_next([=](not_null<Shortcuts::Request*> request) {
 		using Command = Shortcuts::Command;
 
