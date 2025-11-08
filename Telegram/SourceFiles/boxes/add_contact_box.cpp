@@ -112,6 +112,10 @@ void ChatCreateDone(
 					show,
 					chat,
 					CollectForbiddenUsers(&chat->session(), result));
+				chat->owner().addRecentJoinChat({
+					.fromPeerId = chat->id,
+					.joinedPeerId = chat->id,
+				});
 			}
 		};
 	if (!success) {

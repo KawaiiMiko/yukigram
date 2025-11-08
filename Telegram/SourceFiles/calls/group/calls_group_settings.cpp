@@ -287,7 +287,7 @@ void SettingsBox(
 		layout->add(object_ptr<Ui::BoxContentDivider>(
 			layout,
 			st::boxDividerHeight,
-			st::groupCallDividerBg));
+			st::groupCallDividerBar));
 	};
 
 	if (addCheck || addMessages) {
