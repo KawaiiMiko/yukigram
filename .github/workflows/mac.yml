@@ -105,6 +105,7 @@ jobs:
 
     strategy:
       matrix:
+        arch: [arm64, x86_64]
         defines:
           - ""
     env:
@@ -144,6 +145,7 @@ jobs:
           -D CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO \
           -D TDESKTOP_API_ID=${{ secrets.API_ID }} \
           -D TDESKTOP_API_HASH=${{ secrets.API_HASH }} \
+          -D DESKTOP_APP_MAC_ARCH=${{ matrix.arch }} \
           -D DESKTOP_APP_DISABLE_AUTOUPDATE=OFF \
           -D CMAKE_EXE_LINKER_FLAGS="-Wl,-x"
 
@@ -163,7 +165,12 @@ jobs:
           mkdir artifact
           mv Yukigram.app artifact/
           mv Updater artifact/
-          echo "name=Yukigram_v${VERSION}_Universal" >> $GITHUB_OUTPUT
+          if [ "${{ matrix.arch }}" == "arm64" ]; then
+          	PLATFORM="AppleSilicon"
+          else
+            PLATFORM="Intel"
+          fi
+          echo "name=Yukigram_v${VERSION}_${PLATFORM}" >> $GITHUB_OUTPUT
 
       - uses: actions/upload-artifact@v5
         if: env.UPLOAD_ARTIFACT == 'true'
