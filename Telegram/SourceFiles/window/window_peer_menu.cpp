@@ -1410,12 +1410,15 @@ void Filler::addViewChannel() {
 	if (!peer) {
 		return;
 	}
+	if(!peer->isMegagroup()){
+		return;
+	}
 	if (const auto chat = peer->discussionLink()) {
-		_addAction(peer->isMegagroup() ? tr::lng_profile_view_channel(tr::now) : tr::lng_profile_view_discussion(tr::now), [=] {
+		_addAction(tr::lng_profile_view_channel(tr::now), [=] {
 			App::wnd()->sessionController()->showPeerHistory(
 					chat,
 					Window::SectionShow::Way::Forward);
-		}, &st::menuIconDiscussion);
+		}, &st::menuIconChannel);
 	}
 }
 
@@ -1639,6 +1642,7 @@ void Filler::fillProfileActions() {
 	addTopicLink();
 	addManageTopic();
 	addToggleTopicClosed();
+	addViewChannel();
 	addViewDiscussion();
 	addDirectMessages();
 	addExportChat();
