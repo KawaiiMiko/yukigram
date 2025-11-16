@@ -792,6 +792,7 @@ bool AddRescheduleAction(
 		const auto date = (itemDate == Api::kScheduledUntilOnlineTimestamp)
 			? HistoryView::DefaultScheduleTime()
 			: itemDate + (firstItem->isScheduled() ? 0 : crl::time(600));
+		const auto repeatPeriod = firstItem->scheduleRepeatPeriod();
 
 		const auto box = request.navigation->parentController()->show(
 			HistoryView::PrepareScheduleBox(
@@ -799,7 +800,7 @@ bool AddRescheduleAction(
 				request.navigation->uiShow(),
 				{ .type = sendMenuType, .effectAllowed = false },
 				callback,
-				{}, // initial options
+				{ .scheduleRepeatPeriod = repeatPeriod },
 				date));
 
 		owner->itemRemoved(

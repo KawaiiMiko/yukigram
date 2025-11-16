@@ -118,7 +118,6 @@ public:
 
 	void setRoundEdges(bool value);
 	void setLottieSingleLoop(bool value);
-	void setEnableBackButtonValue(rpl::producer<bool> &&producer);
 	void setColorProfileIndex(std::optional<uint8> index);
 	void setPatternEmojiId(std::optional<DocumentId> patternEmojiId);
 	void setLocalEmojiStatusId(EmojiStatusId emojiStatusId);
@@ -144,13 +143,14 @@ private:
 	[[nodiscard]] int titleMostLeft() const;
 	[[nodiscard]] int statusMostLeft() const;
 	[[nodiscard]] QRect userpicGeometry() const;
-	void updateUserpicButtonGeometry();
 	void updateGiftButtonsGeometry(
 		float64 progressCurrent,
 		const QRect &userpicRect);
 	void paintUserpic(QPainter &p, const QRect &geometry);
 	void updateVideoUserpic();
-	void showTopBarMenu(not_null<Window::SessionController*> controller, bool check);
+	void showTopBarMenu(
+		not_null<Window::SessionController*> controller,
+		bool check);
 	void fillTopBarMenu(
 		not_null<Window::SessionController*> controller,
 		const Ui::Menu::MenuCallback &addAction);
@@ -168,11 +168,11 @@ private:
 		QPainter &p,
 		const QRect &rect,
 		const QRect &userpicGeometry);
-	void setupPinnedToTopGifts(not_null<Window::SessionController*> controller);
+	void setupPinnedToTopGifts(
+		not_null<Window::SessionController*> controller);
 	void setupNewGifts(
 		not_null<Window::SessionController*> controller,
 		const std::vector<Data::SavedStarGift> &gifts);
-	void setupGiftButtons(not_null<Window::SessionController*> controller);
 	void paintPinnedToTopGifts(
 		QPainter &p,
 		const QRect &rect,
@@ -183,7 +183,6 @@ private:
 		const QRect &userpicRect) const;
 	void adjustColors(const std::optional<QColor> &edgeColor);
 	void updateCollectibleStatus();
-	void updateBadgeContent();
 	void setupStoryOutline(const QRect &geometry = QRect());
 	void updateStoryOutline(std::optional<QColor> edgeColor);
 	void paintStoryOutline(QPainter &p, const QRect &geometry);
@@ -288,6 +287,7 @@ private:
 	QBrush _storyOutlineBrush;
 	std::vector<Ui::OutlineSegment> _storySegments;
 	bool _hasStories = false;
+	bool _hasLiveStories = false;
 
 	std::optional<uint8> _localColorProfileIndex;
 	std::optional<DocumentId> _localPatternEmojiId;
