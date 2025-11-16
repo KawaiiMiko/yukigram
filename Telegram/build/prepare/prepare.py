@@ -1589,7 +1589,7 @@ win_release:
         -DTG_ANGLE_ZLIB_INCLUDE_PATH=%LIBS_DIR%/zlib ../..
     ninja
 win:
-    cd ..\\..
+    cd ..\\..\\..
 """)
 
     stage('qt_' + qt, """
@@ -1654,8 +1654,8 @@ win:
         -nomake tests ^
         -platform win32-msvc
 
-    jom -j %NUMBER_OF_PROCESSORS%
-    jom -j %NUMBER_OF_PROCESSORS% install
+    jom -j%NUMBER_OF_PROCESSORS%
+    jom -j%NUMBER_OF_PROCESSORS% install
 mac:
     find ../../patches/qtbase_$QT -type f -print0 | sort -z | xargs -0 git apply
     cd ..
