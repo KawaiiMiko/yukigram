@@ -574,9 +574,8 @@ win:
         -DCMAKE_POLICY_DEFAULT_CMP0091=NEW ^
         -DCMAKE_C_FLAGS="/DZLIB_WINAPI" ^
         -DZLIB_BUILD_EXAMPLES=OFF
-win_debug:
     cmake --build . --config Debug --parallel
-win_release:
+release:
     cmake --build . --config Release --parallel
 mac:
     CFLAGS="$MIN_VER $UNGUARDED" LDFLAGS="$MIN_VER" ./configure \\
@@ -596,9 +595,8 @@ win:
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ^
         -DWITH_JPEG8=ON ^
         -DPNG_SUPPORTED=OFF
-win_debug:
     cmake --build . --config Debug --parallel
-win_release:
+release:
     cmake --build . --config Release --parallel
 mac:
     CFLAGS="-arch arm64" cmake -B build.arm64 . \\
@@ -643,7 +641,7 @@ win:
     move libcrypto.lib out.dbg
     move libssl.lib out.dbg
     move ossl_static.pdb out.dbg
-win_release:
+release:
     move out.dbg\\ossl_static.pdb out.dbg\\ossl_static
     jom clean
     move out.dbg\\ossl_static out.dbg\\ossl_static.pdb
@@ -683,11 +681,8 @@ win:
         -A %WIN32X64% ^
         -DCMAKE_INSTALL_PREFIX=%LIBS_DIR%/local ^
         -DOPUS_STATIC_RUNTIME=ON
-win_debug:
     cmake --build out --config Debug --parallel
-win_release:
     cmake --build out --config Release --parallel
-win:
     cmake --install out --config Release
 mac:
     CFLAGS="$UNGUARDED" CPPFLAGS="$UNGUARDED" cmake -B build . \\
@@ -706,9 +701,8 @@ stage('rnnoise', """
     cd out
 win:
     cmake -A %WIN32X64% .. -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>"
-win_debug:
     cmake --build . --config Debug --parallel
-win_release:
+release:
     cmake --build . --config Release --parallel
 !win:
     mkdir Debug
@@ -794,11 +788,10 @@ win:
 
 depends:python/Scripts/activate.bat
     %THIRDPARTY_DIR%\\python\\Scripts\\activate.bat
-win_debug:
     meson setup --cross-file %FILE% --prefix %LIBS_DIR%/local --default-library=static --buildtype=debug -Denable_tools=false -Denable_tests=false %DAV1D_ASM_DISABLE% -Db_vscrt=mtd builddir-debug
     meson compile -C builddir-debug
     meson install -C builddir-debug
-win_release:
+release:
     meson setup --cross-file %FILE% --prefix %LIBS_DIR%/local --default-library=static --buildtype=release -Denable_tools=false -Denable_tests=false -Db_vscrt=mt builddir-release
     meson compile -C builddir-release
     meson install -C builddir-release
@@ -858,11 +851,10 @@ win:
 
 depends:python/Scripts/activate.bat
     %THIRDPARTY_DIR%\\python\\Scripts\\activate.bat
-win_debug:
     meson setup --cross-file %FILE% --prefix %LIBS_DIR%/local --default-library=static --buildtype=debug -Db_vscrt=mtd builddir-debug
     meson compile -C builddir-debug
     meson install -C builddir-debug
-win_release:
+release:
     meson setup --cross-file %FILE% --prefix %LIBS_DIR%/local --default-library=static --buildtype=release -Db_vscrt=mt builddir-release
     meson compile -C builddir-release
     meson install -C builddir-release
@@ -907,10 +899,9 @@ win:
         -DAVIF_ENABLE_WERROR=OFF ^
         -DAVIF_CODEC_DAV1D=SYSTEM ^
         -DAVIF_LIBYUV=OFF
-win_debug:
     cmake --build . --config Debug --parallel
     cmake --install . --config Debug
-win_release:
+release:
     cmake --build . --config Release --parallel
     cmake --install . --config Release
 mac:
@@ -941,10 +932,9 @@ win:
         -DBUILD_SHARED_LIBS=OFF ^
         -DENABLE_DECODER=OFF ^
         -DENABLE_ENCODER=OFF
-win_debug:
     cmake --build . --config Debug --parallel
     cmake --install . --config Debug
-win_release:
+release:
     cmake --build . --config Release --parallel
     cmake --install . --config Release
 mac:
@@ -1028,10 +1018,9 @@ win:
         -DCMAKE_DISABLE_FIND_PACKAGE_JPEG=TRUE ^
         -DCMAKE_DISABLE_FIND_PACKAGE_PNG=TRUE ^
         -DWITH_EXAMPLES=OFF
-win_debug:
     cmake --build . --config Debug --parallel
     cmake --install . --config Debug
-win_release:
+release:
     cmake --build . --config Release --parallel
     cmake --install . --config Release
 mac:
@@ -1093,10 +1082,9 @@ win:
         -DCMAKE_C_FLAGS="/DJXL_STATIC_DEFINE /DJXL_THREADS_STATIC_DEFINE /DJXL_CMS_STATIC_DEFINE" ^
         -DCMAKE_CXX_FLAGS="/DJXL_STATIC_DEFINE /DJXL_THREADS_STATIC_DEFINE /DJXL_CMS_STATIC_DEFINE" ^
         %cmake_defines%
-win_debug:
     cmake --build . --config Debug --parallel
     cmake --install . --config Debug
-win_release:
+release:
     cmake --build . --config Release --parallel
     cmake --install . --config Release
 mac:
@@ -1183,10 +1171,9 @@ stage('liblcms2', """
 win:
 depends:python/Scripts/activate.bat
     %THIRDPARTY_DIR%\\python\\Scripts\\activate.bat
-win_debug:
     meson setup --default-library=static --buildtype=debug -Db_vscrt=mtd out/Debug
     meson compile -C out/Debug
-win_release:
+release:
     meson setup --default-library=static --buildtype=release -Db_vscrt=mt out/Release
     meson compile -C out/Release
 win:
@@ -1421,9 +1408,8 @@ win:
         -D ALSOFT_UTILS=OFF ^
         -D ALSOFT_EXAMPLES=OFF ^
         -D ALSOFT_TESTS=OFF
-win_debug:
     cmake --build build --config Debug --parallel
-win_release:
+release:
     cmake --build build --config RelWithDebInfo --parallel
 mac:
     git checkout coreaudio_device_uid
@@ -1571,7 +1557,6 @@ win:
     git checkout e3f59e8d0c
     mkdir out
     cd out
-win_debug:
     mkdir Debug
     cd Debug
     cmake -G Ninja ^
@@ -1579,8 +1564,8 @@ win_debug:
         -DTG_ANGLE_SPECIAL_TARGET=%SPECIAL_TARGET% ^
         -DTG_ANGLE_ZLIB_INCLUDE_PATH=%LIBS_DIR%/zlib ../..
     ninja
+release:
     cd ..
-win_release:
     mkdir Release
     cd Release
     cmake -G Ninja ^
@@ -1588,7 +1573,6 @@ win_release:
         -DTG_ANGLE_SPECIAL_TARGET=%SPECIAL_TARGET% ^
         -DTG_ANGLE_ZLIB_INCLUDE_PATH=%LIBS_DIR%/zlib ../..
     ninja
-win:
     cd ..\\..\\..
 """)
 
