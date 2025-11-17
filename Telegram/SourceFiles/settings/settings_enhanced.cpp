@@ -605,6 +605,20 @@ namespace Settings {
 
 		AddButtonWithIcon(
 			container,
+			tr::lng_settings_show_peer_id(),
+			st::settingsButtonNoIcon
+		)->toggleOn(
+				rpl::single(GetEnhancedBool("show_peer_id"))
+		)->toggledValue(
+		) | rpl::filter([](bool enabled) {
+			return (enabled != GetEnhancedBool("show_peer_id"));
+		}) | rpl::start_with_next([=](bool enabled) {
+			SetEnhancedValue("show_peer_id", enabled);
+			EnhancedSettings::Write();
+		}, container->lifetime());
+
+		AddButtonWithIcon(
+			container,
 			tr::lng_settings_hide_all_chats(),
 			st::settingsButtonNoIcon
 		)->toggleOn(

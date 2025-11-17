@@ -110,6 +110,7 @@ namespace Profile {
 namespace {
 
 constexpr auto kDay = Data::WorkingInterval::kDay;
+constexpr auto kMaxChannelId = -1000000000000;
 
 base::options::toggle ShowPeerIdBelowAbout({
 	.id = kOptionShowPeerIdBelowAbout,
@@ -1762,6 +1763,40 @@ object_ptr<Ui::RpWidget> DetailsFiller::setupInfo() {
 		if (!_topic) {
 			addTranslateToMenu(about.text, AboutWithAdvancedValue(_peer));
 		}
+	}
+	// Add Peer ID Info, port from AyuGram Desktop
+	// https://github.com/AyuGram/AyuGramDesktop/blob/dev/Telegram/SourceFiles/ayu/ui/utils/ayu_profile_values.cpp
+	// https://github.com/AyuGram/AyuGramDesktop/blob/dev/Telegram/SourceFiles/info/profile/info_profile_actions.cpp#L1826
+	if(GetEnhancedBool("show_peer_id")) {
+		const auto idLabel = QString("ID");
+		auto idNum = QString::number(0);
+
+		if(_topic) {
+			const auto topicRootId = _topic ? _topic->rootId() : 0;
+			idNum = QString::number(_peer->forumTopicFor(topicRootId)->topicRootId().bare);
+		}
+		else {
+			idNum = QString::number(_peer->id.value & PeerId::kChatTypeMask);
+			if (_peer->isChannel()) {
+				idNum = QString::number(peerToChannel(_peer->id).bare - kMaxChannelId).prepend("-");
+			} else if (_peer->isChat()) {
+				idNum = idNum.prepend("-");
+			}
+		}
+		const auto idText = rpl::single(Ui::Text::Wrapped({ idNum }, EntityType::Code, {}));
+		const auto idInfo = addInfoOneLine(
+			idLabel,
+			std::move(idText),
+			QString()
+		);
+		idInfo.text->setClickHandlerFilter([=, peer = _peer](auto &&...)
+		{
+			if(!idNum.isEmpty()) {
+				QGuiApplication::clipboard()->setText(idNum);
+				controller->showToast(tr::lng_copy_profile_id(tr::now));
+			}
+			return false;
+		});
 	}
 	wrap->toggleOn(tracker.atLeastOneShownValue());
 	wrap->finishAnimating();
