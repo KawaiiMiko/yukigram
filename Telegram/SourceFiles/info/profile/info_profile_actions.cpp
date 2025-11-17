@@ -1783,8 +1783,8 @@ object_ptr<Ui::RpWidget> DetailsFiller::setupInfo() {
 				idNum = idNum.prepend("-");
 			}
 		}
-		const auto idText = rpl::single(Ui::Text::Wrapped({ idNum }, EntityType::Code, {}));
-		const auto idInfo = addInfoOneLine(
+		auto idText = rpl::single(Ui::Text::Wrapped({ idNum }, EntityType::Code, {}));
+		auto idInfo = addInfoOneLine(
 			idLabel,
 			std::move(idText),
 			QString()
