@@ -248,12 +248,15 @@ private:
 	std::vector<AnimatedPatternPoint> _animatedPoints;
 	QRect _lastUserpicRect;
 
+	base::unique_qptr<Ui::AbstractButton> _userpicButton;
+
 	Ui::PeerUserpicView _userpicView;
 	InMemoryKey _userpicUniqueKey;
 	QImage _cachedUserpic;
 	QImage _monoforumMask;
 	std::unique_ptr<Ui::VideoUserpicPlayer> _videoUserpicPlayer;
 	std::unique_ptr<TopicIconView> _topicIconView;
+	rpl::lifetime _userpicLoadingLifetime;
 
 	base::unique_qptr<Ui::IconButton> _close;
 	base::unique_qptr<Ui::FadeWrap<Ui::IconButton>> _back;
@@ -261,8 +264,6 @@ private:
 	rpl::event_stream<> _backClicks;
 	base::unique_qptr<Ui::IconButton> _topBarMenuToggle;
 	base::unique_qptr<Ui::PopupMenu> _topBarMenu;
-
-	base::unique_qptr<Ui::AbstractButton> _userpicButton;
 
 	base::unique_qptr<Ui::HorizontalFitContainer> _actions;
 
