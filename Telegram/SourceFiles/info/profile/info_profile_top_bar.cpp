@@ -1922,7 +1922,7 @@ void TopBar::addTopBarEditButton(
 		not_null<Window::SessionController*> controller,
 		Wrap wrap,
 		bool shouldUseColored) {
-	_topBarMenuToggle = base::make_unique_q<Ui::IconButton>(
+	_topBarButton = base::make_unique_q<Ui::IconButton>(
 		this,
 		((wrap == Wrap::Layer)
 			? (shouldUseColored
@@ -1931,18 +1931,18 @@ void TopBar::addTopBarEditButton(
 			: (shouldUseColored
 				? st::infoTopBarColoredEdit
 				: st::infoTopBarBlackEdit)));
-	_topBarMenuToggle->show();
-	_topBarMenuToggle->addClickHandler([=] {
+	_topBarButton->show();
+	_topBarButton->addClickHandler([=] {
 		controller->showSettings(::Settings::Information::Id());
 	});
 
 	widthValue() | rpl::start_with_next([=] {
 		if (_close) {
-			_topBarMenuToggle->moveToRight(_close->width(), 0);
+			_topBarButton->moveToRight(_close->width(), 0);
 		} else {
-			_topBarMenuToggle->moveToRight(0, 0);
+			_topBarButton->moveToRight(0, 0);
 		}
-	}, _topBarMenuToggle->lifetime());
+	}, _topBarButton->lifetime());
 }
 
 void TopBar::showTopBarMenu(

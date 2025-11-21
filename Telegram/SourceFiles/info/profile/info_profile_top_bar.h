@@ -264,6 +264,7 @@ private:
 
 	rpl::event_stream<> _backClicks;
 	base::unique_qptr<Ui::IconButton> _topBarMenuToggle;
+	base::unique_qptr<Ui::IconButton> _topBarButton;
 	base::unique_qptr<Ui::PopupMenu> _topBarMenu;
 
 	base::unique_qptr<Ui::HorizontalFitContainer> _actions;
