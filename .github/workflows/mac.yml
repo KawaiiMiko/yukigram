@@ -41,7 +41,7 @@ jobs:
 
   prepare-libraries:
     name: Prepare Libraries
-    runs-on: macos-15-intel
+    runs-on: macos-latest
 
     strategy:
       matrix:
@@ -100,7 +100,7 @@ jobs:
 
   build:
     name: MacOS
-    runs-on: macos-15-intel
+    runs-on: macos-latest
     needs: prepare-libraries
 
     strategy:
