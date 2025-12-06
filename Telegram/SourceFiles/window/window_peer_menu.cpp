@@ -2057,7 +2057,7 @@ void PeerMenuCreatePoll(
 		not_null<Window::SessionController*> controller,
 		not_null<PeerData*> peer,
 		FullReplyTo replyTo,
-		SuggestPostOptions suggest,
+		SuggestOptions suggest,
 		PollData::Flags chosen,
 		PollData::Flags disabled,
 		Api::SendType sendType,
@@ -2171,7 +2171,7 @@ void PeerMenuCreateTodoList(
 		not_null<Window::SessionController*> controller,
 		not_null<PeerData*> peer,
 		FullReplyTo replyTo,
-		SuggestPostOptions suggest,
+		SuggestOptions suggest,
 		Api::SendType sendType,
 		SendMenu::Details sendMenuDetails) {
 	if (!peer->session().premium()) {
