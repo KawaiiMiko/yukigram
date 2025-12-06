@@ -61,10 +61,6 @@ namespace {
 constexpr auto kPlayStatusLimit = 2;
 const auto kPsaTooltipPrefix = "cloud_lng_tooltip_psa_";
 
-QString FastForwardText() {
-	return u"Forward"_q;
-}
-
 QString FastReplyText() {
 	return tr::lng_fast_reply(tr::now);
 }
