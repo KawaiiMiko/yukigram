@@ -2869,7 +2869,7 @@ QPointer<Ui::BoxContent> ShowOldForwardMessagesBox(
 				}
 			};
 		state->controller->singleChosen(
-		) | rpl::start_with_next(std::move(callback), state->box->lifetime());
+		) | rpl::on_next(std::move(callback), state->box->lifetime());
 	}
 
 	const auto comment = Ui::CreateChild<Ui::SlideWrap<Ui::InputField>>(
@@ -2933,7 +2933,7 @@ QPointer<Ui::BoxContent> ShowOldForwardMessagesBox(
 					nullptr);
 				std::move(
 					text
-				) | rpl::start_with_next([action = item->action()](
+				) | rpl::on_next([action = item->action()](
 						QString text) {
 					action->setText(text);
 				}, item->lifetime());
@@ -2970,7 +2970,7 @@ QPointer<Ui::BoxContent> ShowOldForwardMessagesBox(
 	rpl::combine(
 		state->box->sizeValue(),
 		comment->heightValue()
-	) | rpl::start_with_next([=](const QSize &size, int commentHeight) {
+	) | rpl::on_next([=](const QSize &size, int commentHeight) {
 		comment->moveToLeft(0, size.height() - commentHeight);
 		comment->resizeToWidth(size.width());
 
@@ -2980,7 +2980,7 @@ QPointer<Ui::BoxContent> ShowOldForwardMessagesBox(
 	const auto field = comment->entity();
 
 	field->submits(
-	) | rpl::start_with_next([=] { submit({}); }, field->lifetime());
+	) | rpl::on_next([=] { submit({}); }, field->lifetime());
 	InitMessageFieldHandlers({
 		.session = session,
 		.show = show,
@@ -2994,14 +2994,14 @@ QPointer<Ui::BoxContent> ShowOldForwardMessagesBox(
 	Ui::SendPendingMoveResizeEvents(comment);
 
 	state->box->focusRequests(
-	) | rpl::start_with_next([=] {
+	) | rpl::on_next([=] {
 		if (!comment->isHidden()) {
 			comment->entity()->setFocusFast();
 		}
 	}, comment->lifetime());
 
 	state->controller->hasSelectedChanges(
-	) | rpl::start_with_next([=](bool shown) {
+	) | rpl::on_next([=](bool shown) {
 		state->box->clearButtons();
 		if (shown) {
 			const auto send = state->box->addButton(
@@ -3009,7 +3009,7 @@ QPointer<Ui::BoxContent> ShowOldForwardMessagesBox(
 				[=] { submit({}); });
 			send->setAcceptBoth();
 			send->clicks(
-			) | rpl::start_with_next([=](Qt::MouseButton button) {
+			) | rpl::on_next([=](Qt::MouseButton button) {
 				if (button == Qt::RightButton) {
 					showMenu(send);
 				}

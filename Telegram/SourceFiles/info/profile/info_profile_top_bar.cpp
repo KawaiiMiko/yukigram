@@ -1895,7 +1895,7 @@ void TopBar::addTopBarMenuButton(
 		showTopBarMenu(controller, false);
 	});
 
-	widthValue() | rpl::start_with_next([=] {
+	widthValue() | rpl::on_next([=] {
 		if (_close) {
 			_topBarMenuToggle->moveToRight(_close->width(), 0);
 		} else {
@@ -1906,7 +1906,7 @@ void TopBar::addTopBarMenuButton(
 	Shortcuts::Requests(
 	) | rpl::filter([=] {
 		return (_source == Source::Profile);
-	}) | rpl::start_with_next([=](not_null<Shortcuts::Request*> request) {
+	}) | rpl::on_next([=](not_null<Shortcuts::Request*> request) {
 		using Command = Shortcuts::Command;
 
 		request->check(Command::ShowChatMenu, 1) && request->handle([=] {
