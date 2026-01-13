@@ -372,13 +372,6 @@ TextWithEntities GeneratePermissionsChangeText(
 				{ langDateTime(base::unixtime::parse(newUntil)) },
 				tr::marked),
 			tr::marked);
-		if (!indefinitely) {
-			bannedText.text.append(' ' + tr::lng_admin_log_banned_until(
-				tr::now,
-				lt_date,
-				langDateTime(base::unixtime::parse(newUntil))));
-		}
-		return bannedText;
 	} else if (newFlags == 0
 		&& (prevFlags & Flag::ViewMessages)
 		&& !peerIsUser(participantId)) {
