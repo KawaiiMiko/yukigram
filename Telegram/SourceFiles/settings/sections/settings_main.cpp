@@ -78,6 +78,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "settings/settings_power_saving.h"
 #include "settings/sections/settings_premium.h"
 #include "settings/sections/settings_privacy_security.h"
+#include "settings/sections/settings_enhanced.h"
 #include "settings/settings_scale_preview.h"
 #include "storage/localstorage.h"
 #include "ui/basic_click_handlers.h"
@@ -462,6 +463,18 @@ void BuildSectionButtons(SectionBuilder &builder) {
 	});
 }
 
+void BuildEnhancedSection(SectionBuilder &builder) {
+	builder.addDivider();
+	builder.addSkip();
+
+	builder.addSectionButton({
+		.title = tr::lng_settings_enhanced(),
+		.targetSection = EnhancedId(),
+		.icon = { &st::menuIconManage },
+		.keywords = { u"enhanced"_q },
+	});
+}
+
 void BuildInterfaceScale(SectionBuilder &builder) {
 	if (!HasInterfaceScale()) {
 		return;
@@ -709,6 +722,7 @@ void Main::setupContent() {
 		builder.addSkip();
 		BuildValidationSuggestions(builder);
 		BuildSectionButtons(builder);
+		BuildEnhancedSection(builder);
 		builder.addSkip();
 		BuildInterfaceScale(builder);
 		BuildPremiumSection(builder);
@@ -782,6 +796,7 @@ const auto kMeta = BuildHelper({
 
 	BuildValidationSuggestions(builder);
 	BuildSectionButtons(builder);
+	BuildEnhancedSection(builder);
 
 	builder.addSkip();
 

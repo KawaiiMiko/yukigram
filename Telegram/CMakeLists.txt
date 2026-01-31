@@ -1568,8 +1568,8 @@ PRIVATE
     settings/sections/settings_credits.h
     settings/settings_credits_graphics.cpp
     settings/settings_credits_graphics.h
-    settings/settings_enhanced.cpp
-    settings/settings_enhanced.h
+    settings/sections/settings_enhanced.cpp
+    settings/sections/settings_enhanced.h
     settings/settings_experimental.cpp
     settings/settings_experimental.h
     settings/sections/settings_folders.cpp

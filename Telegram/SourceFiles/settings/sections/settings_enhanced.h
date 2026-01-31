@@ -8,6 +8,7 @@ https://github.com/TDesktop-x64/tdesktop/blob/dev/LEGAL
 #pragma once
 
 #include "settings/settings_common_session.h"
+#include "settings/settings_type.h"
 
 class BoxContent;
 
@@ -17,6 +18,9 @@ class SessionController;
 } // namespace Window
 
 namespace Settings {
+
+	[[nodiscard]] Type EnhancedId();
+
 	class Enhanced : public Section<Enhanced> {
 	public:
 		Enhanced(

@@ -9,7 +9,7 @@ https://github.com/TDesktop-x64/tdesktop/blob/dev/LEGAL
 #include <mainwindow.h>
 #include <QJsonArray>
 #include <QJsonDocument>
-#include "settings/settings_enhanced.h"
+#include "settings/sections/settings_enhanced.h"
 
 #include "settings/settings_common.h"
 #include "settings/sections/settings_chat.h"
@@ -42,6 +42,10 @@ https://github.com/TDesktop-x64/tdesktop/blob/dev/LEGAL
 #include "api/api_blocked_peers.h"
 
 namespace Settings {
+
+	Type EnhancedId() {
+		return Enhanced::Id();
+	}
 
 	void Enhanced::SetupEnhancedNetwork(not_null<Ui::VerticalLayout *> container) {
 		const auto wrap = container->add(

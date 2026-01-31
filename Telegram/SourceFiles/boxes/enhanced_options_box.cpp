@@ -17,7 +17,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/boxes/confirm_box.h"
 #include "core/application.h"
 #include "core/enhanced_settings.h"
-#include "settings/settings_enhanced.h"
+#include "settings/sections/settings_enhanced.h"
 
 NetBoostBox::NetBoostBox(QWidget *parent) {
 }
