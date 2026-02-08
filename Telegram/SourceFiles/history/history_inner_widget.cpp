@@ -2954,6 +2954,9 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 								if (item->history()->peer->isUser() || item->history()->peer->isChat()) {
 									action.options.sendAs = nullptr;
 								}
+								if (const auto sublist = item->savedSublist()) {
+									action.replyTo.monoforumPeerId = item->history()->peer->isSelf() ? nullptr : sublist->monoforumPeerId();
+								}
 
 								const auto history = item->history()->peer->owner().history(item->history()->peer);
 								auto resolved = history->resolveForwardDraft(Data::ForwardDraft{ .ids = MessageIdsList(1, itemId) });
@@ -2977,6 +2980,9 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 																.messageId = item->fullId(),
 															};
 								}
+								if (const auto sublist = item->savedSublist()) {
+									message.action.replyTo.monoforumPeerId = item->history()->peer->isSelf() ? nullptr : sublist->monoforumPeerId();
+								}
 								api->sendMessage(std::move(message));
 							}, &st::menuIconDiscussion);
 						} else if (!item->isService() && item->media()->document() != nullptr && item->media()->document()->sticker() != nullptr) {
@@ -2993,6 +2999,9 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 										action.replyTo = FullReplyTo{
 															.messageId = item->fullId(),
 														};
+									}
+									if (const auto sublist = item->savedSublist()) {
+										action.replyTo.monoforumPeerId = item->history()->peer->isSelf() ? nullptr : sublist->monoforumPeerId();
 									}
 
 									const auto history = item->history()->peer->owner().history(item->history()->peer);
@@ -3011,6 +3020,9 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 									auto message = ApiWrap::MessageToSend(prepareSendAction(history, Api::SendOptions{ .sendAs = _history->session().sendAsPeers().resolveChosen(_history->peer) }));
 									if (item->history()->peer->isUser() || item->history()->peer->isChat()) {
 										message.action.options.sendAs = nullptr;
+									}
+									if (const auto sublist = item->savedSublist()) {
+										message.action.replyTo.monoforumPeerId = item->history()->peer->isSelf() ? nullptr : sublist->monoforumPeerId();
 									}
 									Api::SendExistingDocument(std::move(message), document);
 								}, & st::menuIconDiscussion);
@@ -3336,6 +3348,9 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 								if (item->history()->peer->isUser() || item->history()->peer->isChat()) {
 									action.options.sendAs = nullptr;
 								}
+								if (const auto sublist = item->savedSublist()) {
+									action.replyTo.monoforumPeerId = item->history()->peer->isSelf() ? nullptr : sublist->monoforumPeerId();
+								}
 
 								const auto history = item->history()->peer->owner().history(item->history()->peer);
 								auto resolved = history->resolveForwardDraft(Data::ForwardDraft{ .ids = MessageIdsList(1, itemId) });
@@ -3359,6 +3374,9 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 																.messageId = item->fullId(),
 															};
 								}
+								if (const auto sublist = item->savedSublist()) {
+									message.action.replyTo.monoforumPeerId = item->history()->peer->isSelf() ? nullptr : sublist->monoforumPeerId();
+								}
 								api->sendMessage(std::move(message));
 							}, &st::menuIconDiscussion);
 						} else if (!item->isService() && item->media()->document() != nullptr && item->media()->document()->sticker() != nullptr) {
@@ -3370,6 +3388,9 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 									action.clearDraft = false;
 									if (item->history()->peer->isUser() || item->history()->peer->isChat()) {
 										action.options.sendAs = nullptr;
+									}
+									if (const auto sublist = item->savedSublist()) {
+										action.replyTo.monoforumPeerId = item->history()->peer->isSelf() ? nullptr : sublist->monoforumPeerId();
 									}
 
 									const auto history = item->history()->peer->owner().history(item->history()->peer);
@@ -3388,6 +3409,9 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 									auto message = ApiWrap::MessageToSend(prepareSendAction(history, Api::SendOptions{ .sendAs = _history->session().sendAsPeers().resolveChosen(_history->peer) }));
 									if (item->history()->peer->isUser() || item->history()->peer->isChat()) {
 										message.action.options.sendAs = nullptr;
+									}
+									if (const auto sublist = item->savedSublist()) {
+										message.action.replyTo.monoforumPeerId = item->history()->peer->isSelf() ? nullptr : sublist->monoforumPeerId();
 									}
 									Api::SendExistingDocument(std::move(message), document);
 								}, & st::menuIconDiscussion);
