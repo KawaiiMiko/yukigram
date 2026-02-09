@@ -732,7 +732,7 @@ void TopBar::setupActions(not_null<Window::SessionController*> controller) {
 		buttons.push_back(message);
 		_actions->add(message);
 	}
-	const auto canJoin = (!topic && channel && !channel->amIn());
+	const auto canJoin = (!sublist && !topic && channel && !channel->amIn());
 	if (canJoin) {
 		const auto join = Ui::CreateChild<TopBarActionButton>(
 			this,
@@ -865,7 +865,7 @@ void TopBar::setupActions(not_null<Window::SessionController*> controller) {
 	if (chechMax()) {
 		return;
 	}
-	if ((topic && topic->canEdit()) || EditPeerInfoBox::Available(peer)) {
+	if (topic ? topic->canEdit() : EditPeerInfoBox::Available(peer)) {
 		const auto manage = Ui::CreateChild<TopBarActionButton>(
 			this,
 			tr::lng_profile_action_short_manage(tr::now),
@@ -936,16 +936,13 @@ void TopBar::setupActions(not_null<Window::SessionController*> controller) {
 	if (chechMax()) {
 		return;
 	}
-	if (!topic && !sublist && channel && channel->amIn()) {
+	if (!canJoin && !topic && !sublist && (chat || channel)) {
 		const auto leaveButton = Ui::CreateChild<TopBarActionButton>(
 			this,
 			tr::lng_profile_action_short_leave(tr::now),
 			st::infoProfileTopBarActionLeave);
-		leaveButton->setClickedCallback([=] {
-			if (!controller->showFrozenError()) {
-				controller->show(Box(DeleteChatBox, peer));
-			}
-		});
+		leaveButton->setClickedCallback(
+			Window::DeleteAndLeaveHandler(controller, peer));
 		_actions->add(leaveButton);
 		buttons.push_back(leaveButton);
 	}
@@ -1302,9 +1299,8 @@ void TopBar::setupUniqueBadgeTooltip() {
 		if (!collectible || _localCollectible) {
 			return;
 		}
-		const auto parent = window();
 		_badgeTooltip = std::make_unique<BadgeTooltip>(
-			parent,
+			this,
 			collectible,
 			widget);
 		const auto raw = _badgeTooltip.get();
