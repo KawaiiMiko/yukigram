@@ -1702,7 +1702,6 @@ win:
     SET LIBVPX_PATH=$USED_PREFIX/include
     SET OPENH264_PATH=$USED_PREFIX/include
     SET FFMPEG_PATH=$LIBS_DIR/ffmpeg
-win_debug:
     cmake -B out \
         -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>" \
         -DTG_OWT_BUILD_AUDIO_BACKENDS=OFF \
@@ -1713,6 +1712,7 @@ win_debug:
         -DTG_OWT_LIBVPX_INCLUDE_PATH=$LIBVPX_PATH \
         -DTG_OWT_OPENH264_INCLUDE_PATH=$OPENH264_PATH \
         -DTG_OWT_FFMPEG_INCLUDE_PATH=$FFMPEG_PATH
+win_debug:
     cmake --build out --config Debug
 win_release:
     cmake --build out --config Release
