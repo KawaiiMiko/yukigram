@@ -12,7 +12,9 @@ https://github.com/TDesktop-x64/tdesktop/blob/dev/LEGAL
 #include "settings/sections/settings_enhanced.h"
 
 #include "settings/settings_common.h"
+#include "settings/settings_builder.h"
 #include "settings/sections/settings_chat.h"
+#include "settings/sections/settings_main.h"
 #include <ui/vertical_list.h>
 #include "ui/wrap/vertical_layout.h"
 #include "ui/wrap/slide_wrap.h"
@@ -38,10 +40,373 @@ https://github.com/TDesktop-x64/tdesktop/blob/dev/LEGAL
 #include "layout/layout_item_base.h"
 #include "facades.h"
 #include "styles/style_settings.h"
+#include "styles/style_menu_icons.h"
 #include "apiwrap.h"
 #include "api/api_blocked_peers.h"
 
 namespace Settings {
+
+namespace {
+
+[[maybe_unused]] const auto kEnhancedMeta = Builder::BuildHelper({
+	.id = Enhanced::Id(),
+	.parentId = MainId(),
+	.title = &tr::lng_settings_enhanced,
+	.icon = &st::menuIconManage,
+}, [](Builder::SectionBuilder &builder) {
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/network/upload-speed-boost"_q,
+			.title = tr::lng_settings_net_upload_speed_boost(tr::now),
+			.keywords = { u"upload"_q, u"speed"_q, u"network"_q, u"boost"_q },
+			.deeplink = u"tg://settings/enhanced/network/upload-speed-boost"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/show-message-id"_q,
+			.title = tr::lng_settings_show_message_id(tr::now),
+			.keywords = { u"message"_q, u"id"_q, u"info"_q },
+			.deeplink = u"tg://settings/enhanced/messages/show-message-id"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/no-animoji"_q,
+			.title = tr::lng_settings_no_animoji(tr::now),
+			.keywords = { u"animated"_q, u"emoji"_q, u"animoji"_q, u"disable"_q },
+			.deeplink = u"tg://settings/enhanced/messages/no-animoji"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/old-reply-layout"_q,
+			.title = tr::lng_settings_old_reply_layout(tr::now),
+			.keywords = { u"reply"_q, u"old"_q, u"layout"_q, u"classic"_q },
+			.deeplink = u"tg://settings/enhanced/messages/old-reply-layout"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/wide-messages"_q,
+			.title = tr::lng_settings_wide_messages(tr::now),
+			.keywords = { u"wide"_q, u"messages"_q, u"width"_q },
+			.deeplink = u"tg://settings/enhanced/messages/wide-messages"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/show-similar-on-joined"_q,
+			.title = tr::lng_settings_show_similar_on_joined(tr::now),
+			.keywords = { u"similar"_q, u"recommendations"_q, u"joined"_q },
+			.deeplink = u"tg://settings/enhanced/messages/show-similar-on-joined"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/multichoice-squares"_q,
+			.title = tr::lng_settings_multichoice_squares(tr::now),
+			.keywords = { u"multi"_q, u"select"_q, u"checkbox"_q, u"square"_q },
+			.deeplink = u"tg://settings/enhanced/messages/multichoice-squares"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/more-right-action-comments"_q,
+			.title = tr::lng_settings_more_right_action_comments(tr::now),
+			.keywords = { u"context"_q, u"menu"_q, u"comments"_q },
+			.deeplink = u"tg://settings/enhanced/messages/more-right-action-comments"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/show-repeater-option"_q,
+			.title = tr::lng_settings_show_repeater_option(tr::now),
+			.keywords = { u"repeater"_q, u"repeat"_q, u"forward"_q },
+			.deeplink = u"tg://settings/enhanced/messages/show-repeater-option"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/show-view-as-json"_q,
+			.title = tr::lng_settings_show_view_as_json(tr::now),
+			.keywords = { u"json"_q, u"view"_q, u"debug"_q },
+			.deeplink = u"tg://settings/enhanced/messages/show-view-as-json"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/repeater-reply-to-original"_q,
+			.title = tr::lng_settings_repeater_reply_to_orig_msg(tr::now),
+			.keywords = { u"repeater"_q, u"reply"_q, u"original"_q },
+			.deeplink = u"tg://settings/enhanced/messages/repeater-reply-to-original"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/always-delete-for"_q,
+			.title = tr::lng_settings_always_delete_for(tr::now),
+			.keywords = { u"auto"_q, u"delete"_q, u"timer"_q, u"ttl"_q },
+			.deeplink = u"tg://settings/enhanced/messages/always-delete-for"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/disable-cloud-draft-sync"_q,
+			.title = tr::lng_settings_disable_cloud_draft_sync(tr::now),
+			.keywords = { u"draft"_q, u"cloud"_q, u"sync"_q },
+			.deeplink = u"tg://settings/enhanced/messages/disable-cloud-draft-sync"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/hide-classic-forward"_q,
+			.title = tr::lng_settings_hide_classic_forward(tr::now),
+			.keywords = { u"forward"_q, u"classic"_q, u"hide"_q },
+			.deeplink = u"tg://settings/enhanced/messages/hide-classic-forward"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/disable-link-warning"_q,
+			.title = tr::lng_settings_disable_link_warning(tr::now),
+			.keywords = { u"link"_q, u"warning"_q, u"confirm"_q },
+			.deeplink = u"tg://settings/enhanced/messages/disable-link-warning"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/disable-premium-animation"_q,
+			.title = tr::lng_settings_disable_premium_animation(tr::now),
+			.keywords = { u"premium"_q, u"animation"_q, u"effects"_q },
+			.deeplink = u"tg://settings/enhanced/messages/disable-premium-animation"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/disable-global-search"_q,
+			.title = tr::lng_settings_disable_global_search(tr::now),
+			.keywords = { u"global"_q, u"search"_q, u"server"_q },
+			.deeplink = u"tg://settings/enhanced/messages/disable-global-search"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/show-group-sender-avatar"_q,
+			.title = tr::lng_settings_show_group_sender_avatar(tr::now),
+			.keywords = { u"group"_q, u"sender"_q, u"avatar"_q },
+			.deeplink = u"tg://settings/enhanced/messages/show-group-sender-avatar"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/use-gt-api"_q,
+			.title = tr::lng_settings_use_gt_api(tr::now),
+			.keywords = { u"translate"_q, u"google"_q, u"api"_q, u"gt"_q },
+			.deeplink = u"tg://settings/enhanced/messages/use-gt-api"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/translate-to-tc"_q,
+			.title = tr::lng_settings_translate_to_tc(tr::now),
+			.keywords = { u"translate"_q, u"traditional"_q, u"chinese"_q, u"tc"_q },
+			.deeplink = u"tg://settings/enhanced/messages/translate-to-tc"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/show-seconds"_q,
+			.title = tr::lng_settings_show_seconds(tr::now),
+			.keywords = { u"seconds"_q, u"clock"_q, u"time"_q },
+			.deeplink = u"tg://settings/enhanced/messages/show-seconds"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/hide-blocked-messages"_q,
+			.title = tr::lng_settings_hide_messages(tr::now),
+			.keywords = { u"blocked"_q, u"messages"_q, u"spoiler"_q, u"hide"_q },
+			.deeplink = u"tg://settings/enhanced/messages/hide-blocked-messages"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/buttons/show-emoji-button-as-text"_q,
+			.title = tr::lng_settings_show_emoji_button_as_text(tr::now),
+			.keywords = { u"emoji"_q, u"button"_q, u"text"_q },
+			.deeplink = u"tg://settings/enhanced/buttons/show-emoji-button-as-text"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/buttons/show-scheduled-button"_q,
+			.title = tr::lng_settings_show_scheduled_button(tr::now),
+			.keywords = { u"scheduled"_q, u"schedule"_q, u"button"_q },
+			.deeplink = u"tg://settings/enhanced/buttons/show-scheduled-button"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/voice-chat/radio-controller"_q,
+			.title = tr::lng_settings_radio_controller(tr::now),
+			.keywords = { u"radio"_q, u"voice"_q, u"controller"_q },
+			.deeplink = u"tg://settings/enhanced/voice-chat/radio-controller"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/voice-chat/auto-unmute"_q,
+			.title = tr::lng_settings_auto_unmute(tr::now),
+			.keywords = { u"auto"_q, u"unmute"_q, u"voice"_q },
+			.deeplink = u"tg://settings/enhanced/voice-chat/auto-unmute"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/voice-chat/bitrate-controller"_q,
+			.title = tr::lng_bitrate_controller(tr::now),
+			.keywords = { u"bitrate"_q, u"audio"_q, u"quality"_q },
+			.deeplink = u"tg://settings/enhanced/voice-chat/bitrate-controller"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/voice-chat/enable-hd-video"_q,
+			.title = tr::lng_settings_enable_hd_video(tr::now),
+			.keywords = { u"hd"_q, u"video"_q, u"quality"_q },
+			.deeplink = u"tg://settings/enhanced/voice-chat/enable-hd-video"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/voice-chat/mpris-call-hangup"_q,
+			.title = tr::lng_settings_mpris_call_hangup(tr::now),
+			.keywords = { u"mpris"_q, u"media"_q, u"hangup"_q },
+			.deeplink = u"tg://settings/enhanced/voice-chat/mpris-call-hangup"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/other/show-peer-id"_q,
+			.title = tr::lng_settings_show_peer_id(tr::now),
+			.keywords = { u"peer"_q, u"id"_q, u"user"_q, u"chat"_q },
+			.deeplink = u"tg://settings/enhanced/other/show-peer-id"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/other/hide-all-chats"_q,
+			.title = tr::lng_settings_hide_all_chats(tr::now),
+			.keywords = { u"hide"_q, u"all"_q, u"chats"_q },
+			.deeplink = u"tg://settings/enhanced/other/hide-all-chats"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/other/replace-edit-button"_q,
+			.title = tr::lng_settings_replace_edit_button(tr::now),
+			.keywords = { u"edit"_q, u"button"_q, u"replace"_q },
+			.deeplink = u"tg://settings/enhanced/other/replace-edit-button"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/other/skip-message"_q,
+			.title = tr::lng_settings_skip_message(tr::now),
+			.keywords = { u"skip"_q, u"message"_q, u"next"_q },
+			.deeplink = u"tg://settings/enhanced/other/skip-message"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/other/hide-counter"_q,
+			.title = tr::lng_settings_hide_counter(tr::now),
+			.keywords = { u"unread"_q, u"counter"_q, u"badge"_q },
+			.deeplink = u"tg://settings/enhanced/other/hide-counter"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/other/hide-stories"_q,
+			.title = tr::lng_settings_hide_stories(tr::now),
+			.keywords = { u"stories"_q, u"hide"_q },
+			.deeplink = u"tg://settings/enhanced/other/hide-stories"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/other/hide-star-ratings"_q,
+			.title = tr::lng_settings_hide_star_ratings(tr::now),
+			.keywords = { u"stars"_q, u"ratings"_q, u"hide"_q },
+			.deeplink = u"tg://settings/enhanced/other/hide-star-ratings"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/other/force-mobile"_q,
+			.title = tr::lng_settings_force_mobile(tr::now),
+			.keywords = { u"mobile"_q, u"layout"_q, u"force"_q },
+			.deeplink = u"tg://settings/enhanced/other/force-mobile"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/other/disable-recent-stickers-limit"_q,
+			.title = tr::lng_settings_disable_recent_stickers_limit(tr::now),
+			.keywords = { u"recent"_q, u"stickers"_q, u"limit"_q },
+			.deeplink = u"tg://settings/enhanced/other/disable-recent-stickers-limit"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/other/recent-display-limit"_q,
+			.title = tr::lng_settings_recent_display_limit(tr::now),
+			.keywords = { u"recent"_q, u"display"_q, u"limit"_q },
+			.deeplink = u"tg://settings/enhanced/other/recent-display-limit"_q,
+		};
+	});
+});
+
+} // namespace
 
 	Type EnhancedId() {
 		return Enhanced::Id();
@@ -58,12 +423,16 @@ namespace Settings {
 		AddSkip(inner);
 		AddSubsectionTitle(inner, tr::lng_settings_network());
 
-		AddButtonWithLabel(
+		const auto uploadBoost = AddButtonWithLabel(
 				inner,
 				tr::lng_settings_net_upload_speed_boost(),
 				rpl::single(NetBoostBox::BoostLabel(GetEnhancedInt("net_speed_boost"))),
 				st::settingsAttentionButton
-		)->addClickHandler([=] {
+		);
+		registerHighlight(
+			u"enhanced/network/upload-speed-boost"_q,
+			uploadBoost);
+		uploadBoost->addClickHandler([=] {
 			Ui::show(Box<NetBoostBox>());
 		});
 
@@ -132,11 +501,15 @@ namespace Settings {
 						object_ptr<Ui::VerticalLayout>(container)));
 		const auto inner = wrap->entity();
 
-		AddButtonWithIcon(
+		const auto showMessageId = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_show_message_id(),
 				st::settingsAttentionButton
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/messages/show-message-id"_q,
+			showMessageId);
+		showMessageId->toggleOn(
 				rpl::single(GetEnhancedBool("show_messages_id"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -147,11 +520,15 @@ namespace Settings {
 			Core::Restart();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto noAnimoji = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_no_animoji(),
 				st::settingsAttentionButton
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/messages/no-animoji"_q,
+			noAnimoji);
+		noAnimoji->toggleOn(
 				rpl::single(GetEnhancedBool("no_animoji"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -162,11 +539,15 @@ namespace Settings {
 			Core::Restart();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto oldReplyLayout = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_old_reply_layout(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/messages/old-reply-layout"_q,
+			oldReplyLayout);
+		oldReplyLayout->toggleOn(
 				rpl::single(GetEnhancedBool("old_reply_layout"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -176,11 +557,15 @@ namespace Settings {
 			EnhancedSettings::Write();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto wideMessages = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_wide_messages(),
 				st::settingsAttentionButton
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/messages/wide-messages"_q,
+			wideMessages);
+		wideMessages->toggleOn(
 				rpl::single(GetEnhancedBool("wide_messages"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -191,11 +576,15 @@ namespace Settings {
 			Core::Restart();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto showSimilarOnJoined = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_show_similar_on_joined(),
 				st::settingsAttentionButton
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/messages/show-similar-on-joined"_q,
+			showSimilarOnJoined);
+		showSimilarOnJoined->toggleOn(
 				rpl::single(GetEnhancedBool("show_similar_on_joined"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -206,11 +595,15 @@ namespace Settings {
 			Core::Restart();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto multichoiceSquares = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_multichoice_squares(),
 				st::settingsAttentionButton
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/messages/multichoice-squares"_q,
+			multichoiceSquares);
+		multichoiceSquares->toggleOn(
 				rpl::single(GetEnhancedBool("multichoice_squares"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -221,11 +614,15 @@ namespace Settings {
 			Core::Restart();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto moreRightActionComments = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_more_right_action_comments(),
 				st::settingsAttentionButton
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/messages/more-right-action-comments"_q,
+			moreRightActionComments);
+		moreRightActionComments->toggleOn(
 				rpl::single(GetEnhancedBool("more_right_action_comments"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -236,11 +633,15 @@ namespace Settings {
 			Core::Restart();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto showRepeaterOption = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_show_repeater_option(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/messages/show-repeater-option"_q,
+			showRepeaterOption);
+		showRepeaterOption->toggleOn(
 				rpl::single(GetEnhancedBool("show_repeater_option"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -250,11 +651,15 @@ namespace Settings {
 			EnhancedSettings::Write();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto showViewAsJson = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_show_view_as_json(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/messages/show-view-as-json"_q,
+			showViewAsJson);
+		showViewAsJson->toggleOn(
 				rpl::single(GetEnhancedBool("show_view_as_json"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -265,11 +670,15 @@ namespace Settings {
 		}, container->lifetime());
 
 		if (GetEnhancedBool("show_repeater_option")) {
-			AddButtonWithIcon(
+			const auto repeaterReplyToOrig = AddButtonWithIcon(
 					inner,
 					tr::lng_settings_repeater_reply_to_orig_msg(),
 					st::settingsButtonNoIcon
-			)->toggleOn(
+			);
+			registerHighlight(
+				u"enhanced/messages/repeater-reply-to-original"_q,
+				repeaterReplyToOrig);
+			repeaterReplyToOrig->toggleOn(
 					rpl::single(GetEnhancedBool("repeater_reply_to_orig_msg"))
 			)->toggledChanges(
 			) | rpl::filter([=](bool toggled) {
@@ -294,6 +703,9 @@ namespace Settings {
 				std::move(value),
 				st::settingsButtonNoIcon
 		);
+		registerHighlight(
+			u"enhanced/messages/always-delete-for"_q,
+			btn);
 		btn->events(
 		) | rpl::on_next([=](not_null<QEvent*> e) {
 			const auto event = e->type();
@@ -303,11 +715,15 @@ namespace Settings {
 			Ui::show(Box<AlwaysDeleteBox>());
 		});
 
-		AddButtonWithIcon(
+		const auto disableCloudDraftSync = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_disable_cloud_draft_sync(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/messages/disable-cloud-draft-sync"_q,
+			disableCloudDraftSync);
+		disableCloudDraftSync->toggleOn(
 				rpl::single(GetEnhancedBool("disable_cloud_draft_sync"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -319,11 +735,15 @@ namespace Settings {
 
 		AddSkip(container);
 
-		AddButtonWithIcon(
+		const auto hideClassicForward = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_hide_classic_forward(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/messages/hide-classic-forward"_q,
+			hideClassicForward);
+		hideClassicForward->toggleOn(
 				rpl::single(GetEnhancedBool("hide_classic_fwd"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -333,11 +753,15 @@ namespace Settings {
 			EnhancedSettings::Write();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto disableLinkWarning = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_disable_link_warning(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/messages/disable-link-warning"_q,
+			disableLinkWarning);
+		disableLinkWarning->toggleOn(
 				rpl::single(GetEnhancedBool("disable_link_warning"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -347,11 +771,15 @@ namespace Settings {
 			EnhancedSettings::Write();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto disablePremiumAnimation = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_disable_premium_animation(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/messages/disable-premium-animation"_q,
+			disablePremiumAnimation);
+		disablePremiumAnimation->toggleOn(
 				rpl::single(GetEnhancedBool("disable_premium_animation"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -361,11 +789,15 @@ namespace Settings {
 			EnhancedSettings::Write();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto disableGlobalSearch = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_disable_global_search(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/messages/disable-global-search"_q,
+			disableGlobalSearch);
+		disableGlobalSearch->toggleOn(
 				rpl::single(GetEnhancedBool("disable_global_search"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -375,11 +807,15 @@ namespace Settings {
 			EnhancedSettings::Write();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto showGroupSenderAvatar = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_show_group_sender_avatar(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/messages/show-group-sender-avatar"_q,
+			showGroupSenderAvatar);
+		showGroupSenderAvatar->toggleOn(
 				rpl::single(GetEnhancedBool("show_group_sender_avatar"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -389,11 +825,15 @@ namespace Settings {
 			EnhancedSettings::Write();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto useGtApi = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_use_gt_api(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/messages/use-gt-api"_q,
+			useGtApi);
+		useGtApi->toggleOn(
 				rpl::single(GetEnhancedBool("use_gt_api"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -405,11 +845,15 @@ namespace Settings {
 
 		QString langPackBaseId = Lang::GetInstance().baseId();
 		if (langPackBaseId == "zh-hant-raw" || langPackBaseId == "zh-hans-raw") {
-			AddButtonWithIcon(
+			const auto translateToTc = AddButtonWithIcon(
 					inner,
 					tr::lng_settings_translate_to_tc(),
 					st::settingsButtonNoIcon
-			)->toggleOn(
+			);
+			registerHighlight(
+				u"enhanced/messages/translate-to-tc"_q,
+				translateToTc);
+			translateToTc->toggleOn(
 					rpl::single(GetEnhancedBool("translate_to_tc"))
 			)->toggledChanges(
 			) | rpl::filter([=](bool toggled) {
@@ -420,11 +864,15 @@ namespace Settings {
 			}, container->lifetime());
 		}
 
-		AddButtonWithIcon(
+		const auto showSeconds = AddButtonWithIcon(
 			inner,
 			tr::lng_settings_show_seconds(),
 			st::settingsAttentionButton
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/messages/show-seconds"_q,
+			showSeconds);
+		showSeconds->toggleOn(
 			rpl::single(GetEnhancedBool("show_seconds"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -435,11 +883,15 @@ namespace Settings {
 			QTimer::singleShot(1 * 1000, []{ Core::Restart(); });
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto hideBlockedMessages = AddButtonWithIcon(
 			inner,
 			tr::lng_settings_hide_messages(),
 			st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/messages/hide-blocked-messages"_q,
+			hideBlockedMessages);
+		hideBlockedMessages->toggleOn(
 				rpl::single(GetEnhancedBool("blocked_user_spoiler_mode"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -476,11 +928,15 @@ namespace Settings {
 						object_ptr<Ui::VerticalLayout>(container)));
 		const auto inner = wrap->entity();
 
-		AddButtonWithIcon(
+		const auto showEmojiButtonAsText = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_show_emoji_button_as_text(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/buttons/show-emoji-button-as-text"_q,
+			showEmojiButtonAsText);
+		showEmojiButtonAsText->toggleOn(
 				rpl::single(GetEnhancedBool("show_emoji_button_as_text"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -493,11 +949,15 @@ namespace Settings {
 
 		AddDividerText(inner, tr::lng_show_emoji_button_as_text_desc());
 
-		AddButtonWithIcon(
+		const auto showScheduledButton = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_show_scheduled_button(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/buttons/show-scheduled-button"_q,
+			showScheduledButton);
+		showScheduledButton->toggleOn(
 				rpl::single(GetEnhancedBool("show_scheduled_button"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -521,21 +981,29 @@ namespace Settings {
 						object_ptr<Ui::VerticalLayout>(container)));
 		const auto inner = wrap->entity();
 
-		AddButtonWithIcon(
+		const auto radioController = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_radio_controller(),
 				st::settingsButtonNoIcon
-		)->addClickHandler([=] {
+		);
+		registerHighlight(
+			u"enhanced/voice-chat/radio-controller"_q,
+			radioController);
+		radioController->addClickHandler([=] {
 			Ui::show(Box<RadioController>());
 		});
 
 		AddDividerText(inner, tr::lng_radio_controller_desc());
 
-		AddButtonWithIcon(
+		const auto autoUnmute = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_auto_unmute(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/voice-chat/auto-unmute"_q,
+			autoUnmute);
+		autoUnmute->toggleOn(
 				rpl::single(GetEnhancedBool("auto_unmute"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -561,6 +1029,9 @@ namespace Settings {
 				std::move(value),
 				st::settingsButtonNoIcon
 		);
+		registerHighlight(
+			u"enhanced/voice-chat/bitrate-controller"_q,
+			btn);
 		btn->events(
 		) | rpl::on_next([=](not_null<QEvent*> e) {
 			const auto event = e->type();
@@ -570,11 +1041,15 @@ namespace Settings {
 			Ui::show(Box<BitrateController>());
 		});
 
-		AddButtonWithIcon(
+		const auto enableHdVideo = AddButtonWithIcon(
 				inner,
 				tr::lng_settings_enable_hd_video(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/voice-chat/enable-hd-video"_q,
+			enableHdVideo);
+		enableHdVideo->toggleOn(
 				rpl::single(GetEnhancedBool("hd_video"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -585,11 +1060,15 @@ namespace Settings {
 			EnhancedSettings::Write();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto mprisCallHangup = AddButtonWithIcon(
 				container,
 				tr::lng_settings_mpris_call_hangup(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/voice-chat/mpris-call-hangup"_q,
+			mprisCallHangup);
+		mprisCallHangup->toggleOn(
 				rpl::single(GetEnhancedBool("mpris_call_hangup"))
 		)->toggledValue(
 		) | rpl::filter([](bool enabled) {
@@ -607,11 +1086,15 @@ namespace Settings {
 		AddSkip(container);
 		AddSubsectionTitle(container, tr::lng_settings_other());
 
-		AddButtonWithIcon(
+		const auto showPeerId = AddButtonWithIcon(
 			container,
 			tr::lng_settings_show_peer_id(),
 			st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/other/show-peer-id"_q,
+			showPeerId);
+		showPeerId->toggleOn(
 				rpl::single(GetEnhancedBool("show_peer_id"))
 		)->toggledValue(
 		) | rpl::filter([](bool enabled) {
@@ -621,11 +1104,15 @@ namespace Settings {
 			EnhancedSettings::Write();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto hideAllChats = AddButtonWithIcon(
 			container,
 			tr::lng_settings_hide_all_chats(),
 			st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/other/hide-all-chats"_q,
+			hideAllChats);
+		hideAllChats->toggleOn(
 				rpl::single(GetEnhancedBool("hide_all_chats"))
 		)->toggledValue(
 		) | rpl::filter([](bool enabled) {
@@ -636,11 +1123,15 @@ namespace Settings {
 			Core::Restart();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto replaceEditButton = AddButtonWithIcon(
 				container,
 				tr::lng_settings_replace_edit_button(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/other/replace-edit-button"_q,
+			replaceEditButton);
+		replaceEditButton->toggleOn(
 				rpl::single(GetEnhancedBool("replace_edit_button"))
 		)->toggledValue(
 		) | rpl::filter([](bool enabled) {
@@ -651,11 +1142,15 @@ namespace Settings {
 			controller->reloadFiltersMenu();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto skipMessage = AddButtonWithIcon(
 				container,
 				tr::lng_settings_skip_message(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/other/skip-message"_q,
+			skipMessage);
+		skipMessage->toggleOn(
 				rpl::single(GetEnhancedBool("skip_to_next"))
 		)->toggledValue(
 		) | rpl::filter([](bool enabled) {
@@ -667,11 +1162,15 @@ namespace Settings {
 
 		AddDividerText(container, tr::lng_settings_skip_message_desc());
 
-		AddButtonWithIcon(
+		const auto hideCounter = AddButtonWithIcon(
 				container,
 				tr::lng_settings_hide_counter(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/other/hide-counter"_q,
+			hideCounter);
+		hideCounter->toggleOn(
 				rpl::single(GetEnhancedBool("hide_counter"))
 		)->toggledValue(
 		) | rpl::filter([](bool enabled) {
@@ -681,11 +1180,15 @@ namespace Settings {
 			EnhancedSettings::Write();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto hideStories = AddButtonWithIcon(
 				container,
 				tr::lng_settings_hide_stories(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/other/hide-stories"_q,
+			hideStories);
+		hideStories->toggleOn(
 				rpl::single(GetEnhancedBool("hide_stories"))
 		)->toggledValue(
 		) | rpl::filter([](bool enabled) {
@@ -695,11 +1198,15 @@ namespace Settings {
 			EnhancedSettings::Write();
 		}, container->lifetime());
 
-        AddButtonWithIcon(
+		const auto hideStarRatings = AddButtonWithIcon(
 				container,
 				tr::lng_settings_hide_star_ratings(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/other/hide-star-ratings"_q,
+			hideStarRatings);
+		hideStarRatings->toggleOn(
 				rpl::single(GetEnhancedBool("hide_star_ratings"))
 		)->toggledValue(
 		) | rpl::filter([](bool enabled) {
@@ -709,11 +1216,15 @@ namespace Settings {
 			EnhancedSettings::Write();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto forceMobile = AddButtonWithIcon(
 				container,
 				tr::lng_settings_force_mobile(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/other/force-mobile"_q,
+			forceMobile);
+		forceMobile->toggleOn(
 				rpl::single(GetEnhancedBool("force_mobile"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -724,11 +1235,15 @@ namespace Settings {
 			Core::Restart();
 		}, container->lifetime());
 
-		AddButtonWithIcon(
+		const auto disableRecentStickersLimit = AddButtonWithIcon(
 				container,
 				tr::lng_settings_disable_recent_stickers_limit(),
 				st::settingsButtonNoIcon
-		)->toggleOn(
+		);
+		registerHighlight(
+			u"enhanced/other/disable-recent-stickers-limit"_q,
+			disableRecentStickersLimit);
+		disableRecentStickersLimit->toggleOn(
 				rpl::single(GetEnhancedBool("disable_recent_stickers_limit"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
@@ -753,6 +1268,9 @@ namespace Settings {
 				std::move(value),
 				st::settingsButtonNoIcon
 		);
+		registerHighlight(
+			u"enhanced/other/recent-display-limit"_q,
+			btn);
 		btn->events(
 		) | rpl::on_next([=](not_null<QEvent*> e) {
 			const auto event = e->type();
@@ -786,6 +1304,21 @@ namespace Settings {
 		SetupEnhancedOthers(controller, content);
 
 		Ui::ResizeFitChild(this, content);
+	}
+
+	void Enhanced::registerHighlight(QString id, QWidget *widget) {
+		if (widget) {
+			_highlightControls.emplace_back(std::move(id), widget);
+		}
+	}
+
+	void Enhanced::showFinished() {
+		for (const auto &[id, widget] : _highlightControls) {
+			if (widget) {
+				controller()->checkHighlightControl(id, widget);
+			}
+		}
+		Section<Enhanced>::showFinished();
 	}
 } // namespace Settings
 

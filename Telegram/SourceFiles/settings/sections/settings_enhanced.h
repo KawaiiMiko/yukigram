@@ -10,6 +10,10 @@ https://github.com/TDesktop-x64/tdesktop/blob/dev/LEGAL
 #include "settings/settings_common_session.h"
 #include "settings/settings_type.h"
 
+#include <QPointer>
+
+#include <vector>
+
 class BoxContent;
 
 namespace Window {
@@ -27,6 +31,7 @@ namespace Settings {
 				QWidget *parent,
 				not_null<Window::SessionController *> controller);
 		[[nodiscard]] rpl::producer<QString> title() override;
+		void showFinished() override;
 
 	private:
 		void setupContent(not_null<Window::SessionController *> controller);
@@ -37,9 +42,12 @@ namespace Settings {
 		void SetupEnhancedOthers(not_null<Window::SessionController*> controller, not_null<Ui::VerticalLayout *> container);
 		void reqBlocked(int offset);
 		void writeBlocklistFile();
+		void registerHighlight(QString id, QWidget *widget);
 
 		rpl::event_stream<QString> _AlwaysDeleteChanged;
 		rpl::event_stream<QString> _BitrateChanged;
+
+		std::vector<std::pair<QString, QPointer<QWidget>>> _highlightControls;
 
 		mtpRequestId _requestId = 0;
 		QList<int64> blockList;
