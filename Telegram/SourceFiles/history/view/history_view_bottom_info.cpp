@@ -680,6 +680,10 @@ BottomInfo::Data BottomInfoDataFromMessage(not_null<Message*> message) {
 	if (item->isScheduled()) {
 		result.scheduleRepeatPeriod = item->scheduleRepeatPeriod();
 	}
+	if (GetEnhancedBool("show_messages_id")) {
+		if (item->fullId().msg > 0)
+			result.msgId = QString(" (%1)").arg(item->fullId().msg.bare);
+	}
 	if (!forwarded) {
 		return result;
 	}
@@ -697,10 +701,6 @@ BottomInfo::Data BottomInfoDataFromMessage(not_null<Message*> message) {
 	//if (item->unread()) {
 	//	result.flags |= Flag::Unread;
 	//}
-	if (GetEnhancedBool("show_messages_id")) {
-		if (item->fullId().msg > 0)
-			result.msgId = QString(" (%1)").arg(item->fullId().msg.bare);
-	}
 	return result;
 }
 
