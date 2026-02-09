@@ -44,6 +44,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "settings/sections/settings_business.h"
 #include "settings/sections/settings_calls.h"
 #include "settings/sections/settings_chat.h"
+#include "settings/sections/settings_enhanced.h"
 #include "settings/sections/settings_passkeys.h"
 #include "data/components/passkeys.h"
 #include "calls/calls_box_controller.h"
@@ -1680,6 +1681,323 @@ void RegisterSettingsHandlers(Router &router) {
 	router.add(u"settings"_q, {
 		.path = u"search"_q,
 		.action = SettingsSection{ ::Settings::MainId() },
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced"_q,
+		.action = SettingsSection{ ::Settings::EnhancedId() },
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/network/upload-speed-boost"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/network/upload-speed-boost"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/show-message-id"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/show-message-id"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/no-animoji"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/no-animoji"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/old-reply-layout"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/old-reply-layout"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/wide-messages"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/wide-messages"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/show-similar-on-joined"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/show-similar-on-joined"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/multichoice-squares"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/multichoice-squares"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/more-right-action-comments"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/more-right-action-comments"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/show-repeater-option"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/show-repeater-option"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/show-view-as-json"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/show-view-as-json"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/repeater-reply-to-original"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/repeater-reply-to-original"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/always-delete-for"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/always-delete-for"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/disable-cloud-draft-sync"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/disable-cloud-draft-sync"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/hide-classic-forward"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/hide-classic-forward"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/disable-link-warning"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/disable-link-warning"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/disable-premium-animation"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/disable-premium-animation"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/disable-global-search"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/disable-global-search"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/show-group-sender-avatar"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/show-group-sender-avatar"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/use-gt-api"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/use-gt-api"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/translate-to-tc"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/translate-to-tc"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/show-seconds"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/show-seconds"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/hide-blocked-messages"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/hide-blocked-messages"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/buttons/show-emoji-button-as-text"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/buttons/show-emoji-button-as-text"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/buttons/show-scheduled-button"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/buttons/show-scheduled-button"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/voice-chat/radio-controller"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/voice-chat/radio-controller"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/voice-chat/auto-unmute"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/voice-chat/auto-unmute"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/voice-chat/bitrate-controller"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/voice-chat/bitrate-controller"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/voice-chat/enable-hd-video"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/voice-chat/enable-hd-video"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/voice-chat/mpris-call-hangup"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/voice-chat/mpris-call-hangup"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/other/show-peer-id"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/other/show-peer-id"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/other/hide-all-chats"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/other/hide-all-chats"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/other/replace-edit-button"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/other/replace-edit-button"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/other/skip-message"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/other/skip-message"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/other/hide-counter"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/other/hide-counter"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/other/hide-stories"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/other/hide-stories"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/other/hide-star-ratings"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/other/hide-star-ratings"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/other/force-mobile"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/other/force-mobile"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/other/disable-recent-stickers-limit"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/other/disable-recent-stickers-limit"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/other/recent-display-limit"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/other/recent-display-limit"_q,
+		},
 	});
 
 	router.add(u"settings"_q, {

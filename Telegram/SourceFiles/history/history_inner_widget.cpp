@@ -2954,6 +2954,7 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 								if (item->history()->peer->isUser() || item->history()->peer->isChat()) {
 									action.options.sendAs = nullptr;
 								}
+
 								if (const auto sublist = item->savedSublist()) {
 									action.replyTo.monoforumPeerId = item->history()->peer->isSelf() ? nullptr : sublist->monoforumPeerId();
 								}
