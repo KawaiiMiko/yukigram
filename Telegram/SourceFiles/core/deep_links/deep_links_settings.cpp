@@ -2047,22 +2047,6 @@ void RegisterSettingsHandlers(Router &router) {
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/other/disable-recent-stickers-limit"_q,
-		.action = SettingsControl{
-			::Settings::EnhancedId(),
-			u"enhanced/other/disable-recent-stickers-limit"_q,
-		},
-	});
-
-	router.add(u"settings"_q, {
-		.path = u"enhanced/other/recent-display-limit"_q,
-		.action = SettingsControl{
-			::Settings::EnhancedId(),
-			u"enhanced/other/recent-display-limit"_q,
-		},
-	});
-
-	router.add(u"settings"_q, {
 		.path = u"qr-code"_q,
 		.action = CodeBlock{ [](const Context &ctx) {
 			return HandleQrCode(ctx, false);

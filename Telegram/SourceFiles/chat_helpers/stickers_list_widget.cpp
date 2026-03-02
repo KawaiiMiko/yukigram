@@ -2515,18 +2515,6 @@ void StickersListWidget::refreshRecent() {
 	}
 }
 
-uint16_t getRecentDisplayLimit() {
-	int limit = GetEnhancedInt("recent_display_limit");
-	switch (limit) {
-		case 1: return 40;
-		case 2: return 60;
-		case 3: return 80;
-		case 4: return 100;
-		case 5: return 120;
-		default: return kRecentDisplayLimit;
-	}
-}
-
 auto StickersListWidget::collectCustomRecents() -> std::vector<Sticker> {
 	_custom.clear();
 	_cornerEmoji.clear();
@@ -2570,9 +2558,6 @@ auto StickersListWidget::collectRecentStickers() -> std::vector<Sticker> {
 	_custom.reserve(cloudCount + recent.size() + customCount);
 
 	auto add = [&](not_null<DocumentData*> document, bool custom) {
-		if (!GetEnhancedBool("disable_recent_stickers_limit") && result.size() >= getRecentDisplayLimit()) {
-			return;
-		}
 		if (result.size() >= kRecentDisplayLimit
 			&& !OptionUnlimitedRecentStickers.value()) {
 			return;

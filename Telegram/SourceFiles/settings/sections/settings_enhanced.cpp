@@ -386,24 +386,6 @@ namespace {
 			.deeplink = u"tg://settings/enhanced/other/force-mobile"_q,
 		};
 	});
-
-	builder.add(nullptr, [] {
-		return Builder::SearchEntry{
-			.id = u"enhanced/other/disable-recent-stickers-limit"_q,
-			.title = tr::lng_settings_disable_recent_stickers_limit(tr::now),
-			.keywords = { u"recent"_q, u"stickers"_q, u"limit"_q },
-			.deeplink = u"tg://settings/enhanced/other/disable-recent-stickers-limit"_q,
-		};
-	});
-
-	builder.add(nullptr, [] {
-		return Builder::SearchEntry{
-			.id = u"enhanced/other/recent-display-limit"_q,
-			.title = tr::lng_settings_recent_display_limit(tr::now),
-			.keywords = { u"recent"_q, u"display"_q, u"limit"_q },
-			.deeplink = u"tg://settings/enhanced/other/recent-display-limit"_q,
-		};
-	});
 });
 
 } // namespace
@@ -1234,51 +1216,6 @@ namespace {
 			EnhancedSettings::Write();
 			Core::Restart();
 		}, container->lifetime());
-
-		const auto disableRecentStickersLimit = AddButtonWithIcon(
-				container,
-				tr::lng_settings_disable_recent_stickers_limit(),
-				st::settingsButtonNoIcon
-		);
-		registerHighlight(
-			u"enhanced/other/disable-recent-stickers-limit"_q,
-			disableRecentStickersLimit);
-		disableRecentStickersLimit->toggleOn(
-				rpl::single(GetEnhancedBool("disable_recent_stickers_limit"))
-		)->toggledChanges(
-		) | rpl::filter([=](bool toggled) {
-			return (toggled != GetEnhancedBool("disable_recent_stickers_limit"));
-		}) | rpl::on_next([=](bool toggled) {
-			SetEnhancedValue("disable_recent_stickers_limit", toggled);
-			EnhancedSettings::Write();
-			Core::Restart();
-		}, container->lifetime());
-
-		auto value = rpl::single(
-				RecentDisplayLimitController::Label(GetEnhancedInt("recent_display_limit"))
-		) | rpl::then(
-				_BitrateChanged.events()
-		) | rpl::map([=] {
-			return RecentDisplayLimitController::Label(GetEnhancedInt("recent_display_limit"));
-		});
-
-		auto btn = AddButtonWithLabel(
-				container,
-				tr::lng_settings_recent_display_limit(),
-				std::move(value),
-				st::settingsButtonNoIcon
-		);
-		registerHighlight(
-			u"enhanced/other/recent-display-limit"_q,
-			btn);
-		btn->events(
-		) | rpl::on_next([=](not_null<QEvent*> e) {
-			const auto event = e->type();
-			if (event == QEvent::UpdateLater) _BitrateChanged.fire({});
-		}, container->lifetime());
-		btn->addClickHandler([=] {
-			Ui::show(Box<RecentDisplayLimitController>());
-		});
 
 		AddSkip(container);
 	}

@@ -7772,9 +7772,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_settings_skip_message" = "Skip to next unread chat";
 "lng_settings_skip_message_desc" = "Note: Allow ALT+↑/↓ shortcut to skip to next unread chat";
 
-"lng_settings_recent_display_limit" = "Recent sticker display limit";
-"lng_settings_recent_display_limit_default" = "Default (20)";
-
 "lng_settings_always_delete_for" = "Always select delete for";
 "lng_settings_delete_disabled" = "Disabled";
 "lng_settings_delete_for_group" = "Group";
@@ -7898,7 +7895,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_settings_wide_messages" = "Wide message bubbles and large media";
 "lng_settings_restart_immediately" = "Restart now";
 "lng_settings_force_mobile" = "Force use mobile-like layout";
-"lng_settings_disable_recent_stickers_limit" = "Disable the recent stickers limit";
 "lng_settings_show_similar_on_joined" = "Show similar channels on join message";
 "lng_settings_multichoice_squares" = "Use squares for multichoice polls";
 "lng_settings_more_right_action_comments" = "Move comments button to the right";
