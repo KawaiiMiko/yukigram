@@ -1097,7 +1097,8 @@ void Application::checkStartUrls() {
 				iv().showTonSite(url.toString(), {});
 				return false;
 			} else if (_lastActivePrimaryWindow) {
-				return !openLocalUrl(url.toString(), {});
+				const auto local = TryConvertUrlToLocal(url.toString());
+				return !openLocalUrl(local, {});
 			}
 			return true;
 		}) | ranges::to<QList<QUrl>>;

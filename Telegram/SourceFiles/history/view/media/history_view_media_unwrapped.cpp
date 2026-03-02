@@ -226,7 +226,7 @@ UnwrappedMedia::SurroundingInfo UnwrappedMedia::surroundingInfo(
 			panelHeight += reply->height()
 					- ((forwarded || via) ? 0 : replyMargins.top())
 					- replyMargins.bottom();
-		} else {
+		} else if (panelHeight) {
 			panelHeight += st::msgReplyPadding.bottom();
 		}
 	}
