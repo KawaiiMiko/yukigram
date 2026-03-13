@@ -12,7 +12,7 @@ https://github.com/frknkrc44/tdesktop-x64/blob/dev/LEGAL
 GTranslate::GTranslate() {
 	manager = new QNetworkAccessManager(this);
 }
-std::string GTranslate::replaceLangCode(const std::string& lang) {
+std::string GTranslate::replaceLangCode(const std::string &lang) {
 	static const std::map<std::string, std::string> langMap = {
 		{"zh", "zh-CN"},
 	};
@@ -24,7 +24,11 @@ std::string GTranslate::replaceLangCode(const std::string& lang) {
 	return lang;
 }
 
-void GTranslate::translate(QString from, QString to, QString query, TranslationCallback onFinished) {
+void GTranslate::translate(
+		QString from,
+		QString to,
+		QString query,
+		TranslationCallback onFinished) {
 	const auto proxy = Core::App().settings().proxy().isEnabled() ? Core::App().settings().proxy().selected() : MTP::ProxyData();
 	if (proxy.type == MTP::ProxyData::Type::Socks5 || proxy.type == MTP::ProxyData::Type::Http) {
 		QNetworkProxy LocaleProxy = MTP::ToNetworkProxy(MTP::ToDirectIpProxy(proxy));
@@ -62,7 +66,7 @@ void GTranslate::translate(QString from, QString to, QString query, TranslationC
 				auto json = QJsonDocument::fromJson(all);
 				auto sentences = json["sentences"];
 				if (sentences.isNull() || sentences.isUndefined()) {
-					onFinished("error: 'sentences' is null or undefined");
+					onFinished({});
 					return;
 				}
 
@@ -76,9 +80,12 @@ void GTranslate::translate(QString from, QString to, QString query, TranslationC
 					out << sentenceObj["trans"].toString().toStdString();
 				}
 
-				onFinished(QString::fromStdString(out.str()));
+				onFinished({
+					.text = QString::fromStdString(out.str()),
+					.success = true,
+				});
 			} else {
-				onFinished(reply->errorString());
+				onFinished({});
 			}
 			reply->deleteLater();
 		}

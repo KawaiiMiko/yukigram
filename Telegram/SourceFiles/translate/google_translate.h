@@ -19,21 +19,30 @@ https://github.com/frknkrc44/tdesktop-x64/blob/dev/LEGAL
 #include <sstream>
 #include <string>
 
-using TranslationCallback = std::function<void(QString)>;
+struct TranslationResult {
+	QString text;
+	bool success = false;
+};
+
+using TranslationCallback = std::function<void(TranslationResult)>;
 
 class GTranslate : public QObject {
     Q_OBJECT
-    public:
-        explicit GTranslate();
-        ~GTranslate() {
-            delete manager;
-        }
-        void translate(QString from, QString to, QString query, TranslationCallback onFinished);
-        std::string replaceLangCode(const std::string& lang);
+public:
+	explicit GTranslate();
+	~GTranslate() {
+		delete manager;
+	}
+	void translate(
+		QString from,
+		QString to,
+		QString query,
+		TranslationCallback onFinished);
+	std::string replaceLangCode(const std::string &lang);
 
 
-    private:
-        QNetworkAccessManager* manager;
+private:
+	QNetworkAccessManager *manager;
 };
 
 #endif // __GOOGLE_TRANSLATE_H__

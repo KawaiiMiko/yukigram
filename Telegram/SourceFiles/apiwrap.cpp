@@ -3871,32 +3871,8 @@ void ApiWrap::editMedia(
 void ApiWrap::sendFiles(
 		Ui::PreparedList &&list,
 		SendMediaType type,
-		TextWithTags &&caption,
 		std::shared_ptr<SendingAlbum> album,
 		const SendAction &action) {
-	const auto haveCaption = !caption.text.isEmpty();
-	const auto captionAttached = !haveCaption
-		? false
-		: (list.files.size() == 1)
-		? list.canAddCaption(
-			album != nullptr,
-			type == SendMediaType::Photo)
-		: Ui::CaptionWillBeAttached(
-			list,
-			[&] {
-				auto way = Ui::SendFilesWay();
-				way.setGroupFiles(album != nullptr);
-				way.setSendImagesAsPhotos(type == SendMediaType::Photo);
-				return way;
-			}(),
-			false);
-	if (haveCaption && !captionAttached) {
-		auto message = MessageToSend(action);
-		message.textWithTags = base::take(caption);
-		message.action.clearDraft = false;
-		sendMessage(std::move(message));
-	}
-
 	const auto to = FileLoadTaskOptions(action);
 	if (album) {
 		album->options = to.options;
@@ -3935,14 +3911,13 @@ void ApiWrap::sendFiles(
 				: nullptr),
 			.type = uploadWithType,
 			.to = to,
-			.caption = caption,
+			.caption = std::move(file.caption),
 			.spoiler = file.spoiler,
 			.album = album,
 			.forceFile = forceFile,
 			.idOverride = 0,
 			.displayName = file.displayName,
 		}));
-		caption = TextWithTags();
 	}
 	if (album) {
 		_sendingAlbums.emplace(album->groupId, album);

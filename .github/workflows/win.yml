@@ -55,6 +55,8 @@ jobs:
         exclude:
           - arch: arm64
             qt: ""
+          - arch: x64_x86
+            qt: qt6
 
     env:
       UPLOAD_ARTIFACT: "true"
@@ -215,7 +217,7 @@ jobs:
           mkdir artifact
           move %OUT%\Yukigram.exe artifact/
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         name: Upload artifact.
         if: env.UPLOAD_ARTIFACT == 'true'
         with:
