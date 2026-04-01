@@ -63,7 +63,7 @@ rpl::producer<TextWithEntities> Text3() {
 } // namespace
 
 void AboutBox(not_null<Ui::GenericBox*> box) {
-	box->setTitle(rpl::single(u"Yukigram"_q));
+	box->setTitle(u"Yukigram"_q);
 	auto layout = box->verticalLayout();
 
 	const auto version = layout->add(
