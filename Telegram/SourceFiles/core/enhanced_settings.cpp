@@ -322,7 +322,6 @@ namespace EnhancedSettings {
 		settings.insert(qsl("wide_messages"), false);
 		settings.insert(qsl("force_mobile"), false);
 		settings.insert(qsl("show_similar_on_joined"), false);
-		settings.insert(qsl("multichoice_squares"), true);
 		settings.insert(qsl("more_right_action_comments"), false);
 		settings.insert(qsl("mpris_call_hangup"), false);
 		settings.insert(qsl("screenshot_mode"), false);
@@ -386,7 +385,6 @@ namespace EnhancedSettings {
 		settings.insert(qsl("wide_messages"), GetEnhancedBool("wide_messages"));
 		settings.insert(qsl("force_mobile"), GetEnhancedBool("force_mobile"));
 		settings.insert(qsl("show_similar_on_joined"), GetEnhancedBool("show_similar_on_joined"));
-		settings.insert(qsl("multichoice_squares"), GetEnhancedBool("multichoice_squares"));
 		settings.insert(qsl("more_right_action_comments"), GetEnhancedBool("more_right_action_comments"));
 		settings.insert(qsl("mpris_call_hangup"), GetEnhancedBool("mpris_call_hangup"));
 		settings.insert(qsl("screenshot_mode"), GetEnhancedBool("screenshot_mode"));

@@ -110,15 +110,6 @@ namespace {
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/multichoice-squares"_q,
-			.title = tr::lng_settings_multichoice_squares(tr::now),
-			.keywords = { u"multi"_q, u"select"_q, u"checkbox"_q, u"square"_q },
-			.deeplink = u"tg://settings/enhanced/messages/multichoice-squares"_q,
-		};
-	});
-
-	builder.add(nullptr, [] {
-		return Builder::SearchEntry{
 			.id = u"enhanced/messages/more-right-action-comments"_q,
 			.title = tr::lng_settings_more_right_action_comments(tr::now),
 			.keywords = { u"context"_q, u"menu"_q, u"comments"_q },
@@ -573,25 +564,6 @@ namespace {
 			return (toggled != GetEnhancedBool("show_similar_on_joined"));
 		}) | rpl::on_next([=](bool toggled) {
 			SetEnhancedValue("show_similar_on_joined", toggled);
-			EnhancedSettings::Write();
-			Core::Restart();
-		}, container->lifetime());
-
-		const auto multichoiceSquares = AddButtonWithIcon(
-				inner,
-				tr::lng_settings_multichoice_squares(),
-				st::settingsAttentionButton
-		);
-		registerHighlight(
-			u"enhanced/messages/multichoice-squares"_q,
-			multichoiceSquares);
-		multichoiceSquares->toggleOn(
-				rpl::single(GetEnhancedBool("multichoice_squares"))
-		)->toggledChanges(
-		) | rpl::filter([=](bool toggled) {
-			return (toggled != GetEnhancedBool("multichoice_squares"));
-		}) | rpl::on_next([=](bool toggled) {
-			SetEnhancedValue("multichoice_squares", toggled);
 			EnhancedSettings::Write();
 			Core::Restart();
 		}, container->lifetime());
