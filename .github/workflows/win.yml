@@ -57,6 +57,8 @@ jobs:
             qt: ""
           - arch: x64_x86
             qt: qt6
+          - arch: x64
+            qt: qt6
 
     env:
       UPLOAD_ARTIFACT: "true"
