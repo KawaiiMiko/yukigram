@@ -309,8 +309,10 @@ private:
 )"_q;
 }
 
-[[nodiscard]] QByteArray ReadResource(const QString &name) {
-	auto file = QFile(u":/iv/"_q + name);
+[[nodiscard]] QByteArray ReadResource(
+		const QString &prefix,
+		const QString &name) {
+	auto file = QFile(u":/"_q + prefix + u'/' + name);
 	return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
 }
 
@@ -575,7 +577,7 @@ void Controller::showTLViewer(
 		createWebview(storageId);
 	}
 	if (_webview && _webview->widget()) {
-		_webview->navigate(url);
+		_webview->navigateToData(url);
 		activate();
 	}
 	_url = url;
@@ -752,8 +754,7 @@ void Controller::createWebview(const Webview::StorageId &storageId) {
 
 	raw->setNavigationStartHandler([=](const QString &uri, bool newWindow) {
 		if (uri.startsWith(u"http://desktop-app-resource/"_q)
-			|| QUrl(uri).host().toLower().endsWith(u".magic.org"_q)
-			|| uri.startsWith(Iv::kTLViewerUrl.utf16())) {
+			|| QUrl(uri).host().toLower().endsWith(u".magic.org"_q)) {
 			return true;
 		}
 		_events.fire({ .type = Event::Type::OpenLink, .url = uri });
@@ -813,7 +814,9 @@ void Controller::createWebview(const Webview::StorageId &storageId) {
 		if (pos != request.id.npos) {
 			request.id = request.id.substr(0, pos);
 		}
-		if (!request.id.starts_with("iv/")) {
+		const auto iv = request.id.starts_with("iv/");
+		const auto tlv = request.id.starts_with("tlv/");
+		if (!iv && !tlv) {
 			_dataRequests.fire(std::move(request));
 			return Webview::DataResult::Pending;
 		}
@@ -825,8 +828,9 @@ void Controller::createWebview(const Webview::StorageId &storageId) {
 				});
 			return Webview::DataResult::Done;
 		};
-		const auto id = std::string_view(request.id).substr(3);
-		if (id.starts_with("page") && id.ends_with(".html")) {
+		const auto prefix = QString::fromUtf8(iv ? "iv" : "tlv");
+		const auto id = std::string_view(request.id).substr(iv ? 3 : 4);
+		if (iv && id.starts_with("page") && id.ends_with(".html")) {
 			if (!_subscribedToColors) {
 				_subscribedToColors = true;
 
@@ -855,7 +859,7 @@ void Controller::createWebview(const Webview::StorageId &storageId) {
 			return finishWith(
 				WrapPage(_pages[index], styleZoom),
 				"text/html; charset=utf-8");
-		} else if (id.starts_with("page") && id.ends_with(".json")) {
+		} else if (iv && id.starts_with("page") && id.ends_with(".json")) {
 			auto index = 0;
 			const auto result = std::from_chars(
 				id.data() + 4,
@@ -874,17 +878,22 @@ void Controller::createWebview(const Webview::StorageId &storageId) {
 		}
 		const auto css = id.ends_with(".css");
 		const auto js = !css && id.ends_with(".js");
-		if (!css && !js) {
-			return Webview::DataResult::Failed;
-		}
 		const auto qstring = QString::fromUtf8(id.data(), id.size());
-		const auto pattern = u"^[a-zA-Z\\.\\-_0-9]+$"_q;
+		const auto pattern = u"^[a-zA-Z\\.\\-_0-9/]+$"_q;
 		if (QRegularExpression(pattern).match(qstring).hasMatch()) {
-			const auto bytes = ReadResource(qstring);
+			const auto html = !css && !js && id.ends_with(".html");
+			if (!css && !js && !html) {
+				return Webview::DataResult::Failed;
+			}
+			const auto bytes = ReadResource(prefix, qstring);
 			if (!bytes.isEmpty()) {
-				const auto mime = css ? "text/css" : "text/javascript";
-				const auto full = (qstring == u"page.js"_q)
-					? (ReadResource("morphdom.js") + bytes)
+				const auto mime = html
+					? "text/html; charset=utf-8"
+					: css
+					? "text/css"
+					: "text/javascript";
+				const auto full = (iv && qstring == u"page.js"_q)
+					? (ReadResource("iv", "morphdom.js") + bytes)
 					: bytes;
 				return finishWith(full, mime);
 			}
