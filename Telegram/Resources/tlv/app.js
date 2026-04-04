@@ -16,6 +16,7 @@
     copyButton: document.getElementById("copyButton"),
   };
   let currentJsonText = "";
+  let statusResetTimer = 0;
 
   class UnknownObjectIdError extends Error {
     constructor(objectId) {
@@ -229,9 +230,22 @@
     return TLReader.deserializeObject(schema, bytes);
   }
 
-  function setStatus(message, type) {
+  function setStatus(message, type, options) {
+    if (statusResetTimer) {
+      window.clearTimeout(statusResetTimer);
+      statusResetTimer = 0;
+    }
+
     elements.status.textContent = message;
     elements.status.className = "status" + (type ? ` ${type}` : "");
+
+    if (options && options.toast) {
+      elements.status.classList.add("toast");
+      statusResetTimer = window.setTimeout(function () {
+        setStatus("", "");
+      }, options.duration || 1800);
+    }
+
     elements.status.hidden = !message;
   }
 
@@ -354,7 +368,7 @@
 
   async function copyJson() {
     if (!currentJsonText) {
-      setStatus("当前没有可复制的 JSON。", "error");
+      setStatus("No JSON to copy.", "error");
       return;
     }
 
@@ -373,9 +387,9 @@
         helper.remove();
       }
 
-      setStatus("JSON 已复制到剪贴板。", "success");
+      setStatus("Copied to clipboard.", "success", { toast: true, duration: 1800 });
     } catch (error) {
-      setStatus(`复制失败：${error instanceof Error ? error.message : String(error)}`, "error");
+      setStatus(`Failed to copy: ${error instanceof Error ? error.message : String(error)}`, "error");
     }
   }
 
@@ -404,7 +418,7 @@
     } catch (error) {
       const message =
         error instanceof UnknownObjectIdError
-          ? `${error.message}。当前 schema 中没有对应构造器。`
+          ? `${error.message}. Constructor not found in current schema.`
           : error instanceof Error
             ? error.message
             : String(error);
@@ -421,7 +435,7 @@
   window.addEventListener("hashchange", loadFromHash);
 
   if (!schema || typeof schema !== "object") {
-    setStatus("schema.full.js 未正确加载。", "error");
+    setStatus("schema.js not loaded properly.", "error");
     return;
   }
 

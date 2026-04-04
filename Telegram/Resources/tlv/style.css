@@ -17,6 +17,9 @@
   --button-bg: rgba(35, 38, 45, 0.9);
   --button-text: #ffffff;
   --button-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+  --toast-bg: rgba(35, 38, 45, 0.94);
+  --toast-text: #ffffff;
+  --toast-shadow: 0 14px 30px rgba(15, 23, 42, 0.22);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -38,6 +41,9 @@
     --button-bg: rgba(248, 250, 252, 0.92);
     --button-text: #111318;
     --button-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+    --toast-bg: rgba(248, 250, 252, 0.94);
+    --toast-text: #111318;
+    --toast-shadow: 0 14px 30px rgba(0, 0, 0, 0.32);
   }
 }
 
@@ -67,9 +73,6 @@ body {
 .status {
   color: var(--muted);
   font-size: 13px;
-}
-
-.status {
   min-height: 20px;
   margin-bottom: 4px;
 }
@@ -79,6 +82,50 @@ body {
   color: var(--error-text);
   padding: 8px 10px;
   border-radius: 6px;
+}
+
+.status.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 88px;
+  transform: translateX(-50%);
+  min-height: 0;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--toast-bg);
+  color: var(--toast-text);
+  box-shadow: var(--toast-shadow);
+  z-index: 20;
+  pointer-events: none;
+  animation: toast-in-out 1.8s ease both;
+}
+
+.status.toast.success {
+  background: var(--toast-bg);
+  color: var(--toast-text);
+}
+
+@keyframes toast-in-out {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 12px) scale(0.96);
+  }
+
+  15% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+
+  80% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 10px) scale(0.98);
+  }
 }
 
 .tree {
@@ -175,8 +222,14 @@ body {
   }
 
   .copy-button {
-    right: 12px;
-    bottom: 12px;
+    right: 20px;
+    bottom: 20px;
     padding: 11px 14px;
+  }
+
+  .status.toast {
+    bottom: 70px;
+    max-width: calc(100vw - 28px);
+    text-align: center;
   }
 }
