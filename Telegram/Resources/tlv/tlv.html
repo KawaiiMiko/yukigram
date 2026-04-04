@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TL JSON Viewer</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="tree-panel">
+    <div id="status" class="status">Loading...</div>
+    <div id="tree" class="tree" aria-live="polite"></div>
+  </main>
+  <button id="copyButton" class="copy-button" type="button" aria-label="Copy JSON String">Copy</button>
+
+  <script src="./schema.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

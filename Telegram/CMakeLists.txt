@@ -1937,6 +1937,7 @@ PRIVATE
     qrc/telegram/export.qrc
     qrc/telegram/iv.qrc
     qrc/telegram/picker.qrc
+    qrc/telegram/tlv.qrc
     qrc/telegram/telegram.qrc
     qrc/telegram/sounds.qrc
     winrc/Telegram.rc
