@@ -203,7 +203,7 @@ QSize Photo::countOptimalSize() {
 		(_parent->hasBubble()
 			? st::historyPhotoBubbleMinWidth
 			: st::minPhotoSize),
-		(1 + GetEnhancedBool("wide_messages")) * st::maxMediaSize);
+		st::maxMediaSize);
 	const auto maxActualWidth = qMax(scaled.width(), minWidth);
 	auto maxWidth = qMax(maxActualWidth, scaled.height());
 	auto minHeight = qMax(scaled.height(), st::minPhotoSize);
@@ -213,9 +213,6 @@ QSize Photo::countOptimalSize() {
 		if (botTop || !_parent->data()->isFakeAboutView()) {
 			const auto maxWithCaption = qMin(st::msgMaxWidth, captionMaxWidth);
 			maxWidth = qMin(qMax(maxWidth, maxWithCaption), st::msgMaxWidth);
-			if (!GetEnhancedBool("wide_messages")) {
-				maxWidth = qMin(maxWidth, st::msgMaxWidth);
-			}
 			minHeight = adjustHeightForLessCrop(
 				dimensions,
 				{ maxWidth, minHeight });
@@ -228,7 +225,7 @@ QSize Photo::countCurrentSize(int newWidth) {
 	if (_serviceWidth) {
 		return { int(_serviceWidth), int(_serviceWidth) };
 	}
-	const auto thumbMaxWidth = qMin(newWidth, (1 + GetEnhancedBool("wide_messages")) * st::maxMediaSize);
+	const auto thumbMaxWidth = qMin(newWidth, st::maxMediaSize);
 	const auto minWidth = std::clamp(
 		_parent->minWidthForMedia(),
 		qMin(thumbMaxWidth, _parent->hasBubble()

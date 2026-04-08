@@ -534,9 +534,7 @@ QSize Document::countOptimalSize() {
 
 	if (const auto named = Get<HistoryDocumentNamed>()) {
 		accumulate_max(maxWidth, tleft + named->name.maxWidth() + tright);
-		if (!GetEnhancedBool("wide_messages")) {
-			accumulate_min(maxWidth, st::msgMaxWidth);
-		}
+		accumulate_min(maxWidth, st::msgMaxWidth);
 	}
 	if (voice) {
 		const auto maxWaveformWidth = ::Media::Player::kWaveformSamplesCount *

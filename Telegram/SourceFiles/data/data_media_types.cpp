@@ -1021,7 +1021,7 @@ std::unique_ptr<HistoryView::Media> MediaPhoto::createView(
 					message,
 					_chat,
 					_photo,
-					(1 + GetEnhancedBool("wide_messages")) * st::msgServicePhotoWidth));
+					st::msgServicePhotoWidth));
 		}
 		return std::make_unique<HistoryView::Photo>(
 			message,

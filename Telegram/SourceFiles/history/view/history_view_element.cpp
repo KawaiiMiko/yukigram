@@ -745,7 +745,7 @@ void UnreadBar::paint(
 	p.setPen(st->historyUnreadBarFg());
 
 	int maxwidth = w;
-	if (!GetEnhancedBool("wide_messages") && mode == ElementChatMode::Wide) {
+	if (mode == ElementChatMode::Wide) {
 		maxwidth = qMin(
 			maxwidth,
 			st::msgMaxWidth

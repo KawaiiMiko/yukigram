@@ -157,7 +157,7 @@ void PaintPreparedDate(
 		int w,
 		bool chatWide) {
 	int left = st::msgServiceMargin.left();
-	const auto maxwidth = (!GetEnhancedBool("wide_messages") && chatWide)
+	const auto maxwidth = chatWide
 		? std::min(w, WideChatWidth())
 		: w;
 	w = maxwidth - st::msgServiceMargin.left() - st::msgServiceMargin.left();
@@ -447,7 +447,7 @@ bool Service::consumeHorizontalScroll(QPoint position, int delta) {
 
 QRect Service::countGeometry() const {
 	auto result = QRect(0, 0, width(), height());
-	if (!GetEnhancedBool("wide_messages") && delegate()->elementChatMode() == ElementChatMode::Wide) {
+	if (delegate()->elementChatMode() == ElementChatMode::Wide) {
 		result.setWidth(qMin(result.width(), st::msgMaxWidth + 2 * st::msgPhotoSkip + 2 * st::msgMargin.left()));
 	}
 	auto margins = st::msgServiceMargin;

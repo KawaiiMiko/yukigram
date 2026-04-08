@@ -157,7 +157,7 @@ QSize GroupedMedia::countOptimalSize() {
 	const auto layout = (_mode == Mode::Grid)
 		? Ui::LayoutMediaGroup(
 			sizes,
-			(GetEnhancedBool("wide_messages") ? 4000 /* TODO: Yulia */ : st::historyGroupWidthMax),
+			st::historyGroupWidthMax,
 			st::historyGroupWidthMin,
 			st::historyGroupSkip)
 		: LayoutPlaylist(sizes);

@@ -92,15 +92,6 @@ namespace {
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/wide-messages"_q,
-			.title = tr::lng_settings_wide_messages(tr::now),
-			.keywords = { u"wide"_q, u"messages"_q, u"width"_q },
-			.deeplink = u"tg://settings/enhanced/messages/wide-messages"_q,
-		};
-	});
-
-	builder.add(nullptr, [] {
-		return Builder::SearchEntry{
 			.id = u"enhanced/messages/show-similar-on-joined"_q,
 			.title = tr::lng_settings_show_similar_on_joined(tr::now),
 			.keywords = { u"similar"_q, u"recommendations"_q, u"joined"_q },
@@ -528,25 +519,6 @@ namespace {
 		}) | rpl::on_next([=](bool toggled) {
 			SetEnhancedValue("old_reply_layout", toggled);
 			EnhancedSettings::Write();
-		}, container->lifetime());
-
-		const auto wideMessages = AddButtonWithIcon(
-				inner,
-				tr::lng_settings_wide_messages(),
-				st::settingsAttentionButton
-		);
-		registerHighlight(
-			u"enhanced/messages/wide-messages"_q,
-			wideMessages);
-		wideMessages->toggleOn(
-				rpl::single(GetEnhancedBool("wide_messages"))
-		)->toggledChanges(
-		) | rpl::filter([=](bool toggled) {
-			return (toggled != GetEnhancedBool("wide_messages"));
-		}) | rpl::on_next([=](bool toggled) {
-			SetEnhancedValue("wide_messages", toggled);
-			EnhancedSettings::Write();
-			Core::Restart();
 		}, container->lifetime());
 
 		const auto showSimilarOnJoined = AddButtonWithIcon(
