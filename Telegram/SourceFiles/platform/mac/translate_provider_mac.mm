@@ -7,6 +7,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "platform/mac/translate_provider_mac.h"
 
+#ifndef TDESKTOP_DISABLE_SWIFT6
+
 #include "base/weak_ptr.h"
 #include "lang/translate_provider.h"
 #include "spellcheck/platform/platform_language.h"
@@ -102,5 +104,20 @@ std::unique_ptr<Ui::TranslateProvider> CreateTranslateProvider() {
 bool IsTranslateProviderAvailable() {
 	return TranslateProviderMacSwiftIsAvailable();
 }
+
+#else // TDESKTOP_DISABLE_SWIFT6
+
+// Local on-device translation disabled (no Swift 6).
+namespace Platform {
+
+std::unique_ptr<Ui::TranslateProvider> CreateTranslateProvider() {
+	return nullptr;
+}
+
+bool IsTranslateProviderAvailable() {
+	return false;
+}
+
+#endif // TDESKTOP_DISABLE_SWIFT6
 
 } // namespace Platform
