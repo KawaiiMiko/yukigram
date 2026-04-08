@@ -29,7 +29,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 namespace Editor {
 namespace {
 
-constexpr auto kMaxBrush = 25.;
+constexpr auto kMaxBrush = 40.;
 constexpr auto kMinBrush = 1.;
 constexpr auto kMinCanvasZoom = 1.;
 constexpr auto kMaxCanvasZoom = 8.;

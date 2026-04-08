@@ -26,7 +26,7 @@ namespace {
 
 constexpr auto kMinBrushSize = 0.1;
 constexpr auto kMinBrushWidth = 1.;
-constexpr auto kMaxBrushWidth = 25.;
+constexpr auto kMaxBrushWidth = 40.;
 
 constexpr auto kCircleDuration = crl::time(200);
 constexpr auto kSizeControlSwitchDuration = crl::time(140);
