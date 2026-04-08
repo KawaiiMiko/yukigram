@@ -291,7 +291,6 @@ public:
 
 	QPixmap grabForShowAnimation(const Window::SectionSlideParams &params);
 
-	void oldForwardSelected();
 	void forwardSelected();
 	void forwardNoQuoteSelected();
 	void forwardSelectedToSavedMessages();

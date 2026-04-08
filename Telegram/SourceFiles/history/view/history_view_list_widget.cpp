@@ -4666,25 +4666,6 @@ void ConfirmDeleteSelectedItems(not_null<ListWidget*> widget) {
 	}
 }
 
-void ConfirmOldForwardSelectedItems(not_null<ListWidget*> widget) {
-	const auto items = widget->getSelectedItems();
-	if (items.empty()) {
-		return;
-	}
-	for (const auto &item : items) {
-		if (!item.canForward) {
-			return;
-		}
-	}
-	auto ids = widget->getSelectedIds();
-	const auto weak = base::make_weak(widget);
-	Window::ShowForwardMessagesBox(widget->controller(), std::move(ids), [=] {
-		if (const auto strong = weak.get()) {
-			strong->cancelSelection();
-		}
-	});
-}
-
 void ConfirmForwardSelectedItems(not_null<ListWidget*> widget) {
 	const auto items = widget->getSelectedItems();
 	if (items.empty()) {

@@ -155,15 +155,6 @@ namespace {
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/hide-classic-forward"_q,
-			.title = tr::lng_settings_hide_classic_forward(tr::now),
-			.keywords = { u"forward"_q, u"classic"_q, u"hide"_q },
-			.deeplink = u"tg://settings/enhanced/messages/hide-classic-forward"_q,
-		};
-	});
-
-	builder.add(nullptr, [] {
-		return Builder::SearchEntry{
 			.id = u"enhanced/messages/disable-link-warning"_q,
 			.title = tr::lng_settings_disable_link_warning(tr::now),
 			.keywords = { u"link"_q, u"warning"_q, u"confirm"_q },
@@ -660,24 +651,6 @@ namespace {
 		}, container->lifetime());
 
 		AddSkip(container);
-
-		const auto hideClassicForward = AddButtonWithIcon(
-				inner,
-				tr::lng_settings_hide_classic_forward(),
-				st::settingsButtonNoIcon
-		);
-		registerHighlight(
-			u"enhanced/messages/hide-classic-forward"_q,
-			hideClassicForward);
-		hideClassicForward->toggleOn(
-				rpl::single(GetEnhancedBool("hide_classic_fwd"))
-		)->toggledChanges(
-		) | rpl::filter([=](bool toggled) {
-			return (toggled != GetEnhancedBool("hide_classic_fwd"));
-		}) | rpl::on_next([=](bool toggled) {
-			SetEnhancedValue("hide_classic_fwd", toggled);
-			EnhancedSettings::Write();
-		}, container->lifetime());
 
 		const auto disableLinkWarning = AddButtonWithIcon(
 				inner,
@@ -1202,4 +1175,3 @@ namespace {
 		Section<Enhanced>::showFinished();
 	}
 } // namespace Settings
-

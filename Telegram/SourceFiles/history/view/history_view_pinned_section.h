@@ -172,7 +172,6 @@ private:
 	void setupTranslateBar();
 
 	void confirmDeleteSelected();
-	void confirmOldForwardSelected();
 	void confirmForwardSelected();
 	void confirmForwardNoQuoteSelected();
 	void confirmForwardSelectedToSavedMessages();

@@ -1012,10 +1012,6 @@ HistoryWidget::HistoryWidget(
 	) | rpl::on_next([=](bool active) {
 		setMembersShowAreaActive(active);
 	}, _topBar->lifetime());
-	_topBar->oldForwardSelectionRequest(
-	) | rpl::on_next([=] {
-		oldForwardSelected();
-	}, _topBar->lifetime());
 	_topBar->forwardSelectionRequest(
 	) | rpl::on_next([=] {
 		forwardSelected();
@@ -9585,18 +9581,6 @@ bool HistoryWidget::updateCanSendMessage() {
 	refreshSendGiftToggle();
 	refreshSilentToggle();
 	return true;
-}
-
-void HistoryWidget::oldForwardSelected() {
-	if (!_list) {
-		return;
-	}
-	const auto weak = base::make_weak(this);
-	Window::ShowForwardMessagesBox(controller(), getSelectedItems(), [=] {
-		if (const auto strong = weak.get()) {
-			strong->clearSelected();
-		}
-	});
 }
 
 void HistoryWidget::forwardSelected() {

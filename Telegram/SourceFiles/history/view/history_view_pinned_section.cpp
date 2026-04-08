@@ -150,10 +150,6 @@ PinnedWidget::PinnedWidget(
 	) | rpl::on_next([=] {
 		confirmDeleteSelected();
 	}, _topBar->lifetime());
-	_topBar->oldForwardSelectionRequest(
-	) | rpl::on_next([=] {
-		confirmOldForwardSelected();
-	}, _topBar->lifetime());
 	_topBar->forwardSelectionRequest(
 	) | rpl::on_next([=] {
 		confirmForwardSelected();
@@ -731,10 +727,6 @@ void PinnedWidget::listAddTranslatedItems(
 
 void PinnedWidget::confirmDeleteSelected() {
 	ConfirmDeleteSelectedItems(_inner);
-}
-
-void PinnedWidget::confirmOldForwardSelected() {
-	ConfirmOldForwardSelectedItems(_inner);
 }
 
 void PinnedWidget::confirmForwardSelected() {

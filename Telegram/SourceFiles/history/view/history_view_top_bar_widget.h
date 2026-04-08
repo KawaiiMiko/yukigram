@@ -81,9 +81,6 @@ public:
 
 	void showChooseMessagesForReport(Data::ReportInput reportInput);
 	
-	rpl::producer<> oldForwardSelectionRequest() const {
-		return _oldForwardSelection.events();
-	}
 	void clearChooseMessagesForReport();
 
 	bool toggleSearch(bool shown, anim::type animated);
@@ -225,7 +222,7 @@ private:
 	Ui::Animations::Simple _searchShown;
 
 	object_ptr<Ui::RoundButton> _clear;
-	object_ptr<Ui::RoundButton> _forward, _sendNow, _delete, _forwardNoQuote, _savedMessages, _oldForward;
+	object_ptr<Ui::RoundButton> _forward, _sendNow, _delete, _forwardNoQuote, _savedMessages;
 	object_ptr<Ui::InputField> _searchField = { nullptr };
 	object_ptr<Ui::FadeWrapScaled<Ui::IconButton>> _chooseFromUser
 		= { nullptr };
@@ -270,7 +267,6 @@ private:
 
 	base::Timer _onlineUpdater;
 
-	rpl::event_stream<> _oldForwardSelection;
 	rpl::event_stream<> _forwardSelection;
 	rpl::event_stream<> _forwardNoQuoteSelection;
 	rpl::event_stream<> _savedMessagesSelection;

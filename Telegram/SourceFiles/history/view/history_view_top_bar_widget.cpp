@@ -124,9 +124,8 @@ TopBarWidget::TopBarWidget(
 , _forward(this, GetEnhancedBool("show_emoji_button_as_text") ? tr::lng_selected_forward() : tr::lng_selected_forward_emoji(), st::defaultActiveButton)
 , _sendNow(this, tr::lng_selected_send_now(), st::defaultActiveButton)
 , _delete(this, GetEnhancedBool("show_emoji_button_as_text") ? tr::lng_selected_delete() : tr::lng_selected_delete_emoji(), st::defaultActiveButton)
-, _forwardNoQuote(this, GetEnhancedBool("show_emoji_button_as_text") ? tr::lng_selected_forward_no_quote_text() : tr::lng_selected_forward_no_quote_emoji(), st::defaultActiveButton)
+, _forwardNoQuote(this, GetEnhancedBool("show_emoji_button_as_text") ? tr::lng_selected_forward_no_quote() : tr::lng_selected_forward_no_quote_emoji(), st::defaultActiveButton)
 , _savedMessages(this, GetEnhancedBool("show_emoji_button_as_text") ? tr::lng_forward_to_saved_message_text() : tr::lng_forward_to_saved_message_emoji(), st::defaultActiveButton)
-, _oldForward(this, GetEnhancedBool("show_emoji_button_as_text") ? tr::lng_selected_forward_text_classic() : tr::lng_selected_forward_emoji_classic(), st::defaultActiveButton)
 , _back(this, st::historyTopBarBack)
 , _cancelChoose(this, st::topBarCloseChoose)
 , _call(this, st::topBarCall)
@@ -150,8 +149,6 @@ TopBarWidget::TopBarWidget(
 		refreshLang();
 	}, lifetime());
 
-	_oldForward->setClickedCallback([=] { _oldForwardSelection.fire({}); });
-	_oldForward->setWidthChangedCallback([=] { updateControlsGeometry(); });
 	_forward->setClickedCallback([=] { _forwardSelection.fire({}); });
 	_forward->setWidthChangedCallback([=] { updateControlsGeometry(); });
 	_forwardNoQuote->setClickedCallback([=] { _forwardNoQuoteSelection.fire({}); });
@@ -1094,12 +1091,6 @@ void TopBarWidget::updateControlsGeometry() {
 
 	auto widthLeft = qMin(width() - buttonsWidth, -2 * st::defaultActiveButton.width);
 	auto buttonFullWidth = qMin(-(widthLeft / 2), 0);
-	if (!GetEnhancedBool("hide_classic_fwd") && _canForward) {
-		_oldForward->show();
-		_oldForward->setFullWidth(buttonFullWidth);
-	} else {
-		_oldForward->hide();
-	}
 	_forward->setFullWidth(buttonFullWidth);
 	_forwardNoQuote->setFullWidth(buttonFullWidth);
 	_savedMessages->setFullWidth(buttonFullWidth);
@@ -1107,13 +1098,6 @@ void TopBarWidget::updateControlsGeometry() {
 	_delete->setFullWidth(buttonFullWidth);
 
 	selectedButtonsTop += (height() - _forward->height()) / 2;
-
-	if (!GetEnhancedBool("hide_classic_fwd") && _canForward) {
-		_oldForward->moveToLeft(buttonsLeft, selectedButtonsTop);
-		if (!_oldForward->isHidden()) {
-			buttonsLeft += _oldForward->width() + st::topBarActionSkip;
-		}
-	}
 
 	_forward->moveToLeft(buttonsLeft, selectedButtonsTop);
 	if (!_forward->isHidden()) {
@@ -1514,18 +1498,12 @@ void TopBarWidget::showSelected(SelectedState state) {
 	_canSendNow = canSendNow;
 	const auto nowSelectedState = showSelectedState();
 	if (nowSelectedState) {
-		if (!GetEnhancedBool("hide_classic_fwd")) {
-			_oldForward->setNumbersText(_selectedCount);
-		}
 		_forward->setNumbersText(_selectedCount);
 		_forwardNoQuote->setNumbersText(_selectedCount);
 		_savedMessages->setNumbersText(_selectedCount);
 		_sendNow->setNumbersText(_selectedCount);
 		_delete->setNumbersText(_selectedCount);
 		if (!wasSelectedState) {
-			if (!GetEnhancedBool("hide_classic_fwd")) {
-				_oldForward->finishNumbersAnimation();
-			}
 			_forward->finishNumbersAnimation();
 			_forwardNoQuote->finishNumbersAnimation();
 			_savedMessages->finishNumbersAnimation();
