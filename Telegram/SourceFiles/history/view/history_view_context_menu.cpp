@@ -1,4 +1,4 @@
-﻿/*
+/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -545,7 +545,7 @@ void AddRepeaterAction(
 	const auto _history = item->history();
 	auto repeatSubmenu = std::make_unique<Ui::PopupMenu>(list, st::popupMenuWithIcons);
 	if ((item->history()->peer->isMegagroup() || item->history()->peer->isChat() || item->history()->peer->isUser())) {
-		if (GetEnhancedBool("show_repeater_option")) {
+		if (HasExtraContextMenuOption(ExtraContextMenuOption::Repeater)) {
 			if (item->allowsForward()) {
 				repeatSubmenu->addAction(tr::lng_context_repeat_msg(tr::now), [=] {
 					if (item->id <= 0) return;
@@ -639,7 +639,7 @@ void AddRepeaterAction(
 					}, &st::menuIconDiscussion);
 				}
 			}
-			if (GetEnhancedBool("show_repeater_option") && !repeatSubmenu->empty()) {
+			if (HasExtraContextMenuOption(ExtraContextMenuOption::Repeater) && !repeatSubmenu->empty()) {
 				menu->addAction(tr::lng_context_repeater(tr::now), std::move(repeatSubmenu), &st::menuIconDiscussion);
 			}
 		}

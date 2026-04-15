@@ -85,6 +85,55 @@ void NetBoostBox::save() {
 	}));
 }
 
+ExtraContextMenuBox::ExtraContextMenuBox(QWidget *parent) {
+}
+
+void ExtraContextMenuBox::prepare() {
+	setTitle(tr::lng_settings_extra_context_menu_options());
+
+	addButton(tr::lng_box_ok(), [=] { closeBox(); });
+
+	auto y = st::boxOptionListPadding.top() + st::boxMediumSkip;
+
+	struct OptionEntry {
+		ExtraContextMenuOption value;
+		QString label;
+	};
+	const auto options = std::vector<OptionEntry>{
+		{ ExtraContextMenuOption::Repeater, tr::lng_settings_extra_context_menu_repeater(tr::now) },
+		{ ExtraContextMenuOption::ViewAsJson, tr::lng_settings_extra_context_menu_view_as_json(tr::now) },
+	};
+
+	for (const auto &[optValue, label] : options) {
+		const auto checked = HasExtraContextMenuOption(optValue);
+		const auto checkbox = Ui::CreateChild<Ui::Checkbox>(
+			this,
+			label,
+			checked);
+		checkbox->moveToLeft(st::boxPadding.left(), y);
+		y += checkbox->heightNoMargins() + st::boxOptionListSkip;
+		const auto optInt = static_cast<int>(optValue);
+		checkbox->checkedChanges(
+		) | rpl::filter([=](bool isChecked) {
+			return isChecked != HasExtraContextMenuOption(
+				static_cast<ExtraContextMenuOption>(optInt));
+		}) | rpl::on_next([=](bool isChecked) {
+			auto list = GetEnhancedIntList("extra_context_menu_options");
+			if (isChecked && !list.contains(optInt)) {
+				list.append(optInt);
+			} else if (!isChecked) {
+				list.removeAll(optInt);
+			}
+			SetEnhancedValue("extra_context_menu_options",
+				QVariant::fromValue(list));
+			EnhancedSettings::Write();
+		}, lifetime());
+	}
+
+	showChildren();
+	setDimensions(st::boxWidth, y);
+}
+
 AlwaysDeleteBox::AlwaysDeleteBox(QWidget *parent) {
 }
 
@@ -93,7 +142,7 @@ void AlwaysDeleteBox::prepare() {
 
 	addButton(tr::lng_box_ok(), [=] { closeBox(); });
 
-	auto y = st::boxOptionListPadding.top();
+	auto y = st::boxOptionListPadding.top() + st::boxMediumSkip;
 	_optionGroup = std::make_shared<Ui::RadiobuttonGroup>(GetEnhancedInt("always_delete_for"));
 
 	for (int i = 0; i <= 3; i++) {

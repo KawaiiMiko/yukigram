@@ -7925,8 +7925,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_settings_show_message_id" = "Show message ID";
 "lng_settings_button" = "Button";
 "lng_settings_show_emoji_button_as_text" = "Show emoji button as text";
-"lng_settings_show_repeater_option" = "Show repeater option";
-"lng_settings_show_view_as_json" = "Show view as json option";
+"lng_settings_extra_context_menu_options" = "Extra context menu options";
+"lng_settings_extra_context_menu_repeater" = "Repeater";
+"lng_settings_extra_context_menu_view_as_json" = "View as JSON";
 "lng_settings_repeater_reply_to_orig_msg" = "Reply to original message";
 "lng_settings_disable_cloud_draft_sync" = "Stop syncing drafts from cloud";
 "lng_settings_show_phone_number" = "Show Phone Number";

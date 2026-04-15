@@ -110,19 +110,10 @@ namespace {
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/show-repeater-option"_q,
-			.title = tr::lng_settings_show_repeater_option(tr::now),
-			.keywords = { u"repeater"_q, u"repeat"_q, u"forward"_q },
-			.deeplink = u"tg://settings/enhanced/messages/show-repeater-option"_q,
-		};
-	});
-
-	builder.add(nullptr, [] {
-		return Builder::SearchEntry{
-			.id = u"enhanced/messages/show-view-as-json"_q,
-			.title = tr::lng_settings_show_view_as_json(tr::now),
-			.keywords = { u"json"_q, u"view"_q, u"debug"_q },
-			.deeplink = u"tg://settings/enhanced/messages/show-view-as-json"_q,
+			.id = u"enhanced/messages/extra-context-menu-options"_q,
+			.title = tr::lng_settings_extra_context_menu_options(tr::now),
+			.keywords = { u"repeater"_q, u"json"_q, u"context"_q, u"menu"_q },
+			.deeplink = u"tg://settings/enhanced/messages/extra-context-menu-options"_q,
 		};
 	});
 
@@ -550,61 +541,51 @@ namespace {
 			Core::Restart();
 		}, container->lifetime());
 
-		const auto showRepeaterOption = AddButtonWithIcon(
+		const auto extraContextMenu = AddButtonWithIcon(
 				inner,
-				tr::lng_settings_show_repeater_option(),
+				tr::lng_settings_extra_context_menu_options(),
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/messages/show-repeater-option"_q,
-			showRepeaterOption);
-		showRepeaterOption->toggleOn(
-				rpl::single(GetEnhancedBool("show_repeater_option"))
-		)->toggledChanges(
-		) | rpl::filter([=](bool toggled) {
-			return (toggled != GetEnhancedBool("show_repeater_option"));
-		}) | rpl::on_next([=](bool toggled) {
-			SetEnhancedValue("show_repeater_option", toggled);
-			EnhancedSettings::Write();
-		}, container->lifetime());
+			u"enhanced/messages/extra-context-menu-options"_q,
+			extraContextMenu);
+		extraContextMenu->addClickHandler([=] {
+			Ui::show(Box<ExtraContextMenuBox>());
+		});
 
-		const auto showViewAsJson = AddButtonWithIcon(
+		const auto repeaterSubWrap = inner->add(
+			object_ptr<Ui::SlideWrap<Ui::VerticalLayout>>(
 				inner,
-				tr::lng_settings_show_view_as_json(),
+				object_ptr<Ui::VerticalLayout>(inner)));
+		const auto repeaterSubInner = repeaterSubWrap->entity();
+		repeaterSubWrap->toggle(
+			HasExtraContextMenuOption(ExtraContextMenuOption::Repeater),
+			anim::type::instant);
+		extraContextMenu->events(
+		) | rpl::on_next([=](not_null<QEvent*> e) {
+			if (e->type() == QEvent::UpdateLater) {
+				repeaterSubWrap->toggle(
+					HasExtraContextMenuOption(ExtraContextMenuOption::Repeater),
+					anim::type::normal);
+			}
+		}, container->lifetime());
+		const auto repeaterReplyToOrig = AddButtonWithIcon(
+				repeaterSubInner,
+				tr::lng_settings_repeater_reply_to_orig_msg(),
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/messages/show-view-as-json"_q,
-			showViewAsJson);
-		showViewAsJson->toggleOn(
-				rpl::single(GetEnhancedBool("show_view_as_json"))
+			u"enhanced/messages/repeater-reply-to-original"_q,
+			repeaterReplyToOrig);
+		repeaterReplyToOrig->toggleOn(
+				rpl::single(GetEnhancedBool("repeater_reply_to_orig_msg"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
-			return (toggled != GetEnhancedBool("show_view_as_json"));
+			return (toggled != GetEnhancedBool("repeater_reply_to_orig_msg"));
 		}) | rpl::on_next([=](bool toggled) {
-			SetEnhancedValue("show_view_as_json", toggled);
+			SetEnhancedValue("repeater_reply_to_orig_msg", toggled);
 			EnhancedSettings::Write();
 		}, container->lifetime());
-
-		if (GetEnhancedBool("show_repeater_option")) {
-			const auto repeaterReplyToOrig = AddButtonWithIcon(
-					inner,
-					tr::lng_settings_repeater_reply_to_orig_msg(),
-					st::settingsButtonNoIcon
-			);
-			registerHighlight(
-				u"enhanced/messages/repeater-reply-to-original"_q,
-				repeaterReplyToOrig);
-			repeaterReplyToOrig->toggleOn(
-					rpl::single(GetEnhancedBool("repeater_reply_to_orig_msg"))
-			)->toggledChanges(
-			) | rpl::filter([=](bool toggled) {
-				return (toggled != GetEnhancedBool("repeater_reply_to_orig_msg"));
-			}) | rpl::on_next([=](bool toggled) {
-				SetEnhancedValue("repeater_reply_to_orig_msg", toggled);
-				EnhancedSettings::Write();
-			}, container->lifetime());
-		}
 
 		auto value = rpl::single(
 				AlwaysDeleteBox::DeleteLabel(GetEnhancedInt("always_delete_for"))

@@ -1,4 +1,4 @@
-﻿/*
+/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -3124,7 +3124,7 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 					}, &st::menuIconForward);
 				}
 				if ((item->history()->peer->isMegagroup() || item->history()->peer->isChat() || item->history()->peer->isUser())) {
-					if (GetEnhancedBool("show_repeater_option")) {
+					if (HasExtraContextMenuOption(ExtraContextMenuOption::Repeater)) {
 						if (item->allowsForward()) {
 							repeatSubmenu->addAction(tr::lng_context_repeat_msg(tr::now), [=] {
 								if (item->id <= 0) return;
@@ -3230,7 +3230,7 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 				if (!fwdSubmenu->empty()) {
 					_menu->addAction(tr::lng_context_forward_msg(tr::now), std::move(fwdSubmenu), &st::menuIconForward);
 				}
-				if (GetEnhancedBool("show_repeater_option") && !repeatSubmenu->empty()) {
+				if (HasExtraContextMenuOption(ExtraContextMenuOption::Repeater) && !repeatSubmenu->empty()) {
 					_menu->addAction(tr::lng_context_repeater(tr::now), std::move(repeatSubmenu), &st::menuIconDiscussion);
 				}
 				if (HistoryView::CanAddOfferToMessage(item)) {
@@ -3270,7 +3270,7 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 				}, &st::menuIconBlock);
 			}
 		}
-		if (item && item->id > 0 && isUponSelected != 2 && isUponSelected != -2 && GetEnhancedBool("show_view_as_json")) {
+		if (item && item->id > 0 && isUponSelected != 2 && isUponSelected != -2 && HasExtraContextMenuOption(ExtraContextMenuOption::ViewAsJson)) {
 			_menu->addAction(tr::lng_context_view_as_json(tr::now), [=] {
 				HistoryView::ViewAsJSON(controller, itemId);
 			}, &st::menuIconJson);
@@ -3517,7 +3517,7 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 					}, &st::menuIconForward);
 				}
 				if ((item->history()->peer->isMegagroup() || item->history()->peer->isChat() || item->history()->peer->isUser())) {
-					if (GetEnhancedBool("show_repeater_option")) {
+					if (HasExtraContextMenuOption(ExtraContextMenuOption::Repeater)) {
 						if (canForward) {
 							repeatSubmenu->addAction(tr::lng_context_repeat_msg(tr::now), [=] {
 								if (item->id <= 0) return;
@@ -3617,7 +3617,7 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 				if (!fwdSubmenu->empty()) {
 					_menu->addAction(tr::lng_context_forward_msg(tr::now), std::move(fwdSubmenu), &st::menuIconForward);
 				}
-				if (GetEnhancedBool("show_repeater_option") && !repeatSubmenu->empty()) {
+				if (HasExtraContextMenuOption(ExtraContextMenuOption::Repeater) && !repeatSubmenu->empty()) {
 					_menu->addAction(tr::lng_context_repeater(tr::now), std::move(repeatSubmenu), &st::menuIconDiscussion);
 				}
 				if (HistoryView::CanAddOfferToMessage(item)) {
@@ -3661,7 +3661,7 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 		} else if (Element::Moused()) {
 			addSelectMessageAction(Element::Moused()->data());
 		}
-		if (item && item->id > 0 && isUponSelected != 2 && isUponSelected != -2 && GetEnhancedBool("show_view_as_json")) {
+		if (item && item->id > 0 && isUponSelected != 2 && isUponSelected != -2 && HasExtraContextMenuOption(ExtraContextMenuOption::ViewAsJson)) {
 			_menu->addAction(tr::lng_context_view_as_json(tr::now), [=] {
 				HistoryView::ViewAsJSON(controller, itemId);
 			}, &st::menuIconJson);

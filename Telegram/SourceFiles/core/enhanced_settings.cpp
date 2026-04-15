@@ -290,8 +290,7 @@ namespace EnhancedSettings {
 		auto settings = QJsonObject();
 		settings.insert(qsl("net_speed_boost"), 0);
 		settings.insert(qsl("show_messages_id"), false);
-		settings.insert(qsl("show_repeater_option"), false);
-		settings.insert(qsl("show_view_as_json"), false);
+		settings.insert(qsl("extra_context_menu_options"), QJsonArray());
 		settings.insert(qsl("show_emoji_button_as_text"), false);
 		settings.insert(qsl("always_delete_for"), 0);
 		settings.insert(qsl("show_phone_number"), true);
@@ -351,8 +350,13 @@ namespace EnhancedSettings {
 		auto settings = QJsonObject();
 		settings.insert(qsl("net_speed_boost"), GetEnhancedInt("net_speed_boost"));
 		settings.insert(qsl("show_messages_id"), GetEnhancedBool("show_messages_id"));
-		settings.insert(qsl("show_repeater_option"), GetEnhancedBool("show_repeater_option"));
-		settings.insert(qsl("show_view_as_json"), GetEnhancedBool("show_view_as_json"));
+		{
+			QJsonArray arr;
+			for (const auto &v : GetEnhancedIntList("extra_context_menu_options")) {
+				arr.append(v);
+			}
+			settings.insert(qsl("extra_context_menu_options"), arr);
+		}
 		settings.insert(qsl("show_emoji_button_as_text"), GetEnhancedBool("show_emoji_button_as_text"));
 		settings.insert(qsl("always_delete_for"), GetEnhancedInt("always_delete_for"));
 		settings.insert(qsl("show_phone_number"), GetEnhancedBool("show_phone_number"));

@@ -14,6 +14,8 @@ namespace Ui {
 
 	class Radiobutton;
 
+	class Checkbox;
+
 	class FlatLabel;
 
 	class InputField;
@@ -33,6 +35,15 @@ private:
 
 	object_ptr<Ui::FlatLabel> _description = {nullptr};
 	std::shared_ptr<Ui::RadiobuttonGroup> _boostGroup;
+
+};
+
+class ExtraContextMenuBox : public Ui::BoxContent {
+public:
+	ExtraContextMenuBox(QWidget *parent);
+
+protected:
+	void prepare() override;
 
 };
 

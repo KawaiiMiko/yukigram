@@ -10,6 +10,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/integration.h"
 #include "ui/style/style_core.h"
 
+#include <QJsonArray>
+#include <QJsonObject>
+
 #define DeclareReadSetting(Type, Name) extern Type g##Name; \
 inline const Type &c##Name() { \
 	return g##Name; \
@@ -148,6 +151,11 @@ DeclareSetting(QList<int64>, BlockList);
 typedef QHash<QString, QVariant> EnhancedSetting;
 DeclareSetting(EnhancedSetting, EnhancedOptions);
 
+enum class ExtraContextMenuOption : int {
+	Repeater = 1,
+	ViewAsJson = 2,
+};
+
 DeclareSetting(int, NetRequestsCount);
 DeclareSetting(int, NetUploadSessionsCount);
 DeclareSetting(int, NetUploadRequestInterval);
@@ -171,6 +179,17 @@ inline QString GetEnhancedString(const QString& key) {
 		return {};
 	}
 	return gEnhancedOptions[key].toString();
+}
+
+inline QList<int> GetEnhancedIntList(const QString& key) {
+	if (!gEnhancedOptions.contains(key)) {
+		return {};
+	}
+	return gEnhancedOptions[key].value<QList<int>>();
+}
+
+inline bool HasExtraContextMenuOption(ExtraContextMenuOption value) {
+	return GetEnhancedIntList("extra_context_menu_options").contains(static_cast<int>(value));
 }
 
 inline void SetEnhancedValue(const QString& key, const QVariant& value) {
@@ -208,6 +227,15 @@ inline void loadSettings(QJsonObject settings) {
 		}
 		else if (settings[key].type() == QJsonValue::String) {
 			gEnhancedOptions.insert(key, settings[key].toString());
+		}
+		else if (settings[key].type() == QJsonValue::Array) {
+			QList<int> list;
+			for (const auto &v : settings[key].toArray()) {
+				if (v.isDouble()) {
+					list.append(v.toInt());
+				}
+			}
+			gEnhancedOptions.insert(key, QVariant::fromValue(list));
 		}
 	}
 }
