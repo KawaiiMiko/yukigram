@@ -34,6 +34,7 @@ void NetBoostBox::prepare() {
 			tr::lng_net_speed_boost_desc(tr::now),
 			st::boxLabel);
 	_description->moveToLeft(st::boxPadding.left(), y);
+	_description->resizeToWidth(st::boxWidth - st::boxPadding.left() - st::boxPadding.right());
 
 	y += _description->height() + st::boxMediumSkip;
 
@@ -182,6 +183,7 @@ void BitrateController::prepare() {
 			tr::lng_bitrate_controller_desc(tr::now),
 			st::boxLabel);
 	_description->moveToLeft(st::boxPadding.left(), y);
+	_description->resizeToWidth(st::boxWidth - st::boxPadding.left() - st::boxPadding.right());
 
 	y += _description->height() + st::boxMediumSkip;
 
