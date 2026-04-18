@@ -2263,10 +2263,11 @@ void ChatWidget::cornerButtonsShowAtPosition(
 
 void ChatWidget::cornerButtonsRestoreHiddenMessages(
 		const std::vector<MsgId> &ids) {
-	const auto api = &_history->session().api();
-	for (const auto msgId : ids) {
-		api->requestHistory(_history, msgId, Data::LoadDirection::Around);
+	if (ids.empty()) {
+		return;
 	}
+	_history->clear(History::ClearType::Unload);
+	showAtEnd();
 }
 
 Data::Thread *ChatWidget::cornerButtonsThread() {

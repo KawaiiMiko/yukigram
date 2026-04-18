@@ -5481,7 +5481,13 @@ void HistoryWidget::cornerButtonsRestoreHiddenMessages(
 		return;
 	}
 	clearAllLoadRequests();
+	_history->clear(History::ClearType::Unload);
+	if (_migrated) {
+		_migrated->clear(History::ClearType::Unload);
+	}
+	setMsgId(ShowAtTheEndMsgId);
 	firstLoadMessages();
+	doneShow();
 }
 
 Data::Thread *HistoryWidget::cornerButtonsThread() {
