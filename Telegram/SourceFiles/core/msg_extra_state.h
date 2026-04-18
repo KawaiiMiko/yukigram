@@ -11,7 +11,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 namespace MessageExtraState {
 
+void hide(PeerId peerId, MsgId messageId);
 void hide(not_null<HistoryItem*> item);
+[[nodiscard]] bool isHidden(PeerId peerId, MsgId messageId);
 [[nodiscard]] bool isHidden(not_null<HistoryItem*> item);
 
 } // namespace MessageExtraState

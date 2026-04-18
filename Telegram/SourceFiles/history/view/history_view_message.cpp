@@ -684,7 +684,7 @@ QSize Message::performCountOptimalSize() {
 	const auto &summary = item->summaryEntry();
 	const auto showSummaryReply = !summary.result.empty() && summary.shown;
 
-	if (replyData && !_hideReply) {
+	if (replyData && !_hideReply && !replyData->hiddenByUser()) {
 		AddComponents(Reply::Bit());
 	} else {
 		RemoveComponents(Reply::Bit());

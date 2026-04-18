@@ -357,6 +357,9 @@ struct HistoryMessageReply
 	[[nodiscard]] bool unavailable() const {
 		return _unavailable;
 	}
+	[[nodiscard]] bool hiddenByUser() const {
+		return _hidden;
+	}
 	[[nodiscard]] bool displaying() const {
 		return _displaying;
 	}
@@ -376,8 +379,11 @@ struct HistoryMessageReply
 	ReplyToStoryPointer resolvedStory;
 
 private:
+	void hideData(not_null<HistoryItem*> holder);
+
 	ReplyFields _fields;
 	uint8 _unavailable : 1 = 0;
+	uint8 _hidden : 1 = 0;
 	uint8 _displaying : 1 = 0;
 	uint8 _multiline : 1 = 0;
 	uint8 _pendingResolve : 1 = 0;

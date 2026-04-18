@@ -29,6 +29,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/view/history_view_message.h" // FromNameFg.
 #include "history/view/history_view_service_message.h"
 #include "history/view/media/history_view_document.h"
+#include "core/msg_extra_state.h"
 #include "core/click_handler_types.h"
 #include "core/ui_integration.h"
 #include "layout/layout_position.h"
@@ -484,7 +485,7 @@ void HistoryMessageReply::updateData(
 		bool force) {
 	const auto guard = gsl::finally([&] { refreshReplyToMedia(); });
 	if (!force) {
-		if (resolvedMessage || resolvedStory || _unavailable) {
+		if (resolvedMessage || resolvedStory || _unavailable || _hidden) {
 			_pendingResolve = 0;
 			return;
 		}
@@ -492,12 +493,22 @@ void HistoryMessageReply::updateData(
 	const auto peerId = _fields.externalPeerId
 		? _fields.externalPeerId
 		: holder->history()->peer->id;
+	if (_fields.messageId
+		&& MessageExtraState::isHidden(peerId, _fields.messageId)) {
+		hideData(holder);
+		return;
+	}
+	_hidden = 0;
 	if (!resolvedMessage && _fields.messageId) {
 		resolvedMessage = holder->history()->owner().message(
 			peerId,
 			_fields.messageId);
 		if (resolvedMessage) {
-			if (resolvedMessage->isEmpty()) {
+			if (MessageExtraState::isHidden(resolvedMessage.get())) {
+				resolvedMessage = nullptr;
+				hideData(holder);
+				return;
+			} else if (resolvedMessage->isEmpty()) {
 				// Really it is deleted.
 				resolvedMessage = nullptr;
 				force = true;
@@ -603,10 +614,37 @@ void HistoryMessageReply::clearData(not_null<HistoryItem*> holder) {
 		resolvedStory = nullptr;
 	}
 	_unavailable = 1;
+	_hidden = 0;
 	_displaying = 0;
 	if (_multiline) {
 		holder->history()->owner().requestItemResize(holder);
 		_multiline = 0;
+	}
+	refreshReplyToMedia();
+}
+
+void HistoryMessageReply::hideData(not_null<HistoryItem*> holder) {
+	if (resolvedMessage) {
+		holder->history()->owner().unregisterDependentMessage(
+			holder,
+			resolvedMessage.get());
+		resolvedMessage = nullptr;
+	}
+	if (resolvedStory) {
+		holder->history()->owner().stories().unregisterDependentMessage(
+			holder,
+			resolvedStory.get());
+		resolvedStory = nullptr;
+	}
+	const auto changed = _unavailable || _displaying || _multiline || !_hidden;
+	_unavailable = 0;
+	_hidden = 1;
+	_displaying = 0;
+	_multiline = 0;
+	_pendingResolve = 0;
+	_requestedResolve = 0;
+	if (changed) {
+		holder->history()->owner().requestItemResize(holder);
 	}
 	refreshReplyToMedia();
 }
@@ -630,8 +668,12 @@ void HistoryMessageReply::itemRemoved(
 		not_null<HistoryItem*> holder,
 		not_null<HistoryItem*> removed) {
 	if (resolvedMessage.get() == removed) {
-		clearData(holder);
-		holder->history()->owner().requestItemResize(holder);
+		if (MessageExtraState::isHidden(removed)) {
+			hideData(holder);
+		} else {
+			clearData(holder);
+			holder->history()->owner().requestItemResize(holder);
+		}
 	}
 }
 
