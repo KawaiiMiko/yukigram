@@ -659,6 +659,7 @@ void ChatWidget::subscribeToTopic() {
 				| Flag::UnreadReactions
 				| Flag::UnreadPollVotes)) {
 			_cornerButtons.updateUnreadThingsVisibility();
+			_cornerButtons.updateHiddenMessagesVisibility();
 		}
 		if (update.flags & Flag::CloudDraft) {
 			_composeControls->applyCloudDraft();
@@ -679,6 +680,7 @@ void ChatWidget::subscribeToTopic() {
 	}
 
 	_cornerButtons.updateUnreadThingsVisibility();
+	_cornerButtons.updateHiddenMessagesVisibility();
 }
 
 void ChatWidget::closeCurrent() {
@@ -982,6 +984,7 @@ void ChatWidget::setupComposeControls() {
 	) | rpl::on_next([=] {
 		_cornerButtons.updateJumpDownVisibility();
 		_cornerButtons.updateUnreadThingsVisibility();
+		_cornerButtons.updateHiddenMessagesVisibility();
 	}, lifetime());
 
 	_composeControls->viewportEvents(
@@ -2258,6 +2261,14 @@ void ChatWidget::cornerButtonsShowAtPosition(
 	showAtPosition(position);
 }
 
+void ChatWidget::cornerButtonsRestoreHiddenMessages(
+		const std::vector<MsgId> &ids) {
+	const auto api = &_history->session().api();
+	for (const auto msgId : ids) {
+		api->requestHistory(_history, msgId, Data::LoadDirection::Around);
+	}
+}
+
 Data::Thread *ChatWidget::cornerButtonsThread() {
 	return _sublist
 		? static_cast<Data::Thread*>(_sublist)
@@ -2297,7 +2308,8 @@ bool ChatWidget::cornerButtonsUnreadMayBeShown() {
 bool ChatWidget::cornerButtonsHas(CornerButtonType type) {
 	return _topic
 		|| (_sublist && type == CornerButtonType::Reactions)
-		|| (type == CornerButtonType::Down);
+		|| (type == CornerButtonType::Down)
+		|| (type == CornerButtonType::ShowHidden);
 }
 
 void ChatWidget::showAtStart() {
@@ -2633,6 +2645,7 @@ void ChatWidget::subscribeToSublist() {
 		if (update.flags
 			& (Flag::UnreadReactions | Flag::UnreadPollVotes)) {
 			_cornerButtons.updateUnreadThingsVisibility();
+			_cornerButtons.updateHiddenMessagesVisibility();
 		}
 		if (update.flags & Flag::CloudDraft) {
 			_composeControls->applyCloudDraft();
@@ -2835,6 +2848,7 @@ void ChatWidget::updateInnerVisibleArea() {
 	updatePinnedViewer();
 	_cornerButtons.updateJumpDownVisibility();
 	_cornerButtons.updateUnreadThingsVisibility();
+	_cornerButtons.updateHiddenMessagesVisibility();
 	if (_lastScrollTop != scrollTop) {
 		if (!_synteticScrollEvent) {
 			checkLastPinnedClickedIdReset(_lastScrollTop, scrollTop);

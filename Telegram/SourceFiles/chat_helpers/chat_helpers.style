@@ -1100,6 +1100,10 @@ historyUnreadPollVotes: TwoIconButton(historyToDown) {
 	iconAbove: icon {{ "history_unread_poll_vote-40x40", historyToDownFg, point(6px, 6px) }};
 	iconAboveOver: icon {{ "history_unread_poll_vote-40x40", historyToDownFgOver, point(6px, 6px) }};
 }
+historyShowHidden: TwoIconButton(historyToDown) {
+	iconAbove: icon {{ "history_show_messages", historyToDownFg }};
+	iconAboveOver: icon {{ "history_show_messages", historyToDownFgOver }};
+}
 historyUnreadThingsSkip: 4px;
 
 historyQuoteStyle: QuoteStyle(defaultQuoteStyle) {

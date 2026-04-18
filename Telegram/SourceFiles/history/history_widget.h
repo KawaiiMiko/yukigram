@@ -21,6 +21,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/widgets/fields/input_field.h"
 #include "mtproto/sender.h"
 
+#include <vector>
+
 enum class SendMediaType;
 class MessageLinksParser;
 struct InlineBotQuery;
@@ -377,6 +379,8 @@ private:
 
 	void cornerButtonsShowAtPosition(
 		Data::MessagePosition position) override;
+	void cornerButtonsRestoreHiddenMessages(
+		const std::vector<MsgId> &ids) override;
 	Data::Thread *cornerButtonsThread() override;
 	FullMsgId cornerButtonsCurrentId() override;
 	bool cornerButtonsIgnoreVisibility() override;

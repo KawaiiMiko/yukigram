@@ -10,6 +10,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/effects/animations.h"
 #include "base/object_ptr.h"
 
+#include <vector>
+
 class History;
 class HistoryItem;
 struct FullMsgId;
@@ -43,12 +45,16 @@ enum class CornerButtonType {
 	Mentions,
 	Reactions,
 	PollVotes,
+	ShowHidden,
 };
 
 class CornerButtonsDelegate {
 public:
 	virtual void cornerButtonsShowAtPosition(
 		Data::MessagePosition position) = 0;
+	virtual void cornerButtonsRestoreHiddenMessages(
+		const std::vector<MsgId> &) {
+	}
 	[[nodiscard]] virtual Data::Thread *cornerButtonsThread() = 0;
 	[[nodiscard]] virtual FullMsgId cornerButtonsCurrentId() = 0;
 	[[nodiscard]] virtual bool cornerButtonsIgnoreVisibility() = 0;
@@ -74,6 +80,7 @@ public:
 	void mentionsClick();
 	void reactionsClick();
 	void pollVotesClick();
+	void showHiddenClick();
 
 	void clearReplyReturns();
 	[[nodiscard]] QVector<FullMsgId> replyReturns() const;
@@ -84,6 +91,7 @@ public:
 
 	void updateVisibility(Type type, bool shown);
 	void updateUnreadThingsVisibility();
+	void updateHiddenMessagesVisibility();
 	void updateJumpDownVisibility(std::optional<int> counter = {});
 	void updatePositions();
 
@@ -122,6 +130,7 @@ private:
 	CornerButton _mentions;
 	CornerButton _reactions;
 	CornerButton _pollVotes;
+	CornerButton _showHidden;
 
 	HistoryItem *_replyReturn = nullptr;
 	QVector<FullMsgId> _replyReturns;

@@ -776,6 +776,7 @@ HistoryWidget::HistoryWidget(
 			|| (flags & HistoryUpdateFlag::UnreadReactions)
 			|| (flags & HistoryUpdateFlag::UnreadPollVotes)) {
 			_cornerButtons.updateUnreadThingsVisibility();
+			_cornerButtons.updateHiddenMessagesVisibility();
 		}
 		if (flags & HistoryUpdateFlag::UnreadView) {
 			unreadCountUpdated();
@@ -1274,6 +1275,7 @@ void HistoryWidget::initVoiceRecordBar() {
 	) | rpl::on_next([=] {
 		_cornerButtons.updateJumpDownVisibility();
 		_cornerButtons.updateUnreadThingsVisibility();
+		_cornerButtons.updateHiddenMessagesVisibility();
 	}, lifetime());
 
 	_voiceRecordBar->errors(
@@ -3529,6 +3531,7 @@ void HistoryWidget::updateControlsVisibility() {
 	}
 	_cornerButtons.updateJumpDownVisibility();
 	_cornerButtons.updateUnreadThingsVisibility();
+	_cornerButtons.updateHiddenMessagesVisibility();
 	if (!_history || _showAnimation) {
 		hideChildWidgets();
 		return;
@@ -4607,6 +4610,7 @@ void HistoryWidget::preloadHistoryIfNeeded() {
 
 	_cornerButtons.updateJumpDownVisibility();
 	_cornerButtons.updateUnreadThingsVisibility();
+	_cornerButtons.updateHiddenMessagesVisibility();
 	if (!_scrollToAnimation.animating()) {
 		preloadHistoryByScroll();
 		checkReplyReturns();
@@ -5469,6 +5473,15 @@ void HistoryWidget::cornerButtonsShowAtPosition(
 	} else if (_migrated && position.fullId.peer == _migrated->peer->id) {
 		showHistory(_peer->id, -position.fullId.msg);
 	}
+}
+
+void HistoryWidget::cornerButtonsRestoreHiddenMessages(
+		const std::vector<MsgId> &ids) {
+	if (ids.empty() || !_history) {
+		return;
+	}
+	clearAllLoadRequests();
+	firstLoadMessages();
 }
 
 Data::Thread *HistoryWidget::cornerButtonsThread() {

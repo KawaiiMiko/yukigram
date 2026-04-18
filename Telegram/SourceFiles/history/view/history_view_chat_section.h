@@ -16,6 +16,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/controls/swipe_handler_data.h"
 #include "base/timer.h"
 
+#include <vector>
+
 class History;
 enum class SendMediaType;
 struct SendingAlbum;
@@ -212,6 +214,8 @@ public:
 	// CornerButtonsDelegate delegate.
 	void cornerButtonsShowAtPosition(
 		Data::MessagePosition position) override;
+	void cornerButtonsRestoreHiddenMessages(
+		const std::vector<MsgId> &ids) override;
 	Data::Thread *cornerButtonsThread() override;
 	FullMsgId cornerButtonsCurrentId() override;
 	bool cornerButtonsIgnoreVisibility() override;
