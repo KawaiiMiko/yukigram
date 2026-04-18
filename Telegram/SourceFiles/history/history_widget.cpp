@@ -5480,14 +5480,15 @@ void HistoryWidget::cornerButtonsRestoreHiddenMessages(
 	if (ids.empty() || !_history) {
 		return;
 	}
+	const auto targetId = ranges::min(ids);
 	clearAllLoadRequests();
 	_history->clear(History::ClearType::Unload);
 	if (_migrated) {
 		_migrated->clear(History::ClearType::Unload);
 	}
-	setMsgId(ShowAtTheEndMsgId);
-	firstLoadMessages();
-	doneShow();
+	auto params = Window::SectionShow();
+	params.highlight = {};
+	showHistory(_peer->id, targetId, params);
 }
 
 Data::Thread *HistoryWidget::cornerButtonsThread() {

@@ -2261,13 +2261,24 @@ void ChatWidget::cornerButtonsShowAtPosition(
 	showAtPosition(position);
 }
 
-void ChatWidget::cornerButtonsRestoreHiddenMessages(
-		const std::vector<MsgId> &ids) {
+void ChatWidget::cornerButtonsRestoreHiddenMessages(const std::vector<MsgId> &ids) {
 	if (ids.empty()) {
 		return;
 	}
+	const auto targetId = ranges::min(ids);
+	const auto position = [&] {
+		if (const auto item = _peer->owner().message(_peer, targetId)) {
+			return item->position();
+		}
+		return Data::MessagePosition{
+			.fullId = FullMsgId(_peer->id, targetId),
+			.date = TimeId(0),
+		};
+	}();
+	auto params = Window::SectionShow();
+	params.highlight = {};
 	_history->clear(History::ClearType::Unload);
-	showAtEnd();
+	showAtPosition(position, {}, params);
 }
 
 Data::Thread *ChatWidget::cornerButtonsThread() {
