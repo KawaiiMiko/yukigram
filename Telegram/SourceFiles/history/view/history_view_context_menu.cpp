@@ -107,6 +107,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "media/player/media_player_instance.h"
 #include "spellcheck/spellcheck_types.h"
 #include "iv/iv_instance.h" 
+#include "core/msg_extra_state.h"
 #include "facades.h"
 #include "apiwrap.h"
 #include "styles/style_chat.h"
@@ -1265,6 +1266,16 @@ void AddTopMessageActions(
 	AddPinMessageAction(menu, request, list);
 }
 
+void AddHideMessageAction(
+		not_null<Ui::PopupMenu*> menu,
+		const ContextMenuRequest &request,
+		not_null<ListWidget*>) {
+	if (!request.item) {
+		return;
+	}
+	HistoryView::AddHideMessageAction(menu, request.item);
+}
+
 void AddMessageActions(
 		not_null<Ui::PopupMenu*> menu,
 		const ContextMenuRequest &request,
@@ -1273,6 +1284,7 @@ void AddMessageActions(
 	AddMsgsFromUserAction(menu, request, list);
 	AddForwardAction(menu, request, list);
 	AddRepeaterAction(menu, request, list);
+	AddHideMessageAction(menu, request, list);
 	AddSendNowAction(menu, request, list);
 	AddDeleteAction(menu, request, list);
 	AddDownloadFilesAction(menu, request, list);
@@ -1850,6 +1862,26 @@ void ViewAsJSON(
 		crl::guard(show, [=] {
 			show->showToast(u"error"_q);
 		}));
+}
+
+void AddHideMessageAction(
+		not_null<Ui::PopupMenu*> menu,
+		not_null<HistoryItem*> item) {
+	const auto history = item->history();
+	const auto owner = &history->owner();
+	menu->addAction(
+		tr::lng_context_hide_message(tr::now),
+		[=] {
+			const auto ids = owner->itemOrItsGroup(item);
+			for (const auto &fullId : ids) {
+				if (const auto current = owner->message(fullId)) {
+					MessageExtraState::hide(current);
+					current->destroy();
+				}
+			}
+			history->requestChatListMessage();
+		},
+		&st::menuIconClear);
 }
 
 void CopyStoryLink(

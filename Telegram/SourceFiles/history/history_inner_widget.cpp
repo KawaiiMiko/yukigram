@@ -3239,6 +3239,9 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 						Api::AddOfferToMessage(_controller->uiShow(), itemId);
 					}, &st::menuIconTagSell);
 				}
+				if (HasExtraContextMenuOption(ExtraContextMenuOption::HideMessage)) {
+					HistoryView::AddHideMessageAction(_menu, item);
+				}
 				if (item->canDelete()) {
 					const auto callback = [=] { deleteItem(itemId); };
 					if (item->isUploading()) {
@@ -3625,6 +3628,9 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 					_menu->addAction(tr::lng_context_add_offer(tr::now), [=] {
 						Api::AddOfferToMessage(_controller->uiShow(), itemId);
 					}, &st::menuIconTagSell);
+				}
+				if (HasExtraContextMenuOption(ExtraContextMenuOption::HideMessage)) {
+					HistoryView::AddHideMessageAction(_menu, item);
 				}
 				if (canDelete) {
 					const auto callback = [=] {

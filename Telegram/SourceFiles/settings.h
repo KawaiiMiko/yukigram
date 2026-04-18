@@ -154,6 +154,7 @@ DeclareSetting(EnhancedSetting, EnhancedOptions);
 enum class ExtraContextMenuOption : int {
 	Repeater = 1,
 	ViewAsJson = 2,
+	HideMessage = 3,
 };
 
 DeclareSetting(int, NetRequestsCount);

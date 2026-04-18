@@ -76,6 +76,9 @@ void ViewAsJSON(
 void ViewAsJSON(
 	std::shared_ptr<Main::SessionShow> show,
 	FullMsgId itemId);
+void AddHideMessageAction(
+	not_null<Ui::PopupMenu*> menu,
+	not_null<HistoryItem*> item);
 void CopyStoryLink(
 	std::shared_ptr<Main::SessionShow> show,
 	FullStoryId storyId);

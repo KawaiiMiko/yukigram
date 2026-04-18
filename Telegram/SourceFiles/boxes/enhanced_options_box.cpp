@@ -102,6 +102,7 @@ void ExtraContextMenuBox::prepare() {
 	const auto options = std::vector<OptionEntry>{
 		{ ExtraContextMenuOption::Repeater, tr::lng_settings_extra_context_menu_repeater(tr::now) },
 		{ ExtraContextMenuOption::ViewAsJson, tr::lng_settings_extra_context_menu_view_as_json(tr::now) },
+		{ ExtraContextMenuOption::HideMessage, tr::lng_settings_extra_context_menu_hide_message(tr::now) },
 	};
 
 	for (const auto &[optValue, label] : options) {

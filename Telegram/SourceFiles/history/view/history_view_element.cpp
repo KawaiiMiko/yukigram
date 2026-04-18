@@ -32,6 +32,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "boxes/premium_preview_box.h"
 #include "core/application.h"
 #include "core/core_settings.h"
+#include "core/msg_extra_state.h"
 #include "core/click_handler_types.h"
 #include "core/ui_integration.h"
 #include "main/main_app_config.h"
@@ -1426,7 +1427,7 @@ bool Element::isHiddenByGroup() const {
 }
 
 bool Element::isHidden() const {
-	return isHiddenByGroup();
+	return MessageExtraState::isHidden(data()) || isHiddenByGroup();
 }
 
 void Element::overrideMedia(std::unique_ptr<Media> media) {

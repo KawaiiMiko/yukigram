@@ -528,6 +528,8 @@ PRIVATE
     core/deadlock_detector.h
     core/enhanced_settings.cpp
     core/enhanced_settings.h
+    core/msg_extra_state.cpp
+    core/msg_extra_state.h
     core/deep_links/deep_links_chats.cpp
     core/deep_links/deep_links_chats.h
     core/deep_links/deep_links_contacts.cpp
