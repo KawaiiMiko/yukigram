@@ -3104,6 +3104,15 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 			if (selectedState.count > 0 && !hasCopyRestrictionForSelected()) {
 				Menu::AddDownloadFilesAction(_menu, controller, _selected, this);
 			}
+			if (HasExtraContextMenuOption(ExtraContextMenuOption::HideMessage)) {
+				const auto ids = getSelectedItems();
+				if (!ids.empty()) {
+					_menu->addAction(tr::lng_context_hide_message(tr::now), [=] {
+						_widget->clearSelected();
+						HistoryView::HideMessages(&item->history()->peer->session().data(), ids);
+					}, &st::menuIconClear);
+				}
+			}
 			_menu->addAction(tr::lng_context_clear_selection(tr::now), [=] {
 				_widget->clearSelected();
 			}, &st::menuIconSelect);
@@ -3501,6 +3510,15 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 			}
 			if (selectedState.count > 0 && !hasCopyRestrictionForSelected()) {
 				Menu::AddDownloadFilesAction(_menu, controller, _selected, this);
+			}
+			if (HasExtraContextMenuOption(ExtraContextMenuOption::HideMessage)) {
+				const auto ids = getSelectedItems();
+				if (!ids.empty()) {
+					_menu->addAction(tr::lng_context_hide_message(tr::now), [=] {
+						_widget->clearSelected();
+						HistoryView::HideMessages(&item->history()->peer->session().data(), ids);
+					}, &st::menuIconClear);
+				}
 			}
 			_menu->addAction(tr::lng_context_clear_selection(tr::now), [=] {
 				_widget->clearSelected();

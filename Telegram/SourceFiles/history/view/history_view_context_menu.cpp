@@ -1269,7 +1269,18 @@ void AddTopMessageActions(
 void AddHideMessageAction(
 		not_null<Ui::PopupMenu*> menu,
 		const ContextMenuRequest &request,
-		not_null<ListWidget*>) {
+		not_null<ListWidget*> list) {
+	if (request.overSelection && !request.selectedItems.empty()) {
+		menu->addAction(
+			tr::lng_context_hide_message(tr::now),
+			[=] {
+				const auto ids = ExtractIdsList(request.selectedItems);
+				list->cancelSelection();
+				HideMessages(&request.navigation->session().data(), ids);
+			},
+			&st::menuIconClear);
+		return;
+	}
 	if (!request.item) {
 		return;
 	}
@@ -1864,22 +1875,45 @@ void ViewAsJSON(
 		}));
 }
 
+void HideMessages(
+		not_null<Data::Session*> owner,
+		const MessageIdsList &ids) {
+	auto expanded = MessageIdsList();
+	expanded.reserve(ids.size());
+	for (const auto &fullId : ids) {
+		if (const auto current = owner->message(fullId)) {
+			for (const auto &id : owner->itemOrItsGroup(current)) {
+				if (!ranges::contains(expanded, id)) {
+					expanded.push_back(id);
+				}
+			}
+		}
+	}
+	auto histories = std::vector<not_null<History*>>();
+	histories.reserve(expanded.size());
+	for (const auto &fullId : expanded) {
+		if (const auto current = owner->message(fullId)) {
+			const auto history = current->history();
+			MessageExtraState::hide(current);
+			current->destroy();
+			if (!ranges::contains(histories, history)) {
+				histories.push_back(history);
+			}
+		}
+	}
+	for (const auto history : histories) {
+		history->requestChatListMessage();
+	}
+}
+
 void AddHideMessageAction(
 		not_null<Ui::PopupMenu*> menu,
 		not_null<HistoryItem*> item) {
-	const auto history = item->history();
-	const auto owner = &history->owner();
 	menu->addAction(
 		tr::lng_context_hide_message(tr::now),
 		[=] {
-			const auto ids = owner->itemOrItsGroup(item);
-			for (const auto &fullId : ids) {
-				if (const auto current = owner->message(fullId)) {
-					MessageExtraState::hide(current);
-					current->destroy();
-				}
-			}
-			history->requestChatListMessage();
+			const auto owner = &item->history()->owner();
+			HideMessages(owner, owner->itemOrItsGroup(item));
 		},
 		&st::menuIconClear);
 }
