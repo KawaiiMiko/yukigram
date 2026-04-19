@@ -2266,6 +2266,7 @@ void ChatWidget::cornerButtonsRestoreHiddenMessages(const std::vector<MsgId> &id
 		return;
 	}
 	const auto targetId = ranges::min(ids);
+	_history->refreshHiddenReplyData(ids);
 	const auto position = [&] {
 		if (const auto item = _peer->owner().message(_peer, targetId)) {
 			return item->position();

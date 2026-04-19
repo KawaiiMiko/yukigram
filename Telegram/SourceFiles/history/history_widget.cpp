@@ -5481,6 +5481,7 @@ void HistoryWidget::cornerButtonsRestoreHiddenMessages(
 		return;
 	}
 	const auto targetId = ranges::min(ids);
+	_history->refreshHiddenReplyData(ids);
 	clearAllLoadRequests();
 	_history->clear(History::ClearType::Unload);
 	if (_migrated) {

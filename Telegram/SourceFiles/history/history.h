@@ -149,6 +149,7 @@ public:
 	void destroyMessagesByTopic(MsgId topicRootId);
 	void hideMessage(not_null<HistoryItem*> item);
 	void unhideMessage(not_null<HistoryItem*> item);
+	void refreshHiddenReplyData(const std::vector<MsgId> &ids);
 
 	void unpinAllMessages();
 	void destroyMessagesBySublist(not_null<PeerData*> sublistPeer);

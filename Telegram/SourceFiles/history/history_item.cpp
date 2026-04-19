@@ -960,7 +960,11 @@ void HistoryItem::updateDependencyItem() {
 	if (const auto reply = Get<HistoryMessageReply>()) {
 		const auto documentId = reply->replyToDocumentId;
 		const auto webpageId = reply->replyToWebPageId;
-		reply->updateData(this, true);
+		if (reply->hiddenByUser()) {
+			reply->updateData(this);
+		} else {
+			reply->updateData(this, true);
+		}
 		const auto mediaIdChanged = (documentId != reply->replyToDocumentId)
 			|| (webpageId != reply->replyToWebPageId);
 		if (mediaIdChanged && generateLocalEntitiesByReply()) {

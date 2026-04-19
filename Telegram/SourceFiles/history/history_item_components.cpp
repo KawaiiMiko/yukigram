@@ -484,15 +484,18 @@ void HistoryMessageReply::updateData(
 		not_null<HistoryItem*> holder,
 		bool force) {
 	const auto guard = gsl::finally([&] { refreshReplyToMedia(); });
+	const auto peerId = _fields.externalPeerId
+		? _fields.externalPeerId
+		: holder->history()->peer->id;
 	if (!force) {
-		if (resolvedMessage || resolvedStory || _unavailable || _hidden) {
+		const auto stillHidden = _hidden
+			&& _fields.messageId
+			&& MessageExtraState::isHidden(peerId, _fields.messageId);
+		if (resolvedMessage || resolvedStory || _unavailable || stillHidden) {
 			_pendingResolve = 0;
 			return;
 		}
 	}
-	const auto peerId = _fields.externalPeerId
-		? _fields.externalPeerId
-		: holder->history()->peer->id;
 	if (_fields.messageId
 		&& MessageExtraState::isHidden(peerId, _fields.messageId)) {
 		hideData(holder);

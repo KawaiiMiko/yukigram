@@ -688,6 +688,27 @@ void History::unhideMessage(not_null<HistoryItem*> item) {
 	}
 }
 
+void History::refreshHiddenReplyData(const std::vector<MsgId> &ids) {
+	if (ids.empty()) {
+		return;
+	}
+	for (const auto &message : _items) {
+		const auto item = message.get();
+		const auto reply = item->Get<HistoryMessageReply>();
+		if (!reply || !reply->hiddenByUser()) {
+			continue;
+		}
+		const auto replyPeerId = reply->externalPeerId()
+			? reply->externalPeerId()
+			: peer->id;
+		if (replyPeerId != peer->id
+			|| !ranges::contains(ids, reply->messageId())) {
+			continue;
+		}
+		item->updateDependencyItem();
+	}
+}
+
 void History::hideMessage(not_null<HistoryItem*> item) {
 	item->setText(item->getBlockedMessage());
 	if (item->media()) {
