@@ -4232,6 +4232,38 @@ void AddSenderUserpicModerateAction(
 		not_null<SessionController*> controller,
 		HistoryItem *moderateItem,
 		const PeerMenuCallback &addAction) {
+	const auto showBanConfirmation = [=](
+			not_null<HistoryItem*> item,
+			not_null<ChannelData*> channel) {
+		const auto participant = item->from();
+		const auto currentRestrictedRights = [&] {
+			const auto user = participant->asUser();
+			if (!channel->mgInfo || !user) {
+				return ChatRestrictionsInfo();
+			}
+			const auto i = channel->mgInfo->lastRestricted.find(user);
+			return (i != channel->mgInfo->lastRestricted.cend())
+				? i->second.rights
+				: ChatRestrictionsInfo();
+		}();
+		controller->show(
+			Ui::MakeConfirmBox({
+				.text = tr::lng_profile_sure_kick(
+					tr::now,
+					lt_user,
+					participant->name()),
+				.confirmed = [=](Fn<void()> close) {
+					close();
+					channel->session().api().chatParticipants().kick(
+						channel,
+						participant,
+						currentRestrictedRights);
+				},
+				.confirmText = tr::lng_context_ban_user(tr::now),
+				.confirmStyle = &st::attentionBoxButton,
+			}),
+			Ui::LayerOption::CloseOther);
+	};
 	const auto moderateChannel = moderateItem
 		? moderateItem->history()->peer->asChannel()
 		: nullptr;
@@ -4241,17 +4273,30 @@ void AddSenderUserpicModerateAction(
 	const auto moderateUser = moderateFrom
 		? moderateFrom->asUser()
 		: nullptr;
-	const auto canDeleteAndBan = moderateItem
+	const auto canBan = moderateItem
 		&& moderateChannel
 		&& moderateChannel->isMegagroup()
 		&& moderateFrom
 		&& (!moderateUser || !moderateChannel->isGroupAdmin(moderateUser))
-		&& moderateItem->suggestBanReport()
+		&& moderateItem->suggestBanReport();
+	const auto canDeleteAndBan = canBan
 		&& moderateItem->suggestDeleteAllReport()
 		&& CanCreateModerateMessagesBox(
 			HistoryItemsList{ not_null<HistoryItem*>(moderateItem) });
-	if (canDeleteAndBan) {
+	if (canBan) {
 		addAction({ .isSeparator = true });
+		addAction({
+			.text = tr::lng_context_ban_user(tr::now),
+			.handler = [=] {
+				showBanConfirmation(
+					not_null<HistoryItem*>(moderateItem),
+					not_null<ChannelData*>(moderateChannel));
+			},
+			.icon = &st::menuIconBlockAttention,
+			.isAttention = true,
+		});
+	}
+	if (canDeleteAndBan) {
 		addAction({
 			.text = tr::lng_context_delete_and_ban(tr::now),
 			.handler = [=] {
