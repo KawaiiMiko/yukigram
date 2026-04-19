@@ -7,6 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #pragma once
 
+#include "core/msg_extra_state.h"
 #include "base/unique_qptr.h"
 #include "history/view/history_view_element.h"
 
@@ -50,6 +51,7 @@ struct ContextMenuRequest {
 	SelectedItems selectedItems;
 	TextForMimeData selectedText;
 	SelectedQuote quote;
+	std::optional<MessageExtraState::HiddenScope> hiddenScope;
 	bool overSelection = false;
 	PointState pointState = PointState();
 };
@@ -78,7 +80,8 @@ void ViewAsJSON(
 	FullMsgId itemId);
 void AddHideMessageAction(
 	not_null<Ui::PopupMenu*> menu,
-	not_null<HistoryItem*> item);
+	not_null<HistoryItem*> item,
+	std::optional<MessageExtraState::HiddenScope> scope = std::nullopt);
 void CopyStoryLink(
 	std::shared_ptr<Main::SessionShow> show,
 	FullStoryId storyId);

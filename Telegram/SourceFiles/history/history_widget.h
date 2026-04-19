@@ -381,6 +381,8 @@ private:
 		Data::MessagePosition position) override;
 	void cornerButtonsRestoreHiddenMessages(
 		const std::vector<MsgId> &ids) override;
+	std::optional<MessageExtraState::HiddenScope> cornerButtonsHiddenScope()
+		override;
 	Data::Thread *cornerButtonsThread() override;
 	FullMsgId cornerButtonsCurrentId() override;
 	bool cornerButtonsIgnoreVisibility() override;

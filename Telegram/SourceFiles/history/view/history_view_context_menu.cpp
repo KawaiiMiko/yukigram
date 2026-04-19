@@ -1278,7 +1278,9 @@ void AddHideMessageAction(
 				list->cancelSelection();
 				MessageExtraState::hideMessages(
 					&request.navigation->session().data(),
-					ids);
+					ids,
+					MessageExtraState::HiddenSource::Manual,
+					request.hiddenScope);
 			},
 			&st::menuIconClear);
 		return;
@@ -1286,7 +1288,10 @@ void AddHideMessageAction(
 	if (!request.item) {
 		return;
 	}
-	HistoryView::AddHideMessageAction(menu, request.item);
+	HistoryView::AddHideMessageAction(
+		menu,
+		request.item,
+		request.hiddenScope);
 }
 
 void AddMessageActions(
@@ -1879,12 +1884,17 @@ void ViewAsJSON(
 
 void AddHideMessageAction(
 		not_null<Ui::PopupMenu*> menu,
-		not_null<HistoryItem*> item) {
+		not_null<HistoryItem*> item,
+		std::optional<MessageExtraState::HiddenScope> scope) {
 	menu->addAction(
 		tr::lng_context_hide_message(tr::now),
 		[=] {
 			const auto owner = &item->history()->owner();
-			MessageExtraState::hideMessages(owner, owner->itemOrItsGroup(item));
+			MessageExtraState::hideMessages(
+				owner,
+				owner->itemOrItsGroup(item),
+				MessageExtraState::HiddenSource::Manual,
+				scope);
 		},
 		&st::menuIconClear);
 }

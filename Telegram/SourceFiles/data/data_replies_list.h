@@ -39,6 +39,7 @@ public:
 		MessagePosition aroundId,
 		int limitBefore,
 		int limitAfter);
+	void reloadAround(MsgId id);
 
 	[[nodiscard]] rpl::producer<int> fullCount() const;
 	[[nodiscard]] rpl::producer<std::optional<int>> maybeFullCount() const;

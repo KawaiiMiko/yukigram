@@ -164,6 +164,10 @@ rpl::producer<MessagesSlice> SavedSublist::source(
 	};
 }
 
+void SavedSublist::reloadAround(MsgId id) {
+	loadAround(id);
+}
+
 not_null<SavedMessages*> SavedSublist::parent() const {
 	return _parent;
 }

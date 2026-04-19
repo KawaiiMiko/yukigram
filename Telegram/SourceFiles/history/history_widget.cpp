@@ -5492,6 +5492,11 @@ void HistoryWidget::cornerButtonsRestoreHiddenMessages(
 	showHistory(_peer->id, targetId, params);
 }
 
+std::optional<MessageExtraState::HiddenScope>
+HistoryWidget::cornerButtonsHiddenScope() {
+	return std::nullopt;
+}
+
 Data::Thread *HistoryWidget::cornerButtonsThread() {
 	return _history;
 }

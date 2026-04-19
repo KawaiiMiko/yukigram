@@ -7,6 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #pragma once
 
+#include "core/msg_extra_state.h"
 #include "ui/effects/animations.h"
 #include "base/object_ptr.h"
 
@@ -54,6 +55,10 @@ public:
 		Data::MessagePosition position) = 0;
 	virtual void cornerButtonsRestoreHiddenMessages(
 		const std::vector<MsgId> &) {
+	}
+	[[nodiscard]] virtual std::optional<MessageExtraState::HiddenScope>
+	cornerButtonsHiddenScope() {
+		return std::nullopt;
 	}
 	[[nodiscard]] virtual Data::Thread *cornerButtonsThread() = 0;
 	[[nodiscard]] virtual FullMsgId cornerButtonsCurrentId() = 0;

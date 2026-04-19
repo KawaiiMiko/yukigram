@@ -3039,6 +3039,7 @@ void ListWidget::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 		: SelectedQuote();
 	request.selectedText = _selectedText;
 	request.selectedItems = collectSelectedItems();
+	request.hiddenScope = _delegate->listHiddenMessageScope();
 	const auto hasSelection = !request.selectedItems.empty()
 		|| !request.selectedText.empty();
 	request.overSelection = (showFromTouch && hasSelection)

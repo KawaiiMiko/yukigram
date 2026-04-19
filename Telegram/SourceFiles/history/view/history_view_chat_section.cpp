@@ -2261,25 +2261,28 @@ void ChatWidget::cornerButtonsShowAtPosition(
 	showAtPosition(position);
 }
 
-void ChatWidget::cornerButtonsRestoreHiddenMessages(const std::vector<MsgId> &ids) {
+void ChatWidget::cornerButtonsRestoreHiddenMessages(
+		const std::vector<MsgId> &ids) {
 	if (ids.empty()) {
 		return;
 	}
-	const auto targetId = ranges::min(ids);
 	_history->refreshHiddenReplyData(ids);
-	const auto position = [&] {
-		if (const auto item = _peer->owner().message(_peer, targetId)) {
-			return item->position();
-		}
-		return Data::MessagePosition{
-			.fullId = FullMsgId(_peer->id, targetId),
-			.date = TimeId(0),
-		};
-	}();
-	auto params = Window::SectionShow();
-	params.highlight = {};
-	_history->clear(History::ClearType::Unload);
-	showAtPosition(position, {}, params);
+	const auto aroundId = currentReloadAroundId();
+	if (_replies) {
+		_replies->reloadAround(aroundId);
+	} else if (_sublist) {
+		_sublist->reloadAround(aroundId);
+	} else {
+		_history->session().api().requestHistory(
+			_history,
+			aroundId,
+			Data::LoadDirection::Around);
+	}
+}
+
+std::optional<MessageExtraState::HiddenScope>
+ChatWidget::cornerButtonsHiddenScope() {
+	return currentHiddenMessageScope();
 }
 
 Data::Thread *ChatWidget::cornerButtonsThread() {
@@ -2573,6 +2576,30 @@ void ChatWidget::saveState(not_null<ChatMemento*> memento) {
 	memento->setReplies(_replies);
 	memento->setReplyReturns(_cornerButtons.replyReturns());
 	_inner->saveState(memento->list());
+}
+
+std::optional<MessageExtraState::HiddenScope>
+ChatWidget::currentHiddenMessageScope() const {
+	if (_sublist) {
+		return MessageExtraState::HiddenScope{
+			.monoforumPeerId = _sublist->sublistPeer()->id,
+		};
+	} else if (_repliesRootId) {
+		return MessageExtraState::HiddenScope{
+			.repliesRootId = _repliesRootId,
+		};
+	}
+	return std::nullopt;
+}
+
+MsgId ChatWidget::currentReloadAroundId() const {
+	if (_inner) {
+		const auto aroundId = _inner->aroundPosition().fullId.msg;
+		if (IsServerMsgId(aroundId)) {
+			return aroundId;
+		}
+	}
+	return IsServerMsgId(_lastShownAt.msg) ? _lastShownAt.msg : MsgId();
 }
 
 void ChatWidget::refreshReplies() {
@@ -2979,6 +3006,11 @@ Context ChatWidget::listContext() {
 		: _sublist->parentChat()
 		? Context::Monoforum
 		: Context::SavedSublist;
+}
+
+std::optional<MessageExtraState::HiddenScope>
+ChatWidget::listHiddenMessageScope() {
+	return currentHiddenMessageScope();
 }
 
 bool ChatWidget::listScrollTo(int top, bool syntetic) {

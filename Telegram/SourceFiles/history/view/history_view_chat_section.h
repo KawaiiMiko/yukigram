@@ -206,6 +206,8 @@ public:
 	History *listTranslateHistory() override;
 	void listAddTranslatedItems(
 		not_null<TranslateTracker*> tracker) override;
+	std::optional<MessageExtraState::HiddenScope> listHiddenMessageScope()
+		override;
 	Ui::ChatPaintContext listPreparePaintContext(
 		Ui::ChatPaintContextArgs &&args) override;
 	base::unique_qptr<Ui::PopupMenu> listFillSenderUserpicMenu(
@@ -216,6 +218,8 @@ public:
 		Data::MessagePosition position) override;
 	void cornerButtonsRestoreHiddenMessages(
 		const std::vector<MsgId> &ids) override;
+	std::optional<MessageExtraState::HiddenScope> cornerButtonsHiddenScope()
+		override;
 	Data::Thread *cornerButtonsThread() override;
 	FullMsgId cornerButtonsCurrentId() override;
 	bool cornerButtonsIgnoreVisibility() override;
@@ -256,6 +260,9 @@ private:
 	void updateAdaptiveLayout();
 	void saveState(not_null<ChatMemento*> memento);
 	void restoreState(not_null<ChatMemento*> memento);
+	[[nodiscard]] std::optional<MessageExtraState::HiddenScope>
+	currentHiddenMessageScope() const;
+	[[nodiscard]] MsgId currentReloadAroundId() const;
 	void setReplies(std::shared_ptr<Data::RepliesList> replies);
 	void refreshReplies();
 	void showAtStart();

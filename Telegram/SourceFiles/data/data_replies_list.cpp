@@ -213,6 +213,10 @@ rpl::producer<MessagesSlice> RepliesList::source(
 	};
 }
 
+void RepliesList::reloadAround(MsgId id) {
+	loadAround(id);
+}
+
 void RepliesList::appendClientSideMessages(MessagesSlice &slice) {
 	const auto &messages = _history->clientSideMessages();
 	if (messages.empty()) {

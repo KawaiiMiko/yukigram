@@ -44,6 +44,7 @@ public:
 		MessagePosition aroundId,
 		int limitBefore,
 		int limitAfter);
+	void reloadAround(MsgId id);
 
 	[[nodiscard]] not_null<SavedMessages*> parent() const;
 	[[nodiscard]] not_null<History*> owningHistory() override;

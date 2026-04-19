@@ -7,6 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #pragma once
 
+#include "core/msg_extra_state.h"
 #include "base/timer.h"
 #include "ui/rp_widget.h"
 #include "ui/effects/animations.h"
@@ -170,6 +171,10 @@ public:
 	virtual History *listTranslateHistory() = 0;
 	virtual void listAddTranslatedItems(
 		not_null<TranslateTracker*> tracker) = 0;
+	virtual std::optional<MessageExtraState::HiddenScope>
+	listHiddenMessageScope() {
+		return std::nullopt;
+	}
 
 	// Methods that use Window::SessionController by default.
 	virtual not_null<Window::SessionController*> listWindow() = 0;
@@ -362,6 +367,9 @@ public:
 	[[nodiscard]] bool showCopyRestrictionForSelected();
 	[[nodiscard]] bool hasSelectRestriction() const;
 	[[nodiscard]] Element *lookupItemByY(int y) const;
+	[[nodiscard]] Data::MessagePosition aroundPosition() const {
+		return _aroundPosition;
+	}
 
 	[[nodiscard]] std::pair<Element*, int> findViewForPinnedTracking(
 		int top) const;
