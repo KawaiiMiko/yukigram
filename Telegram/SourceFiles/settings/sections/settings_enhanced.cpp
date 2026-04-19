@@ -543,52 +543,6 @@ namespace {
 			Core::Restart();
 		}, container->lifetime());
 
-		const auto extraContextMenu = AddButtonWithIcon(
-				inner,
-				tr::lng_settings_extra_context_menu_options(),
-				st::settingsButtonNoIcon
-		);
-		registerHighlight(
-			u"enhanced/messages/extra-context-menu-options"_q,
-			extraContextMenu);
-		extraContextMenu->addClickHandler([=] {
-			Ui::show(Box<ExtraContextMenuBox>());
-		});
-
-		const auto repeaterSubWrap = inner->add(
-			object_ptr<Ui::SlideWrap<Ui::VerticalLayout>>(
-				inner,
-				object_ptr<Ui::VerticalLayout>(inner)));
-		const auto repeaterSubInner = repeaterSubWrap->entity();
-		repeaterSubWrap->toggle(
-			HasExtraContextMenuOption(ExtraContextMenuOption::Repeater),
-			anim::type::instant);
-		extraContextMenu->events(
-		) | rpl::on_next([=](not_null<QEvent*> e) {
-			if (e->type() == QEvent::UpdateLater) {
-				repeaterSubWrap->toggle(
-					HasExtraContextMenuOption(ExtraContextMenuOption::Repeater),
-					anim::type::normal);
-			}
-		}, container->lifetime());
-		const auto repeaterReplyToOrig = AddButtonWithIcon(
-				repeaterSubInner,
-				tr::lng_settings_repeater_reply_to_orig_msg(),
-				st::settingsButtonNoIcon
-		);
-		registerHighlight(
-			u"enhanced/messages/repeater-reply-to-original"_q,
-			repeaterReplyToOrig);
-		repeaterReplyToOrig->toggleOn(
-				rpl::single(GetEnhancedBool("repeater_reply_to_orig_msg"))
-		)->toggledChanges(
-		) | rpl::filter([=](bool toggled) {
-			return (toggled != GetEnhancedBool("repeater_reply_to_orig_msg"));
-		}) | rpl::on_next([=](bool toggled) {
-			SetEnhancedValue("repeater_reply_to_orig_msg", toggled);
-			EnhancedSettings::Write();
-		}, container->lifetime());
-
 		auto value = rpl::single(
 				AlwaysDeleteBox::DeleteLabel(GetEnhancedInt("always_delete_for"))
 		) | rpl::then(
@@ -790,6 +744,54 @@ namespace {
 					.restoreBlockedHiddenMessages();
 			}
 		}, container->lifetime());
+
+		const auto extraContextMenu = AddButtonWithIcon(
+				inner,
+				tr::lng_settings_extra_context_menu_options(),
+				st::settingsButtonNoIcon
+		);
+		registerHighlight(
+			u"enhanced/messages/extra-context-menu-options"_q,
+			extraContextMenu);
+		extraContextMenu->addClickHandler([=] {
+			Ui::show(Box<ExtraContextMenuBox>());
+		});
+
+
+		const auto repeaterSubWrap = inner->add(
+			object_ptr<Ui::SlideWrap<Ui::VerticalLayout>>(
+				inner,
+				object_ptr<Ui::VerticalLayout>(inner)));
+		const auto repeaterSubInner = repeaterSubWrap->entity();
+		repeaterSubWrap->toggle(
+			HasExtraContextMenuOption(ExtraContextMenuOption::Repeater),
+			anim::type::instant);
+		extraContextMenu->events(
+		) | rpl::on_next([=](not_null<QEvent*> e) {
+			if (e->type() == QEvent::UpdateLater) {
+				repeaterSubWrap->toggle(
+					HasExtraContextMenuOption(ExtraContextMenuOption::Repeater),
+					anim::type::normal);
+			}
+		}, container->lifetime());
+		const auto repeaterReplyToOrig = AddButtonWithIcon(
+				repeaterSubInner,
+				tr::lng_settings_repeater_reply_to_orig_msg(),
+				st::settingsButtonNoIcon
+		);
+		registerHighlight(
+			u"enhanced/messages/repeater-reply-to-original"_q,
+			repeaterReplyToOrig);
+		repeaterReplyToOrig->toggleOn(
+				rpl::single(GetEnhancedBool("repeater_reply_to_orig_msg"))
+		)->toggledChanges(
+		) | rpl::filter([=](bool toggled) {
+			return (toggled != GetEnhancedBool("repeater_reply_to_orig_msg"));
+		}) | rpl::on_next([=](bool toggled) {
+			SetEnhancedValue("repeater_reply_to_orig_msg", toggled);
+			EnhancedSettings::Write();
+		}, container->lifetime());
+
 	}
 
 	void Enhanced::SetupEnhancedButton(not_null<Ui::VerticalLayout *> container) {
