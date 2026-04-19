@@ -1,4 +1,4 @@
-{
+﻿{
     "lng_intro_about2": "Welcome to the Yukigram app.\nIt's fast and secure.",
 
     "lng_settings_enhanced": "Enhanced Settings",
@@ -42,7 +42,6 @@
     "lng_show_emoji_button_as_text_desc": "Note: If you can't see an emoji button, please turn on this option.",
     "lng_radio_controller_desc": "Note: Radio controller is an experimental bot for controlling your music streaming session.",
     "lng_auto_unmute_desc": "Note: Auto unmute when you've joined the voice chat.",
-    "lng_settings_hide_messages_desc": "Note: IT IS NOT REALLY HIDE! Messages are still available to view, but text will be converted to Spoiler and media won't auto download.",
 
     "lng_net_speed_boost_default": "Disabled",
     "lng_net_speed_boost_slight": "Slight",

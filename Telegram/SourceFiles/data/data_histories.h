@@ -57,7 +57,9 @@ public:
 
 	void unloadAll();
 	void clearAll();
-	void editHistoriesMessages(PeerData* peer, bool isHide);
+	void hideBlockedMessages();
+	void syncBlockedPeerMessages(PeerData* peer, bool hide);
+	void restoreBlockedHiddenMessages();
 
 	void readInbox(not_null<History*> history);
 	void readInboxTill(not_null<HistoryItem*> item);

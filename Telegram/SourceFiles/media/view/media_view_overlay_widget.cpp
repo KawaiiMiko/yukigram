@@ -4343,21 +4343,13 @@ void OverlayWidget::displayDocument(
 			if (_documentMedia->canBePlayed()
 				&& initStreaming(startStreaming)) {
 			} else if (_document->isVideoFile()) {
-				auto peerId = _from ? _from->id : PeerId(0);
-				auto user = _history->session().data().peerLoaded(_from ? _from->id : PeerId(0));
-				if (!blockExist(peerId.value) || (!GetEnhancedBool("blocked_user_spoiler_mode") && user && !user->isBlocked())) {
-					_documentMedia->automaticLoad(fileOrigin(), _message);
-				}
+				_documentMedia->automaticLoad(fileOrigin(), _message);
 				initStreamingThumbnail();
 			} else if (_document->isTheme()) {
 				_documentMedia->automaticLoad(fileOrigin(), _message);
 				initThemePreview();
 			} else {
-				auto peerId = _from ? _from->id : PeerId(0);
-				auto user = _history->session().data().peerLoaded(_from ? _from->id : PeerId(0));
-				if (!blockExist(peerId.value) || (!GetEnhancedBool("blocked_user_spoiler_mode") && user && !user->isBlocked())) {
-					_documentMedia->automaticLoad(fileOrigin(), _message);
-				}
+				_documentMedia->automaticLoad(fileOrigin(), _message);
 				_document->saveFromDataSilent();
 				auto &location = _document->location(true);
 				if (location.accessEnable()) {

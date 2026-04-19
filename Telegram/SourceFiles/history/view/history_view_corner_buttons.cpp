@@ -180,7 +180,9 @@ void CornerButtons::showHiddenClick() {
 	if (!history) {
 		return;
 	}
-	const auto ids = MessageExtraState::unhideAll(history->peer->id);
+	const auto ids = MessageExtraState::unhideAll(
+		history->peer->id,
+		MessageExtraState::HiddenSource::Manual);
 	_delegate->cornerButtonsRestoreHiddenMessages(ids);
 }
 
@@ -347,7 +349,9 @@ void CornerButtons::updateHiddenMessagesVisibility() {
 		updateVisibility(Type::ShowHidden, false);
 		return;
 	}
-	const auto count = MessageExtraState::hiddenCount(history->peer->id);
+	const auto count = MessageExtraState::hiddenCount(
+		history->peer->id,
+		MessageExtraState::HiddenSource::Manual);
 	_showHidden.widget->setUnreadCount(count);
 	updateVisibility(
 		Type::ShowHidden,

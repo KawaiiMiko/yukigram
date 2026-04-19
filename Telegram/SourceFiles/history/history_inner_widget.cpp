@@ -11,6 +11,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "chat_helpers/stickers_emoji_pack.h"
 #include "core/application.h"
 #include "core/file_utilities.h"
+#include "core/msg_extra_state.h"
 #include <core/shortcuts.h>
 #include "core/click_handler_types.h"
 #include "core/phone_click_handler.h"
@@ -3109,7 +3110,9 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 				if (!ids.empty()) {
 					_menu->addAction(tr::lng_context_hide_message(tr::now), [=] {
 						_widget->clearSelected();
-						HistoryView::HideMessages(&item->history()->peer->session().data(), ids);
+						MessageExtraState::hideMessages(
+							&item->history()->peer->session().data(),
+							ids);
 					}, &st::menuIconClear);
 				}
 			}
@@ -3516,7 +3519,9 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 				if (!ids.empty()) {
 					_menu->addAction(tr::lng_context_hide_message(tr::now), [=] {
 						_widget->clearSelected();
-						HistoryView::HideMessages(&item->history()->peer->session().data(), ids);
+						MessageExtraState::hideMessages(
+							&item->history()->peer->session().data(),
+							ids);
 					}, &st::menuIconClear);
 				}
 			}

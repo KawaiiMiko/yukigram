@@ -24,6 +24,8 @@ namespace EnhancedSettings {
 
 		void removeIdFromBlocklist(int64 userId);
 
+		void readBlocklist();
+
 	public Q_SLOTS:
 
 		void writeTimeout();
@@ -34,8 +36,6 @@ namespace EnhancedSettings {
 		void writeCurrentSettings();
 
 		bool readCustomFile();
-
-		void readBlocklist();
 
 		void writing();
 

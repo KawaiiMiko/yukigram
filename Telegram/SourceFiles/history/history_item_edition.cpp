@@ -20,28 +20,12 @@ HistoryMessageEdition::HistoryMessageEdition(
 	isMediaUnread = message.is_media_unread();
 	repeatPeriod = message.vschedule_repeat_period().value_or_empty();
 	editDate = message.vedit_date().value_or(-1);
-
-	auto peerId = message.vfrom_id() ? peerFromMTP(*message.vfrom_id()) : PeerId(0);
-	auto user = session->data().peerLoaded(message.vfrom_id() ? peerFromMTP(*message.vfrom_id()) : PeerId(0));
-	if ((GetEnhancedBool("blocked_user_spoiler_mode") && blockExist(peerId.value)) || (GetEnhancedBool("blocked_user_spoiler_mode") && user && user->isBlocked())) {
-		auto blkMsg = QString("[Blocked User Message]\n");
-		auto msg = blkMsg + qs(message.vmessage());
-		textWithEntities = TextWithEntities{
-			msg,
-			Api::EntitiesFromMTP(
-				session,
-				message.ventities().value_or_empty(),
-				blkMsg.length(), qs(message.vmessage()).length())
-		};
-	}
-	else {
-		textWithEntities = TextWithEntities{
-			qs(message.vmessage()),
-			Api::EntitiesFromMTP(
-				session,
-				message.ventities().value_or_empty())
-		};
-	}
+	textWithEntities = TextWithEntities{
+		qs(message.vmessage()),
+		Api::EntitiesFromMTP(
+			session,
+			message.ventities().value_or_empty())
+	};
 
 	replyMarkup = HistoryMessageMarkupData(message.vreply_markup());
 	mtpMedia = message.vmedia();

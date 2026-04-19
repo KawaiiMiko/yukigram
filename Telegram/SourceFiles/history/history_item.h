@@ -615,14 +615,6 @@ public:
 	[[nodiscard]] int boostsApplied() const {
 		return _boostsApplied;
 	}
-	
-	[[nodiscard]] TextWithEntities getOriginalMessage() const {
-		return _originalMsg;
-	}
-
-	[[nodiscard]] TextWithEntities getBlockedMessage() const {
-		return _blockMsg;
-	}
 
 	[[nodiscard]] QString fromRank() const;
 
@@ -754,8 +746,6 @@ private:
 	std::unique_ptr<Data::Media> _media;
 	std::unique_ptr<Data::MessageReactions> _reactions;
 	crl::time _reactionsLastRefreshed = 0;
-	TextWithEntities _blockMsg;
-	TextWithEntities _originalMsg;
 
 	TimeId _date = 0;
 	TimeId _ttlDestroyAt = 0;

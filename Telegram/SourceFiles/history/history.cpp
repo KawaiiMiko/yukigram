@@ -7,6 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "history/history.h"
 
+#include "core/msg_extra_state.h"
 #include "history/view/history_view_element.h"
 #include "history/view/history_view_item_preview.h"
 #include "history/view/history_view_translate_tracker.h"
@@ -529,9 +530,14 @@ not_null<HistoryItem*> History::createItem(
 }
 
 std::vector<not_null<HistoryItem*>> History::createItems(
-		const QVector<MTPMessage> &data) {
+		const QVector<MTPMessage> &data,
+		bool *hadBlockedHidden) {
 	auto result = std::vector<not_null<HistoryItem*>>();
 	result.reserve(data.size());
+	auto blocked = MessageIdsList();
+	if (hadBlockedHidden) {
+		*hadBlockedHidden = false;
+	}
 	const auto localFlags = MessageFlags();
 	const auto detachExistingItem = true;
 	for (auto i = data.cend(), e = data.cbegin(); i != e;) {
@@ -543,11 +549,25 @@ std::vector<not_null<HistoryItem*>> History::createItems(
 			// the first message comes empty and is displayed incorrectly.
 			continue;
 		}
-		result.emplace_back(createItem(
+		const auto item = createItem(
 			id,
 			data,
 			localFlags,
-			detachExistingItem));
+			detachExistingItem);
+		if (MessageExtraState::shouldHideBlockedMessage(item)) {
+			if (hadBlockedHidden) {
+				*hadBlockedHidden = true;
+			}
+			blocked.push_back(item->fullId());
+			continue;
+		}
+		result.emplace_back(item);
+	}
+	if (!blocked.empty()) {
+		MessageExtraState::hideMessages(
+			&owner(),
+			blocked,
+			MessageExtraState::HiddenSource::BlockedPeer);
 	}
 	return result;
 }
@@ -661,31 +681,58 @@ void History::destroyMessagesByTopic(MsgId topicRootId) {
 	}
 }
 
-void History::editHistoryMessages(PeerData* peer, bool isHide) {
+void History::hideBlockedMessages() {
+	auto ids = MessageIdsList();
 	for (const auto &message : _items) {
-		if (message->isRegular() && !message->isService() && message->from() == peer) {
-			if (isHide) {
-				hideMessage(message.get());
-			} else {
-				unhideMessage(message.get());
-			}
+		const auto item = message.get();
+		if (MessageExtraState::shouldHideBlockedMessage(item)) {
+			ids.push_back(item->fullId());
 		}
 	}
+	MessageExtraState::hideMessages(
+		&owner(),
+		ids,
+		MessageExtraState::HiddenSource::BlockedPeer);
 }
 
-void History::unhideMessage(not_null<HistoryItem*> item) {
-	auto text = item->originalText();
-	auto blkMsg = QString("[Blocked User Message]");
-
-	if (text.text.contains(blkMsg)) {
-		item->setText(item->getOriginalMessage());
-		if (item->media()) {
-			owner().requestItemTextRefresh(item);
-			owner().requestItemViewRefresh(item);
-		} else {
-			owner().requestItemResize(item);
+void History::syncBlockedPeerMessages(PeerData* peer, bool hide) {
+	if (hide) {
+		auto ids = MessageIdsList();
+		for (const auto &message : _items) {
+			const auto item = message.get();
+			if (item->isRegular()
+				&& !item->isService()
+				&& (item->from() == peer)) {
+				ids.push_back(item->fullId());
+			}
 		}
+		MessageExtraState::hideMessages(
+			&owner(),
+			ids,
+			MessageExtraState::HiddenSource::BlockedPeer);
+		return;
 	}
+	const auto ids = MessageExtraState::unhideByBlockedPeer(
+		this->peer->id,
+		peer->id);
+	if (ids.empty()) {
+		return;
+	}
+	refreshHiddenReplyData(ids);
+	clear(ClearType::Unload);
+	requestChatListMessage();
+}
+
+void History::restoreBlockedHiddenMessages() {
+	const auto ids = MessageExtraState::unhideAll(
+		peer->id,
+		MessageExtraState::HiddenSource::BlockedPeer);
+	if (ids.empty()) {
+		return;
+	}
+	refreshHiddenReplyData(ids);
+	clear(ClearType::Unload);
+	requestChatListMessage();
 }
 
 void History::refreshHiddenReplyData(const std::vector<MsgId> &ids) {
@@ -706,16 +753,6 @@ void History::refreshHiddenReplyData(const std::vector<MsgId> &ids) {
 			continue;
 		}
 		item->updateDependencyItem();
-	}
-}
-
-void History::hideMessage(not_null<HistoryItem*> item) {
-	item->setText(item->getBlockedMessage());
-	if (item->media()) {
-		owner().requestItemTextRefresh(item);
-		owner().requestItemViewRefresh(item);
-	} else {
-		owner().requestItemResize(item);
 	}
 }
 
@@ -1786,9 +1823,10 @@ void History::addOlderSlice(const QVector<MTPMessage> &slice) {
 		return;
 	}
 
-	if (const auto added = createItems(slice); !added.empty()) {
+	auto hadBlockedHidden = false;
+	if (const auto added = createItems(slice, &hadBlockedHidden); !added.empty()) {
 		addCreatedOlderSlice(added);
-	} else {
+	} else if (!hadBlockedHidden) {
 		// If no items were added it means we've loaded everything old.
 		_loadedAtTop = true;
 		addEdgesToSharedMedia();
@@ -1828,7 +1866,8 @@ void History::addNewerSlice(const QVector<MTPMessage> &slice) {
 		}
 	}
 
-	if (const auto added = createItems(slice); !added.empty()) {
+	auto hadBlockedHidden = false;
+	if (const auto added = createItems(slice, &hadBlockedHidden); !added.empty()) {
 		Assert(!isBuildingFrontBlock());
 
 		for (const auto &item : added) {
@@ -1836,7 +1875,7 @@ void History::addNewerSlice(const QVector<MTPMessage> &slice) {
 		}
 
 		addToSharedMedia(added);
-	} else {
+	} else if (!hadBlockedHidden) {
 		_loadedAtBottom = true;
 		setLastMessage(lastAvailableMessage());
 		addEdgesToSharedMedia();

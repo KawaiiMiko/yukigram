@@ -207,7 +207,9 @@ void PostsSearch::requestSearch(const QString &query) {
 							message,
 							MessageFlags(),
 							NewMessageType::Existing);
-						result.push_back(item);
+						if (item) {
+							result.push_back(item);
+						}
 					}
 					entry.offsetPeer = peer;
 				} else {

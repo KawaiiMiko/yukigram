@@ -36,6 +36,7 @@ https://github.com/TDesktop-x64/tdesktop/blob/dev/LEGAL
 #include "core/application.h"
 #include "storage/localstorage.h"
 #include "data/data_session.h"
+#include "data/data_histories.h"
 #include "main/main_session.h"
 #include "layout/layout_item_base.h"
 #include "facades.h"
@@ -398,8 +399,9 @@ namespace {
 			auto doc = QJsonDocument(toArray());
 			file.write(doc.toJson(QJsonDocument::Compact));
 			file.close();
-			Ui::Toast::Show("Restart in 3 seconds!");
-			QTimer::singleShot(3 * 1000, []{ Core::Restart(); });
+			EnhancedSettings::Manager().readBlocklist();
+			App::wnd()->sessionController()->session().data().histories()
+				.hideBlockedMessages();
 		} else {
 			Ui::Toast::Show("Failed to save blocklist.");
 		}
@@ -781,20 +783,13 @@ namespace {
 			EnhancedSettings::Write();
 			if (toggled) {
 				Ui::Toast::Show("Please wait a moment, fetching blocklist...");
-
-				App::wnd()->sessionController()->session().api().blockedPeers().slice() | rpl::take(
-					1
-				) | rpl::on_next([&](const Api::BlockedPeers::Slice &result) {
-					if (blockList.length() == result.total) {
-						return;
-					}
-					blockList = QList<int64>();
-					reqBlocked(0);
-				}, container->lifetime());
+				blockList = QList<int64>();
+				reqBlocked(0);
+			} else {
+				App::wnd()->sessionController()->session().data().histories()
+					.restoreBlockedHiddenMessages();
 			}
 		}, container->lifetime());
-
-		AddDividerText(inner, tr::lng_settings_hide_messages_desc());
 	}
 
 	void Enhanced::SetupEnhancedButton(not_null<Ui::VerticalLayout *> container) {

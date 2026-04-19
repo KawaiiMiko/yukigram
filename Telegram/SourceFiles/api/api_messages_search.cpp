@@ -34,7 +34,9 @@ constexpr auto kSearchPerPage = 50;
 					message,
 					MessageFlags(),
 					NewMessageType::Existing);
-				result.push_back(item->fullId());
+				if (item) {
+					result.push_back(item->fullId());
+				}
 			}
 		} else {
 			LOG(("API Error: a search results with not loaded peer %1"

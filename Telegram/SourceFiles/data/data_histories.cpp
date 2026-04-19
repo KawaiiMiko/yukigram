@@ -169,9 +169,21 @@ void Histories::clearAll() {
 	_map.clear();
 }
 
-void Histories::editHistoriesMessages(PeerData* peer, bool isHide) {
+void Histories::hideBlockedMessages() {
+	for (const auto &[peerId, history] : _map) {
+		history->hideBlockedMessages();
+	}
+}
+
+void Histories::syncBlockedPeerMessages(PeerData* peer, bool hide) {
 	for (const auto& [peerId, history] : _map) {
-		history->editHistoryMessages(peer, isHide);
+		history->syncBlockedPeerMessages(peer, hide);
+	}
+}
+
+void Histories::restoreBlockedHiddenMessages() {
+	for (const auto &[peerId, history] : _map) {
+		history->restoreBlockedHiddenMessages();
 	}
 }
 

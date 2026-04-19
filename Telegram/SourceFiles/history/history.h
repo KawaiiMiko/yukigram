@@ -145,10 +145,10 @@ public:
 
 	void destroyMessage(not_null<HistoryItem*> item);
 	void destroyMessagesByDates(TimeId minDate, TimeId maxDate);
-	void editHistoryMessages(PeerData* peer, bool isHide);
+	void hideBlockedMessages();
+	void syncBlockedPeerMessages(PeerData* peer, bool hide);
+	void restoreBlockedHiddenMessages();
 	void destroyMessagesByTopic(MsgId topicRootId);
-	void hideMessage(not_null<HistoryItem*> item);
-	void unhideMessage(not_null<HistoryItem*> item);
 	void refreshHiddenReplyData(const std::vector<MsgId> &ids);
 
 	void unpinAllMessages();
@@ -195,7 +195,8 @@ public:
 		bool detachExistingItem = false,
 		bool newMessage = false);
 	std::vector<not_null<HistoryItem*>> createItems(
-		const QVector<MTPMessage> &data);
+		const QVector<MTPMessage> &data,
+		bool *hadBlockedHidden = nullptr);
 
 	void addOlderSlice(const QVector<MTPMessage> &slice);
 	void addNewerSlice(const QVector<MTPMessage> &slice);

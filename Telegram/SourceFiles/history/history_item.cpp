@@ -459,58 +459,18 @@ HistoryItem::HistoryItem(
 		setReactions(data.vreactions());
 		applyTTL(data);
 	} else {
-		auto peerId = data.vfrom_id() ? peerFromMTP(*data.vfrom_id()) : PeerId(0);
-		auto user = history->session().data().peerLoaded(peerId);
-		auto isBlocked = false;
-
-		if ((GetEnhancedBool("blocked_user_spoiler_mode") && blockExist(peerId.value)) ||
-			(GetEnhancedBool("blocked_user_spoiler_mode") && user && user->isBlocked())) {
-			isBlocked = true;
-		}
-
 		if (const auto media = data.vmedia()) {
 			setMedia(*media);
-			if (_media && _media->webpage()) {
-				if (isBlocked) {
-					_media->webpage()->applyChanges(WebPageType::Article, "", "", "", "", TextWithEntities(), FullStoryId(), nullptr, nullptr, WebPageCollage(), nullptr, nullptr, nullptr, nullptr, 0, "", false, false, 0);
-				}
-			}
 		}
 
-		createComponents(data, isBlocked);
+		createComponents(data, false);
 
-		auto textWithEntities = TextWithEntities();
-		
-		auto blkMsg = Lang::GetOriginalValue(tr::lng_blocked_user_hint.base);
-		auto msg = blkMsg + qs(data.vmessage());
-
-		if (GetEnhancedBool("blocked_user_spoiler_mode")) {
-			_blockMsg = TextWithEntities{
-					msg,
-					Api::EntitiesFromMTP(
-							&history->session(),
-							data.ventities().value_or_empty(),
-							blkMsg.length(), qs(data.vmessage()).length())
-			};
-
-			_originalMsg = TextWithEntities{
-					qs(data.vmessage()),
-					Api::EntitiesFromMTP(
-							&history->session(),
-							data.ventities().value_or_empty())
-			};
-		}
-
-		if ((GetEnhancedBool("blocked_user_spoiler_mode") && blockExist(peerId.value)) || (GetEnhancedBool("blocked_user_spoiler_mode") && user && user->isBlocked())) {
-			textWithEntities = _blockMsg;
-		} else {
-			textWithEntities = TextWithEntities{
-					qs(data.vmessage()),
-					Api::EntitiesFromMTP(
-							&history->session(),
-							data.ventities().value_or_empty())
-			};
-		}
+		const auto textWithEntities = TextWithEntities{
+			qs(data.vmessage()),
+			Api::EntitiesFromMTP(
+				&history->session(),
+				data.ventities().value_or_empty())
+		};
 
 		setText(_media ? textWithEntities : EnsureNonEmpty(textWithEntities));
 		if (const auto groupedId = data.vgrouped_id()) {

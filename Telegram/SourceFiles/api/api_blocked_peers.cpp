@@ -95,7 +95,7 @@ void BlockedPeers::block(not_null<PeerData*> peer) {
 					EnhancedSettings::Manager().addIdToBlocklist(int64(peer->id.value));
 				}
 				auto &histories = _session->data().histories();
-				histories.editHistoriesMessages(peer, true);
+				histories.syncBlockedPeerMessages(peer, true);
 			}
 
 		if (_slice) {
@@ -148,7 +148,7 @@ void BlockedPeers::unblock(
 				EnhancedSettings::Manager().removeIdFromBlocklist(int64(peer->id.value));
 			}
 			auto& histories = _session->data().histories();
-			histories.editHistoriesMessages(peer, false);
+			histories.syncBlockedPeerMessages(peer, false);
 		}
 
 		if (_slice) {

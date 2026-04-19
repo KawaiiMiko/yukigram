@@ -76,9 +76,6 @@ void ViewAsJSON(
 void ViewAsJSON(
 	std::shared_ptr<Main::SessionShow> show,
 	FullMsgId itemId);
-void HideMessages(
-	not_null<Data::Session*> owner,
-	const MessageIdsList &ids);
 void AddHideMessageAction(
 	not_null<Ui::PopupMenu*> menu,
 	not_null<HistoryItem*> item);
