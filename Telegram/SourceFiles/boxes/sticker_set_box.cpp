@@ -994,14 +994,14 @@ void StickerSetBox::updateButtons() {
 								: tr::lng_stickers_archive_pack(tr::now)),
 							archive,
 							&st::menuIconArchive);
+						(*menu)->addAction(
+							tr::lng_channel_admin_status_creator(tr::now),
+							[=] { author(); },
+							&st::menuIconProfile);
 						if (fillSetCreatorFooter) {
 							fillSetCreatorFooter(*menu);
 						}
 					}
-					(*menu)->addAction(
-							tr::lng_channel_admin_status_creator(tr::now),
-							[=] { author(); },
-							&st::menuIconProfile);
 					(*menu)->popup(QCursor::pos());
 					return true;
 				});
