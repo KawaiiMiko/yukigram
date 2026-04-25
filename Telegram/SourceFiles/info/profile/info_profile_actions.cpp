@@ -2898,11 +2898,7 @@ void ActionsFiller::fillUserActions(not_null<UserData*> user) {
 	if (!user->isSelf() && !user->isSupport() && !user->isVerifyCodes()) {
 		if (user->isBot()) {
 			addBotCommandActions(user);
-		}
-		_wrap->add(CreateSkipWidget(
-			_wrap,
-			st::infoBlockButtonSkip));
-		if (user->isBot()) {
+			_wrap->add(CreateSkipWidget(_wrap, st::infoBlockButtonSkip));
 			addReportAction();
 		}
 		addBlockAction(user);

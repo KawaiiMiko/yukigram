@@ -1879,7 +1879,6 @@ void Message::paintFromName(
 		} else {
 			st::dialogsPremiumIcon.icon.paint(p, x, y, width(), color);
 		}
-		availableWidth -= statusWidth;
 	}
 	p.setFont(st::msgNameFont);
 	p.setPen(nameFg);
@@ -3311,7 +3310,6 @@ bool Message::getStateFromName(
 				outResult->link = _fromNameStatus->link;
 				return true;
 			}
-			availableWidth -= statusWidth;
 		}
 		if (point.x() >= availableLeft
 			&& point.x() < availableLeft + availableWidth
@@ -3321,12 +3319,22 @@ bool Message::getStateFromName(
 			_fromLinkRipplePointSet = 1;
 			return true;
 		}
+
+		const auto skipWidth = nameText->maxWidth()
+			+ (_fromNameStatus
+				? (st::dialogsPremiumIcon.icon.width()
+					+ st::msgServiceFont->spacew)
+				: 0)
+			+ st::msgServiceFont->spacew;
+		availableLeft += skipWidth;
+		availableWidth -= skipWidth;
+
 		auto via = item->Get<HistoryMessageVia>();
 		if (via
 			&& !displayForwardedFrom()
-			&& point.x() >= availableLeft + nameText->maxWidth() + st::msgServiceFont->spacew
+			&& point.x() >= availableLeft
 			&& point.x() < availableLeft + availableWidth
-			&& point.x() < availableLeft + nameText->maxWidth() + st::msgServiceFont->spacew + via->width) {
+			&& point.x() < availableLeft + via->width) {
 			outResult->link = via->link;
 			recordLinkRipplePoint(point, trect.topLeft());
 			return true;
@@ -4806,7 +4814,11 @@ ClickHandlerPtr Message::prepareRightActionLink() const {
 			}
 		}
 	});
-	result->setProperty(kFastShareProperty, QVariant::fromValue(true));
+	const auto navigates = data()->externalReply()
+		|| (savedFromPeer && savedFromMsgId);
+	if (!navigates) {
+		result->setProperty(kFastShareProperty, QVariant::fromValue(true));
+	}
 	return result;
 }
 
@@ -5193,7 +5205,7 @@ int Message::resizeContentGetHeight(int newWidth) {
 	}
 	if (!mediaDisplayed && bubble && hasVisibleText()) {
 		const auto probeTextWidth = bubbleTextWidth(contentWidth);
-		[[maybe_unused]] const auto probeHeight = textHeightFor(probeTextWidth);
+		[[maybe_unused]] const auto probe = textHeightFor(probeTextWidth);
 		if (!Get<TextAppearing>()) {
 			const auto use = textRealWidth();
 			if (use > 0) {
@@ -5253,6 +5265,7 @@ int Message::resizeContentGetHeight(int newWidth) {
 		}
 		if (contentWidth == maxWidth() && !appearing) {
 			if (mediaDisplayed) {
+				newHeight += media->height() - media->minHeight();
 				if (check) {
 					newHeight += check->resizeGetHeight(contentWidth) + st::mediaInBubbleSkip;
 				}
@@ -5479,7 +5492,7 @@ bool Message::textAppearCheckLine(not_null<TextAppearing*> appearing) {
 			if (appearing->heightAnimation.animating()
 				|| !appearing->widthAnimation.animating()
 				|| left <= duration) {
-				textAppearStartHeightAnimation(appearing);
+				textAppearStartHeightAnimation(appearing, targetHeight);
 			}
 		}
 	}
@@ -5517,13 +5530,12 @@ void Message::textAppearStartWidthAnimation(
 }
 
 void Message::textAppearStartHeightAnimation(
-		not_null<TextAppearing*> appearing) {
+		not_null<TextAppearing*> appearing,
+		int targetHeight) {
 	Expects(appearing->use);
 
 	const auto from = appearing->shownHeight;
-	const auto to
-		= appearing->targetHeight
-		= textAppearTargetHeight(appearing);
+	const auto to = appearing->targetHeight = targetHeight;
 	const auto duration = appearing->finalizing
 		? kLineHeightAppearFinalDuration
 		: kLineHeightAppearDuration;
@@ -5536,7 +5548,7 @@ int Message::textAppearTargetHeight(
 		not_null<TextAppearing*> appearing) const {
 	const auto next = appearing->shownLine + 1;
 	const auto lines = int(appearing->lines.size());
-	if (next >= lines) {
+	if (next + 1 >= lines) {
 		return appearing->lines.back().bottom;
 	}
 	const auto &line = appearing->lines[next];
