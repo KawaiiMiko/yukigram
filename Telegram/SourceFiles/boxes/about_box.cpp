@@ -9,7 +9,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "base/platform/base_platform_info.h"
 #include "core/application.h"
-#include "core/file_utilities.h"
+#include "core/click_handler_types.h"
 #include "core/update_checker.h"
 #include "lang/lang_keys.h"
 #include "ui/boxes/confirm_box.h"
@@ -107,7 +107,7 @@ void AboutBox(not_null<Ui::GenericBox*> box) {
 					"version of Telegram Desktop was copied "
 					"to the clipboard."));
 		} else {
-			File::OpenUrl(Core::App().changelogLink());
+			UrlClickHandler::Open(Core::App().changelogLink());
 		}
 	});
 
