@@ -997,6 +997,10 @@ void StickerSetBox::updateButtons() {
 						if (fillSetCreatorMenu) {
 							fillSetCreatorMenu(raw);
 						}
+						(*menu)->addAction(
+							tr::lng_channel_admin_status_creator(tr::now),
+							[=] { author(); },
+							&st::menuIconProfile);
 						if (fillSetCreatorFooter) {
 							fillSetCreatorFooter(raw);
 						} else {
