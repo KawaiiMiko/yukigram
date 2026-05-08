@@ -362,6 +362,16 @@ infoTopBarColoredClose: IconButton(infoTopBarClose) {
 	iconOver: icon {{ "info/info_close", groupCallMembersFg }};
 	ripple: universalRippleAnimation;
 }
+infoTopBarColoredMenu: IconButton(infoTopBarMenu) {
+	icon: icon {{ "title_menu_dots", groupCallMembersFg }};
+	iconOver: icon {{ "title_menu_dots", groupCallMembersFg }};
+	ripple: universalRippleAnimation;
+}
+infoLayerTopBarColoredMenu: IconButton(infoLayerTopBarMenu) {
+	icon: icon {{ "title_menu_dots", groupCallMembersFg }};
+	iconOver: icon {{ "title_menu_dots", groupCallMembersFg }};
+	ripple: universalRippleAnimation;
+}
 infoTopBarColoredEdit: IconButton(infoTopBarEdit) {
 	icon: icon {{ "menu/edit", groupCallMembersFg }};
 	iconOver: icon {{ "menu/edit", groupCallMembersFg }};
