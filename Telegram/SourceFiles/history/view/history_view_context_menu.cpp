@@ -557,7 +557,9 @@ void AddRepeaterAction(
 	const auto _history = item->history();
 	auto repeatSubmenu = std::make_unique<Ui::PopupMenu>(list, st::popupMenuWithIcons);
 	if ((item->history()->peer->isMegagroup() || item->history()->peer->isChat() || item->history()->peer->isUser())) {
-		if (HasExtraContextMenuOption(ExtraContextMenuOption::Repeater)) {
+		if (HasExtraContextMenuOption(ExtraContextMenuOption::Repeater)
+			&& list->elementContext() == Context::History
+			&& !item->isScheduled()) {
 			if (item->allowsForward()) {
 				repeatSubmenu->addAction(tr::lng_context_repeat_msg(tr::now), [=] {
 					if (item->id <= 0) return;
@@ -1280,6 +1282,11 @@ void AddHideMessageAction(
 		not_null<Ui::PopupMenu*> menu,
 		const ContextMenuRequest &request,
 		not_null<ListWidget*> list) {
+	if (!HasExtraContextMenuOption(ExtraContextMenuOption::HideMessage)
+		|| list->elementContext() != Context::History
+		|| (request.item && request.item->isScheduled())) {
+		return;
+	}
 	if (request.overSelection && !request.selectedItems.empty()) {
 		menu->addAction(
 			tr::lng_context_hide_message(tr::now),
