@@ -148,7 +148,7 @@ void DeleteMessagesBox::prepare() {
 			_revoke.create(
 				this,
 				revoke->checkbox,
-				false,
+				true,
 				st::defaultBoxCheckbox);
 			appendDetails(std::move(revoke->description));
 			if (!peer->isUser() && !_wipeHistoryJustClear) {
@@ -270,9 +270,6 @@ void DeleteMessagesBox::prepare() {
 			+ st::boxPadding.bottom();
 		if (_revoke) {
 			fullHeight += st::boxMediumSkip + _revoke->heightNoMargins();
-			if (GetEnhancedInt("always_delete_for") == 2 || GetEnhancedInt("always_delete_for") == 3) {
-				_revoke->setChecked(true);
-			}
 		}
 		if (_autoDeleteSettings) {
 			fullHeight += st::boxMediumSkip

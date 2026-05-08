@@ -292,7 +292,6 @@ namespace EnhancedSettings {
 		settings.insert(qsl("show_messages_id"), false);
 		settings.insert(qsl("extra_context_menu_options"), QJsonArray());
 		settings.insert(qsl("show_emoji_button_as_text"), false);
-		settings.insert(qsl("always_delete_for"), 0);
 		settings.insert(qsl("show_phone_number"), true);
 		settings.insert(qsl("repeater_reply_to_orig_msg"), false);
 		settings.insert(qsl("disable_cloud_draft_sync"), false);
@@ -358,7 +357,6 @@ namespace EnhancedSettings {
 			settings.insert(qsl("extra_context_menu_options"), arr);
 		}
 		settings.insert(qsl("show_emoji_button_as_text"), GetEnhancedBool("show_emoji_button_as_text"));
-		settings.insert(qsl("always_delete_for"), GetEnhancedInt("always_delete_for"));
 		settings.insert(qsl("show_phone_number"), GetEnhancedBool("show_phone_number"));
 		settings.insert(qsl("repeater_reply_to_orig_msg"), GetEnhancedBool("repeater_reply_to_orig_msg"));
 		settings.insert(qsl("disable_cloud_draft_sync"), GetEnhancedBool("disable_cloud_draft_sync"));

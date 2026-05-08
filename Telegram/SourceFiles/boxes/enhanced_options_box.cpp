@@ -135,52 +135,6 @@ void ExtraContextMenuBox::prepare() {
 	setDimensions(st::boxWidth, y);
 }
 
-AlwaysDeleteBox::AlwaysDeleteBox(QWidget *parent) {
-}
-
-void AlwaysDeleteBox::prepare() {
-	setTitle(tr::lng_settings_always_delete_for());
-
-	addButton(tr::lng_box_ok(), [=] { closeBox(); });
-
-	auto y = st::boxOptionListPadding.top() + st::boxMediumSkip;
-	_optionGroup = std::make_shared<Ui::RadiobuttonGroup>(GetEnhancedInt("always_delete_for"));
-
-	for (int i = 0; i <= 3; i++) {
-		const auto button = Ui::CreateChild<Ui::Radiobutton>(
-				this,
-				_optionGroup,
-				i,
-				DeleteLabel(i),
-				st::autolockButton);
-		button->moveToLeft(st::boxPadding.left(), y);
-		y += button->heightNoMargins() + st::boxOptionListSkip;
-	}
-	_optionGroup->setChangedCallback([=](int value) { save(); });
-	setDimensions(st::boxWidth, y);
-}
-
-QString AlwaysDeleteBox::DeleteLabel(int boost) {
-	switch (boost) {
-		case 0:
-			return tr::lng_settings_delete_disabled(tr::now);
-		case 1:
-			return tr::lng_settings_delete_for_group(tr::now);
-		case 2:
-			return tr::lng_settings_delete_for_person(tr::now);
-		case 3:
-			return tr::lng_settings_delete_for_both(tr::now);
-		default:
-			Unexpected("Delete in AlwaysDeleteBox::DeleteLabel.");
-	}
-}
-
-void AlwaysDeleteBox::save() {
-	SetEnhancedValue("always_delete_for", _optionGroup->current());
-	EnhancedSettings::Write();
-	closeBox();
-}
-
 RadioController::RadioController(QWidget *parent)
 		: _url(this, st::defaultInputField, tr::lng_formatting_link_url()) {
 }

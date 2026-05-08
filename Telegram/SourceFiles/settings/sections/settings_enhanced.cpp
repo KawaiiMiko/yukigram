@@ -129,15 +129,6 @@ namespace {
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/always-delete-for"_q,
-			.title = tr::lng_settings_always_delete_for(tr::now),
-			.keywords = { u"auto"_q, u"delete"_q, u"timer"_q, u"ttl"_q },
-			.deeplink = u"tg://settings/enhanced/messages/always-delete-for"_q,
-		};
-	});
-
-	builder.add(nullptr, [] {
-		return Builder::SearchEntry{
 			.id = u"enhanced/messages/disable-cloud-draft-sync"_q,
 			.title = tr::lng_settings_disable_cloud_draft_sync(tr::now),
 			.keywords = { u"draft"_q, u"cloud"_q, u"sync"_q },
@@ -542,32 +533,6 @@ namespace {
 			EnhancedSettings::Write();
 			Core::Restart();
 		}, container->lifetime());
-
-		auto value = rpl::single(
-				AlwaysDeleteBox::DeleteLabel(GetEnhancedInt("always_delete_for"))
-		) | rpl::then(
-				_AlwaysDeleteChanged.events()
-		) | rpl::map([] {
-			return AlwaysDeleteBox::DeleteLabel(GetEnhancedInt("always_delete_for"));
-		});
-
-		auto btn = AddButtonWithLabel(
-				container,
-				tr::lng_settings_always_delete_for(),
-				std::move(value),
-				st::settingsButtonNoIcon
-		);
-		registerHighlight(
-			u"enhanced/messages/always-delete-for"_q,
-			btn);
-		btn->events(
-		) | rpl::on_next([=](not_null<QEvent*> e) {
-			const auto event = e->type();
-			if (event == QEvent::UpdateLater) _AlwaysDeleteChanged.fire({});
-		}, container->lifetime());
-		btn->addClickHandler([=] {
-			Ui::show(Box<AlwaysDeleteBox>());
-		});
 
 		const auto disableCloudDraftSync = AddButtonWithIcon(
 				inner,

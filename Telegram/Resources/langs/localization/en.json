@@ -82,12 +82,6 @@
 
     "lng_user_not_found": "404 - User not found.\nNote: You must have \"seen\" the user before opening this link.",
 
-    "lng_settings_always_delete_for": "Always select delete for",
-    "lng_settings_delete_disabled": "Disabled",
-    "lng_settings_delete_for_group": "Group",
-    "lng_settings_delete_for_person": "Person",
-    "lng_settings_delete_for_both": "Why not both?",
-
     "lng_title_forward_as_copy": "Copy to...",
     "lng_title_multiple_forward": "Forward to...",
 

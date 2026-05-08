@@ -1562,7 +1562,7 @@ void DeleteChatBox(not_null<Ui::GenericBox*> box, not_null<PeerData*> peer) {
 					: tr::lng_delete_for_everyone_check(
 						tr::now,
 						tr::marked),
-				GetEnhancedInt("always_delete_for") == 2 || GetEnhancedInt("always_delete_for") == 3,
+				true,
 				st::defaultBoxCheckbox));
 	}();
 
