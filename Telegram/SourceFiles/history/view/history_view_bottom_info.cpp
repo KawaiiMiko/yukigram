@@ -681,7 +681,10 @@ BottomInfo::Data BottomInfoDataFromMessage(not_null<Message*> message) {
 		result.scheduleRepeatPeriod = item->scheduleRepeatPeriod();
 	}
 	if (GetEnhancedBool("show_messages_id")
-		&& message->context() == Context::History
+		&& (message->context() == Context::History
+			|| message->context() == Context::Replies
+			|| message->context() == Context::Pinned
+			|| message->context() == Context::SavedSublist)
 		&& !item->isScheduled()) {
 		if (item->fullId().msg > 0)
 			result.msgId = QString(" (%1)").arg(item->fullId().msg.bare);
