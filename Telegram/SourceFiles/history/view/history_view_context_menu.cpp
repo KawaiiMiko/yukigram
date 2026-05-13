@@ -555,10 +555,13 @@ void AddRepeaterAction(
 	}
 	const auto itemId = item->fullId();
 	const auto _history = item->history();
+	const auto context = list->elementContext();
 	auto repeatSubmenu = std::make_unique<Ui::PopupMenu>(list, st::popupMenuWithIcons);
 	if ((item->history()->peer->isMegagroup() || item->history()->peer->isChat() || item->history()->peer->isUser())) {
 		if (HasExtraContextMenuOption(ExtraContextMenuOption::Repeater)
-			&& list->elementContext() == Context::History
+			&& (context == Context::History
+				|| context == Context::Monoforum
+				|| (context == Context::Replies && item->topic()))
 			&& !item->isScheduled()) {
 			if (item->allowsForward()) {
 				repeatSubmenu->addAction(tr::lng_context_repeat_msg(tr::now), [=] {
@@ -837,6 +840,29 @@ bool AddRescheduleAction(
 		}, box->lifetime());
 	}, &st::menuIconReschedule);
 	return true;
+}
+
+void AddViewJSONAction(
+	not_null<Ui::PopupMenu*> menu,
+	const ContextMenuRequest& request,
+	not_null<ListWidget*> list) {
+	if(!HasExtraContextMenuOption(ExtraContextMenuOption::ViewAsJson))
+	{
+		return;
+	}
+	const auto item = request.item;
+	if (item == nullptr)
+	{
+		return;
+	}
+	if (!request.selectedItems.empty()) {
+		return;
+	}
+	const auto controller = list->controller();
+	const auto itemId = item->fullId();
+	menu->addAction(tr::lng_context_view_as_json(tr::now), [=] {
+		HistoryView::ViewAsJSON(controller, itemId);
+	}, &st::menuIconJson);
 }
 
 bool AddReplyToMessageAction(
@@ -1282,8 +1308,11 @@ void AddHideMessageAction(
 		not_null<Ui::PopupMenu*> menu,
 		const ContextMenuRequest &request,
 		not_null<ListWidget*> list) {
+	const auto context = list->elementContext();
 	if (!HasExtraContextMenuOption(ExtraContextMenuOption::HideMessage)
-		|| list->elementContext() != Context::History
+		|| (context != Context::History 
+			&& context != Context::Replies
+			&& context != Context::Monoforum)
 		|| (request.item && request.item->isScheduled())) {
 		return;
 	}
@@ -1326,6 +1355,7 @@ void AddMessageActions(
 	AddReportAction(menu, request, list);
 	AddSelectionAction(menu, request, list);
 	AddRescheduleAction(menu, request, list);
+	AddViewJSONAction(menu, request, list);
 }
 
 void AddCopyLinkAction(
