@@ -1849,7 +1849,7 @@ object_ptr<Ui::RpWidget> DetailsFiller::setupInfo() {
 		}
 		else {
 			idNum = QString::number(_peer->id.value & PeerId::kChatTypeMask);
-			if (_peer->isChat() || _peer->isMonoforum()) {
+			if (_peer->isChat()) {
 				idNum = idNum.prepend("-");
 			} else if (_peer->isChannel()) {
 				idNum = QString::number(peerToChannel(_peer->id).bare - kMaxChannelId).prepend("-");
