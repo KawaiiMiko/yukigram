@@ -7,6 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "history/view/controls/history_view_link_preview_box.h"
 
+#include "base/qthelp_url.h"
 #include "chat_helpers/compose/compose_show.h"
 #include "lang/lang_keys.h"
 #include "ui/layers/generic_box.h"
@@ -28,13 +29,13 @@ void ShowLinkPreviewUrlBox(
 			object_ptr<Ui::InputField>(
 				box,
 				st::defaultInputField,
-				tr::lng_link_preview_box_placeholder()));
+				tr::lng_formatting_link_url()));
 		box->setFocusCallback([=] {
 			field->setFocusFast();
 		});
 
 		const auto submit = [=] {
-			const auto url = field->getLastText().trimmed();
+			const auto url = qthelp::validate_url(field->getLastText());
 			if (url.isEmpty()) {
 				field->showError();
 				return;
