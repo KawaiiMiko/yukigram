@@ -336,6 +336,11 @@ private:
 
 };
 
+struct LinkPreviewRequest {
+	not_null<Data::Thread*> thread;
+	QString url;
+};
+
 class AttachWebView final : public base::has_weak_ptr {
 public:
 	explicit AttachWebView(not_null<Main::Session*> session);
@@ -365,9 +370,15 @@ public:
 	[[nodiscard]] rpl::producer<> attachBotsUpdates() const {
 		return _attachBotsUpdates.events();
 	}
+	[[nodiscard]] rpl::producer<LinkPreviewRequest> linkPreviewRequests() const {
+		return _linkPreviewRequests.events();
+	}
 	void notifyBotIconLoaded() {
 		_attachBotsUpdates.fire({});
 	}
+	void requestLinkPreview(
+		not_null<Data::Thread*> thread,
+		QString url);
 	[[nodiscard]] bool disclaimerAccepted(
 		const AttachWebViewBot &bot) const;
 	[[nodiscard]] bool showMainMenuNewBadge(
@@ -441,6 +452,7 @@ private:
 
 	std::vector<AttachWebViewBot> _attachBots;
 	rpl::event_stream<> _attachBotsUpdates;
+	rpl::event_stream<LinkPreviewRequest> _linkPreviewRequests;
 	base::flat_set<not_null<UserData*>> _disclaimerAccepted;
 
 	std::vector<std::unique_ptr<WebViewInstance>> _instances;

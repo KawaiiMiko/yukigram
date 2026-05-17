@@ -38,6 +38,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_message_reactions.h"
 #include "data/data_saved_sublist.h"
 #include "data/data_session.h"
+#include "data/data_thread.h"
 #include "data/data_user.h"
 #include "data/data_chat.h"
 #include "data/data_channel.h"
@@ -4269,6 +4270,26 @@ void ComposeControls::initWebpageProcess() {
 	) | rpl::on_next(crl::guard(_header.get(), [=] {
 		_header->update();
 	}), _historyLifetime);
+
+	session().attachWebView().linkPreviewRequests(
+	) | rpl::filter([=](const InlineBots::LinkPreviewRequest &request) {
+		return (request.thread->owningHistory() == _history)
+			&& (request.thread->topicRootId() == _topicRootId)
+			&& (request.thread->monoforumPeerId() == _monoforumPeerId);
+	}) | rpl::on_next([=](const InlineBots::LinkPreviewRequest &request) {
+		if (_mode != Mode::Normal
+			|| !_preview
+			|| isEditingMessage()
+			|| _history->peer->amRestricted(ChatRestriction::EmbedLinks)) {
+			return;
+		}
+		auto draft = Data::WebPageDraft{
+			.url = request.url,
+			.manual = true,
+		};
+		_preview->apply(std::move(draft), false);
+		saveDraftWithTextNow();
+	}, _historyLifetime);
 
 	session().changes().peerUpdates(
 		Data::PeerUpdate::Flag::Rights

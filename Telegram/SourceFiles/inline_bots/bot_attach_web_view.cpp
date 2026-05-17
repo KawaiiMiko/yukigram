@@ -46,6 +46,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/history_item.h"
 #include "history/history_item_helpers.h"
 #include "history/history_item_reply_markup.h"
+#include "history/view/controls/history_view_link_preview_box.h"
 #include "info/bot/starref/info_bot_starref_common.h" // MakePeerBubbleButton
 #include "info/profile/info_profile_values.h"
 #include "inline_bots/inline_bot_result.h"
@@ -2357,6 +2358,12 @@ void AttachWebView::cancel() {
 	_startCommand = QString();
 }
 
+void AttachWebView::requestLinkPreview(
+		not_null<Data::Thread*> thread,
+		QString url) {
+	_linkPreviewRequests.fire({ thread, std::move(url) });
+}
+
 void AttachWebView::requestBots(Fn<void()> callback) {
 	if (callback) {
 		_botsRequestCallbacks.push_back(std::move(callback));
@@ -2740,6 +2747,27 @@ std::unique_ptr<Ui::DropdownMenu> MakeAttachBotsMenu(
 		raw->addAction(tr::lng_attach_document(tr::now), [=] {
 			attach(false);
 		}, &st::menuIconFile);
+	}
+	if (!peer->amRestricted(ChatRestriction::EmbedLinks)) {
+		raw->addAction(tr::lng_attach_link_preview(tr::now), [=] {
+			const auto action = actionFactory();
+			if (action.options.scheduled
+				|| action.history->peer->amRestricted(
+					ChatRestriction::EmbedLinks)) {
+				return;
+			}
+			const auto thread = action.history->threadFor(
+				action.replyTo.topicRootId,
+				action.replyTo.monoforumPeerId);
+			if (!thread) {
+				return;
+			}
+			HistoryView::Controls::ShowLinkPreviewUrlBox(
+				controller->uiShow(),
+				[=](QString url) {
+					bots->requestLinkPreview(thread, std::move(url));
+				});
+		}, &st::menuIconLink);
 	}
 	if (peer->canCreatePolls()) {
 		++minimal;

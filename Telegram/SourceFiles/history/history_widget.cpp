@@ -75,6 +75,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_changes.h"
 #include "data/data_drafts.h"
 #include "data/data_session.h"
+#include "data/data_thread.h"
 #include "data/data_todo_list.h"
 #include "data/data_web_page.h"
 #include "data/data_document.h"
@@ -3114,6 +3115,23 @@ void HistoryWidget::setupPreview() {
 	_preview = std::make_unique<WebpageProcessor>(_history, _field);
 	_preview->repaintRequests() | rpl::on_next([=] {
 		updateField();
+	}, _preview->lifetime());
+
+	session().attachWebView().linkPreviewRequests(
+	) | rpl::filter([=](const InlineBots::LinkPreviewRequest &request) {
+		return (request.thread->owningHistory() == _history);
+	}) | rpl::on_next([=](const InlineBots::LinkPreviewRequest &request) {
+		if (!_preview
+			|| _editMsgId
+			|| _history->peer->amRestricted(ChatRestriction::EmbedLinks)) {
+			return;
+		}
+		auto draft = Data::WebPageDraft{
+			.url = request.url,
+			.manual = true,
+		};
+		_preview->apply(std::move(draft), false);
+		saveDraftWithTextNow();
 	}, _preview->lifetime());
 
 	_preview->parsedValue(

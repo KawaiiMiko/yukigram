@@ -864,6 +864,8 @@ PRIVATE
     history/view/controls/history_view_draft_options.h
     history/view/controls/history_view_forward_panel.cpp
     history/view/controls/history_view_forward_panel.h
+    history/view/controls/history_view_link_preview_box.cpp
+    history/view/controls/history_view_link_preview_box.h
     history/view/controls/history_view_suggest_options.cpp
     history/view/controls/history_view_suggest_options.h
     history/view/controls/history_view_ttl_button.cpp

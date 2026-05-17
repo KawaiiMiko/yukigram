@@ -1596,6 +1596,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 "lng_preview_loading" = "Getting Link Info...";
 "lng_preview_cant" = "Could not generate preview for this link.";
+"lng_link_preview_box_title" = "Link Preview";
+"lng_link_preview_box_placeholder" = "Enter link";
 
 "lng_profile_settings_section" = "Settings";
 "lng_profile_bot_settings" = "Bot Settings";
@@ -2888,6 +2890,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_attach_photo" = "Photo";
 "lng_attach_camera" = "Camera";
 "lng_attach_document" = "Document";
+"lng_attach_link_preview" = "Link Preview";
 "lng_attach_photo_or_video" = "Photo or video";
 "lng_attach_profile_emoji" = "Use an Emoji";
 
