@@ -2751,7 +2751,7 @@ std::unique_ptr<Ui::DropdownMenu> MakeAttachBotsMenu(
 		}, &st::menuIconFile);
 	}
 	if (!peer->amRestricted(ChatRestriction::EmbedLinks)) {
-		raw->addAction(tr::lng_attach_link_preview(tr::now), [=] {
+		raw->addAction(tr::lng_attach_webpage_preview(tr::now), [=] {
 			const auto action = actionFactory();
 			if (action.options.scheduled
 				|| action.history->peer->amRestricted(

@@ -884,7 +884,7 @@ void DraftOptionsBox(
 
 		Settings::AddButtonWithIcon(
 			bottom,
-			tr::lng_link_preview_box_title(),
+			tr::lng_menu_formatting_link_edit(),
 			st::settingsButton,
 			{ &st::menuIconEdit }
 		)->setClickedCallback([=] {

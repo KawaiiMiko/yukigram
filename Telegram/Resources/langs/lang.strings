@@ -2889,7 +2889,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_attach_photo" = "Photo";
 "lng_attach_camera" = "Camera";
 "lng_attach_document" = "Document";
-"lng_attach_link_preview" = "Link Preview";
+"lng_attach_webpage_preview" = "Webpage Preview";
 "lng_attach_photo_or_video" = "Photo or video";
 "lng_attach_profile_emoji" = "Use an Emoji";
 
