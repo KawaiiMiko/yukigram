@@ -5992,7 +5992,6 @@ bool HistoryWidget::showRecordButton() const {
 		&& !_voiceRecordBar->isListenState()
 		&& !_voiceRecordBar->isRecordingByAnotherBar()
 		&& !HasSendText(_field)
-		&& !_previewDrawPreview
 		&& (_replyTo || !readyToForward())
 		&& !_editMsgId;
 }
