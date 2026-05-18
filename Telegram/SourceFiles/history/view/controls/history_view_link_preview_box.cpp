@@ -33,6 +33,9 @@ void ShowLinkPreviewUrlBox(
 				tr::lng_formatting_link_url(),
 				std::move(initialUrl)));
 		box->setFocusCallback([=] {
+			if(!field->empty()) {
+				field->selectAll();
+			}
 			field->setFocusFast();
 		});
 
