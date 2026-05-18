@@ -638,6 +638,7 @@ private:
 	void saveEditMessage(Api::SendOptions options = {});
 
 	void setupPreview();
+	void editLinkPreview();
 	void editDraftOptions();
 	void jumpToReply(FullReplyTo to);
 

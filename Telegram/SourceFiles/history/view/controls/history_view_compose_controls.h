@@ -316,6 +316,7 @@ private:
 		not_null<PeerData*> peer,
 		std::shared_ptr<Data::GroupCall> videoStream);
 	void initWebpageProcess();
+	void editLinkPreview();
 	void initForwardProcess();
 	void initWriteRestriction();
 	void initVoiceRecordBar();

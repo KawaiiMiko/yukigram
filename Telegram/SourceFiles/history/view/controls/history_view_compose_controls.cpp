@@ -71,6 +71,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/view/controls/history_view_suggest_options.h"
 #include "history/view/controls/history_view_ttl_button.h"
 #include "history/view/controls/history_view_voice_record_bar.h"
+#include "history/view/controls/history_view_link_preview_box.h"
 #include "history/view/controls/history_view_webpage_processor.h"
 #include "history/view/history_view_reply.h"
 #include "history/view/history_view_schedule_box.h"
@@ -113,6 +114,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "styles/style_chat_helpers.h"
 #include "styles/style_credits.h"
 #include "styles/style_menu_icons.h"
+
+#include <QShortcut>
 
 namespace HistoryView {
 namespace {
@@ -2415,6 +2418,15 @@ void ComposeControls::initField() {
 	_field->setEditLanguageCallback(DefaultEditLanguageCallback(_show));
 
 	const auto rawTextEdit = _field->rawTextEdit().get();
+	const auto linkPreviewShortcut = new QShortcut(
+		QKeySequence("ctrl+shift+k"),
+		rawTextEdit,
+		nullptr,
+		nullptr,
+		Qt::WidgetShortcut);
+	QObject::connect(linkPreviewShortcut, &QShortcut::activated, [=] {
+		editLinkPreview();
+	});
 	rpl::merge(
 		_field->scrollTop().changes() | rpl::to_empty,
 		base::qt_signal_producer(
@@ -4337,6 +4349,38 @@ void ComposeControls::initWebpageProcess() {
 	}, _historyLifetime);
 
 	_header->previewReady(_preview->parsedValue());
+}
+
+void ComposeControls::editLinkPreview() {
+	if (_mode != Mode::Normal
+		|| !_history
+		|| !_preview
+		|| !_field->isVisible()
+		|| _history->peer->amRestricted(ChatRestriction::EmbedLinks)) {
+		return;
+	}
+	if (isEditingMessage()) {
+		const auto item = _history->owner().message(_header->editMsgId());
+		if (!item) {
+			return;
+		}
+		const auto media = item->media();
+		if (media && !media->webpage()) {
+			return;
+		}
+	}
+	const auto draft = _preview->draft();
+	const auto initialUrl = draft.removed ? QString() : draft.url;
+	Controls::ShowLinkPreviewUrlBox(
+		_show,
+		initialUrl,
+		[=](QString url) {
+			_preview->apply({
+				.url = std::move(url),
+				.manual = true,
+			}, false);
+			saveDraftWithTextNow();
+		});
 }
 
 void ComposeControls::initForwardProcess() {

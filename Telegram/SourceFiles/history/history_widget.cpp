@@ -115,6 +115,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/view/controls/history_view_suggest_options.h"
 #include "history/view/controls/history_view_ttl_button.h"
 #include "history/view/controls/history_view_voice_record_bar.h"
+#include "history/view/controls/history_view_link_preview_box.h"
 #include "history/view/controls/history_view_webpage_processor.h"
 #include "history/view/reactions/history_view_reactions_button.h"
 #include "history/view/history_view_chat_section.h"
@@ -205,6 +206,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include <QtGui/QWindow>
 #include <QtCore/QMimeData>
+#include <QShortcut>
 
 namespace {
 
@@ -471,6 +473,15 @@ HistoryWidget::HistoryWidget(
 	});
 
 	const auto rawTextEdit = _field->rawTextEdit().get();
+	const auto linkPreviewShortcut = new QShortcut(
+		QKeySequence("ctrl+shift+k"),
+		rawTextEdit,
+		nullptr,
+		nullptr,
+		Qt::WidgetShortcut);
+	QObject::connect(linkPreviewShortcut, &QShortcut::activated, [=] {
+		editLinkPreview();
+	});
 	rpl::merge(
 		_field->scrollTop().changes() | rpl::to_empty,
 		base::qt_signal_producer(
@@ -3152,6 +3163,39 @@ void HistoryWidget::setupPreview() {
 		}
 		updateField();
 	}, _preview->lifetime());
+}
+
+void HistoryWidget::editLinkPreview() {
+	if (!_history
+		|| !_preview
+		|| !_field->isVisible()
+		|| _history->peer->amRestricted(ChatRestriction::EmbedLinks)) {
+		return;
+	}
+	if (_editMsgId) {
+		const auto item = session().data().message(_history->peer, _editMsgId);
+		if (!item) {
+			return;
+		}
+		const auto media = item->media();
+		if (media && !media->webpage()) {
+			return;
+		}
+	} else if (!_canSendTexts || !canWriteMessage()) {
+		return;
+	}
+	const auto draft = _preview->draft();
+	const auto initialUrl = draft.removed ? QString() : draft.url;
+	HistoryView::Controls::ShowLinkPreviewUrlBox(
+		controller()->uiShow(),
+		initialUrl,
+		[=](QString url) {
+			_preview->apply({
+				.url = std::move(url),
+				.manual = true,
+			}, false);
+			saveDraftWithTextNow();
+		});
 }
 
 void HistoryWidget::injectSponsoredMessages() const {
