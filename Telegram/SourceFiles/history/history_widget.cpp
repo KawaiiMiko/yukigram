@@ -5235,6 +5235,12 @@ void HistoryWidget::sendWithTextOverride(
 }
 
 void HistoryWidget::sendWithModifiers(Qt::KeyboardModifiers modifiers) {
+	if (!_editMsgId
+		&& !_voiceRecordBar->isListenState()
+		&& !readyToForward()
+		&& !HasSendText(_field)) {
+			return;
+		}
 	send({ .handleSupportSwitch = Support::HandleSwitch(modifiers) });
 }
 
