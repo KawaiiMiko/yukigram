@@ -47,6 +47,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/history_item_helpers.h"
 #include "history/history_item_reply_markup.h"
 #include "history/view/controls/history_view_link_preview_box.h"
+#include "history/view/controls/history_view_webpage_processor.h"
 #include "info/bot/starref/info_bot_starref_common.h" // MakePeerBubbleButton
 #include "info/profile/info_profile_values.h"
 #include "inline_bots/inline_bot_result.h"
@@ -2724,6 +2725,7 @@ std::unique_ptr<Ui::DropdownMenu> MakeAttachBotsMenu(
 		not_null<Window::SessionController*> controller,
 		not_null<PeerData*> peer,
 		Fn<Api::SendAction()> actionFactory,
+		HistoryView::Controls::WebpageProcessor *preview,
 		Fn<void(bool)> attach) {
 	auto result = std::make_unique<Ui::DropdownMenu>(
 		parent,
@@ -2762,8 +2764,13 @@ std::unique_ptr<Ui::DropdownMenu> MakeAttachBotsMenu(
 			if (!thread) {
 				return;
 			}
+			const auto draft = preview
+				? preview->draft()
+				: Data::WebPageDraft();
+			const auto initialUrl = draft.removed ? QString() : draft.url;
 			HistoryView::Controls::ShowLinkPreviewUrlBox(
 				controller->uiShow(),
+				initialUrl,
 				[=](QString url) {
 					bots->requestLinkPreview(thread, std::move(url));
 				});

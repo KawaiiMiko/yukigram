@@ -40,6 +40,10 @@ namespace Window {
 class SessionController;
 } // namespace Window
 
+namespace HistoryView::Controls {
+class WebpageProcessor;
+} // namespace HistoryView::Controls
+
 namespace Data {
 class DocumentMedia;
 } // namespace Data
@@ -468,6 +472,7 @@ private:
 	not_null<Window::SessionController*> controller,
 	not_null<PeerData*> peer,
 	Fn<Api::SendAction()> actionFactory,
+	HistoryView::Controls::WebpageProcessor *preview,
 	Fn<void(bool)> attach);
 
 class MenuBotIcon final : public Ui::RpWidget {

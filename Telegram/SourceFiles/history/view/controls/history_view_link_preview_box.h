@@ -21,6 +21,7 @@ namespace HistoryView::Controls {
 
 void ShowLinkPreviewUrlBox(
 	std::shared_ptr<ChatHelpers::Show> show,
+	QString initialUrl,
 	Fn<void(QString)> done);
 
 } // namespace HistoryView::Controls

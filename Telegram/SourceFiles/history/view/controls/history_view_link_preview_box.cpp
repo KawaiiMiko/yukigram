@@ -18,6 +18,7 @@ namespace HistoryView::Controls {
 
 void ShowLinkPreviewUrlBox(
 		std::shared_ptr<ChatHelpers::Show> show,
+		QString initialUrl,
 		Fn<void(QString)> done) {
 	if (!show || !show->valid()) {
 		return;
@@ -29,7 +30,8 @@ void ShowLinkPreviewUrlBox(
 			object_ptr<Ui::InputField>(
 				box,
 				st::defaultInputField,
-				tr::lng_formatting_link_url()));
+				tr::lng_formatting_link_url(),
+				std::move(initialUrl)));
 		box->setFocusCallback([=] {
 			field->setFocusFast();
 		});

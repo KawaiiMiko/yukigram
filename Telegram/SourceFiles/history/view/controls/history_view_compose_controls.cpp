@@ -3910,6 +3910,7 @@ void ComposeControls::updateAttachBotsMenu() {
 		_regularWindow,
 		_history->peer,
 		_sendActionFactory,
+		_preview.get(),
 		[=](bool compress) { _attachRequests.fire_copy(compress); });
 	if (!_attachBotsMenu) {
 		return;
