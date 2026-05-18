@@ -22,6 +22,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_user.h"
 #include "data/data_web_page.h"
 #include "history/view/controls/history_view_forward_panel.h"
+#include "history/view/controls/history_view_link_preview_box.h"
 #include "history/view/controls/history_view_webpage_processor.h"
 #include "history/view/history_view_element.h"
 #include "history/view/history_view_cursor_state.h"
@@ -708,6 +709,7 @@ void DraftOptionsBox(
 		Data::WebPageDraft webpage;
 		WebPageData *preview = nullptr;
 		QString link;
+		QString closeOnMissingPreview;
 		Ui::SettingsSlider *tabs = nullptr;
 		PreviewWrap *wrap = nullptr;
 
@@ -880,6 +882,18 @@ void DraftOptionsBox(
 	const auto setupLinkActions = [=] {
 		AddFilledSkip(bottom);
 
+		Settings::AddButtonWithIcon(
+			bottom,
+			tr::lng_link_preview_box_title(),
+			st::settingsButton,
+			{ &st::menuIconEdit }
+		)->setClickedCallback([=] {
+			ShowLinkPreviewUrlBox(show, state->webpage.url, [=](QString url) {
+				state->closeOnMissingPreview = url;
+				state->requestAndSwitch(url, true);
+			});
+		});
+
 		if (!draft.textWithTags.empty()) {
 			Settings::AddButtonWithIcon(
 				bottom,
@@ -1038,8 +1052,16 @@ void DraftOptionsBox(
 	const auto &resolver = args.resolver;
 	state->performSwitch = [=](const QString &link, WebPageData *page) {
 		const auto now = base::unixtime::now();
+		const auto closeOnMissing = !state->closeOnMissingPreview.isEmpty()
+			&& (state->closeOnMissingPreview == link);
 		if (!page || (page->pendingTill > 0 && page->pendingTill < now)) {
+			if (closeOnMissing) {
+				state->closeOnMissingPreview = QString();
+			}
 			show->showToast(tr::lng_preview_cant(tr::now));
+			if (closeOnMissing) {
+				box->closeBox();
+			}
 		} else if (page->pendingTill > 0) {
 			const auto delay = std::max(page->pendingTill - now, TimeId());
 			base::timer_once(
@@ -1056,6 +1078,9 @@ void DraftOptionsBox(
 				}
 			}, state->resolveLifetime);
 		} else {
+			if (closeOnMissing) {
+				state->closeOnMissingPreview = QString();
+			}
 			state->preview = page;
 			state->webpage.id = page->id;
 			state->webpage.url = page->url;
