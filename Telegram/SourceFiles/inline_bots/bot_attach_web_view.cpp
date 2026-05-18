@@ -2774,7 +2774,7 @@ std::unique_ptr<Ui::DropdownMenu> MakeAttachBotsMenu(
 				[=](QString url) {
 					bots->requestLinkPreview(thread, std::move(url));
 				});
-		}, &st::menuIconLink);
+		}, &st::menuIconLinks);
 	}
 	if (peer->canCreatePolls()) {
 		++minimal;
