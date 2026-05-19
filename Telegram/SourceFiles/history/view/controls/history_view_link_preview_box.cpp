@@ -26,28 +26,36 @@ void ShowLinkPreviewUrlBox(
 	show->show(Box([=](not_null<Ui::GenericBox*> box) {
 		box->setTitle(tr::lng_link_preview_box_title());
 
+		const auto url = [&] {
+			if (!initialUrl.trimmed().isEmpty()) {
+				return initialUrl.trimmed();
+			}
+			const auto clipboard = qthelp::validate_url(QGuiApplication::clipboard()->text().trimmed());
+			return clipboard.isEmpty() ? QString() : clipboard;
+		}();
+
 		const auto field = box->addRow(
 			object_ptr<Ui::InputField>(
 				box,
 				st::defaultInputField,
 				tr::lng_formatting_link_url(),
-				std::move(initialUrl)));
+				std::move(url)));
 		box->setFocusCallback([=] {
-			if(!field->empty()) {
+			if(!field->empty() && !initialUrl.isEmpty()) {
 				field->selectAll();
 			}
 			field->setFocusFast();
 		});
 
 		const auto submit = [=] {
-			const auto url = qthelp::validate_url(field->getLastText());
-			if (url.isEmpty()) {
+			const auto submitUrl = qthelp::validate_url(field->getLastText());
+			if (submitUrl.isEmpty()) {
 				field->showError();
 				return;
 			}
 			const auto weak = base::make_weak(box.get());
 			if (done) {
-				done(url);
+				done(submitUrl);
 			}
 			if (const auto strong = weak.get()) {
 				strong->closeBox();
