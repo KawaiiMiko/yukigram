@@ -2761,9 +2761,9 @@ std::unique_ptr<Ui::DropdownMenu> MakeAttachBotsMenu(
 			const auto thread = action.history->threadFor(
 				action.replyTo.topicRootId,
 				action.replyTo.monoforumPeerId);
-			if (!thread) {
-				return;
-			}
+			const auto target = thread
+				? thread
+				: static_cast<Data::Thread*>(action.history);
 			const auto draft = preview
 				? preview->draft()
 				: Data::WebPageDraft();
@@ -2772,7 +2772,7 @@ std::unique_ptr<Ui::DropdownMenu> MakeAttachBotsMenu(
 				controller->uiShow(),
 				initialUrl,
 				[=](QString url) {
-					bots->requestLinkPreview(thread, std::move(url));
+					bots->requestLinkPreview(target, std::move(url));
 				});
 		}, &st::menuIconLinks);
 	}
