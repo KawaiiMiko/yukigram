@@ -283,6 +283,8 @@ void WebpageProcessor::apply(Data::WebPageDraft draft, bool reparse) {
 			&& (page->url == draft.url || (cached && *cached == page));
 		if (valid) {
 			_data = page;
+			_draft.id = _data->id;
+			_draft.url = _data->url;
 			if (const auto link = _resolver->find(page); !link.isEmpty()) {
 				_link = link;
 			}
