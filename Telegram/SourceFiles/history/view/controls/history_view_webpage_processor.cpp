@@ -275,10 +275,13 @@ void WebpageProcessor::apply(Data::WebPageDraft draft, bool reparse) {
 		_parsedLinks = QStringList();
 		_links = QStringList();
 		_link = _draft.url;
+		const auto cached = _resolver->lookup(_link);
 		const auto page = draft.id
 			? _history->owner().webpage(draft.id).get()
-			: nullptr;
-		if (page && page->url == draft.url) {
+			: cached.value_or(nullptr);
+		const auto valid = page
+			&& (page->url == draft.url || (cached && *cached == page));
+		if (valid) {
 			_data = page;
 			if (const auto link = _resolver->find(page); !link.isEmpty()) {
 				_link = link;
