@@ -685,7 +685,7 @@ BottomInfo::Data BottomInfoDataFromMessage(not_null<Message*> message) {
 			|| message->context() == Context::Replies
 			|| message->context() == Context::Pinned
 			|| message->context() == Context::SavedSublist)
-		&& !item->isScheduled()) {
+		&& item->isRegular()) {
 		if (item->fullId().msg > 0)
 			result.msgId = QString(" (%1)").arg(item->fullId().msg.bare);
 	}
