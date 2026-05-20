@@ -55,6 +55,7 @@ stage
 cmake-build-debug/
 .ccls-cache
 yuki-build.sh
+*.qsb
 
 # Local configuration files
 settings.local.json
