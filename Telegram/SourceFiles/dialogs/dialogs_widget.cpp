@@ -1849,6 +1849,7 @@ void Widget::updateSuggestions(anim::type animated) {
 			_scroll->show();
 		}
 	} else if (suggest && !_suggestions) {
+		_hidingSuggestions.clear();
 		if (animated == anim::type::normal) {
 			startWidthAnimation();
 		}
@@ -2841,8 +2842,8 @@ bool Widget::peerSearchRequired() const {
 bool Widget::searchForTopicsRequired(const QString &query) const {
 	return _searchState.filterChatsList()
 		&& _openedForum
-		&& !query.isEmpty()
 		&& (IsHashOrCashtagSearchQuery(query) == HashOrCashtag::None)
+		&& !TextUtilities::PrepareSearchWords(query).isEmpty()
 		&& !_openedForum->topicsList()->loaded();
 }
 
