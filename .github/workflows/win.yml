@@ -207,8 +207,7 @@ jobs:
           -D CMAKE_C_FLAGS="/WX" ^
           -D CMAKE_CXX_FLAGS="/WX" ^
           -D DESKTOP_APP_DISABLE_AUTOUPDATE=ON ^
-          -D DESKTOP_APP_DISABLE_CRASH_REPORTS=OFF ^
-          -D DESKTOP_APP_NO_PDB=ON -U DESKTOP_APP_DISABLE_X11_INTEGRATION
+          -D DESKTOP_APP_DISABLE_CRASH_REPORTS=OFF
 
           cmake --build ..\out --config Release --parallel
 
