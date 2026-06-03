@@ -1927,10 +1927,17 @@ void TopBarWidget::updateOnlineDisplay() {
 					delayUpdate = true;
 					_controller->session().api().request(MTPmessages_GetOnlines(
 							channel->input()
-					)).done([=](const MTPChatOnlines &result) {
+					)).done([
+						weak = QPointer<TopBarWidget>(this),
+						channelId = channel->id.value
+					](const MTPChatOnlines &result) {
+						const auto strong = weak.data();
+						if (!strong) {
+							return;
+						}
 						const auto count = result.c_chatOnlines().vonlines().v;
-						lastChatRequest[QString::number(channel->id.value)].memberCount = count;
-						updateOnlineDisplayIn(crl::time(100)); // To slow down chat status update
+						strong->lastChatRequest[QString::number(channelId)].memberCount = count;
+						strong->updateOnlineDisplayIn(crl::time(100)); // To slow down chat status update
 					}).fail([=](const MTP::Error &error) {
 						// if failed, then no any changes :)
 					}).send();
