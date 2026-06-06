@@ -1,0 +1,76 @@
+name: Linux Packaged.
+
+on:
+  release:
+    types: [published]
+
+jobs:
+
+  build:
+    
+    name: Build Linux Release Package
+    runs-on: ubuntu-latest
+
+    env:
+      PACKAGE_NAME: yukigram-rua
+      REPO_TAG: ${{ github.event.release.tag_name }}
+      IMAGE_TAG: ghcr.io/telegramdesktop/tdesktop/centos_env@sha256:2a7b92ae9e6ba1dc7e9e35ae6d193f317f1f91cb076c7cb5084d18cbed393f71
+
+    steps:
+      - name: Clone.
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          path: yukigram
+          ref: ${{ env.REPO_TAG }}
+          
+      - name: Setup envs.
+        run: |
+
+          USERFLAGS=0:0
+          if ! docker info -f "{{println .SecurityOptions}}" | grep rootless; then
+            USERFLAGS=$(id -u):$(id -g)
+          fi
+
+          echo USERFLAGS=$USERFLAGS >> $GITHUB_ENV
+          echo ARCH="$(uname -m)" >> $GITHUB_ENV
+
+      - name: Build.
+        run: |
+
+          docker run --rm \
+            -u ${{ env.USERFLAGS }} \
+            -v "$PWD/yukigram:/usr/src/tdesktop" \
+            -e CONFIG=${CONFIG:-Release} \
+            ${{ env.IMAGE_TAG }} \
+            /usr/src/tdesktop/Telegram/build/docker/centos_env/build.sh \
+            -D TDESKTOP_API_ID=${{ secrets.API_ID }} \
+            -D TDESKTOP_API_HASH=${{ secrets.API_HASH }}
+          
+      - name: Install.
+        run: |
+
+          docker run --rm \
+            -u ${{ env.USERFLAGS }} \
+            -v "$PWD/yukigram:/usr/src/tdesktop" \
+            -e CONFIG=${CONFIG:-Release} \
+            -e DESTDIR="/usr/src/tdesktop" \
+            -w /usr/src/tdesktop/Telegram \
+            ${{ env.IMAGE_TAG }} \
+            cmake --install /usr/src/tdesktop/out --config "${CONFIG:-Release}" --prefix /pkg/usr
+          
+          tar -czvf ${{ env.PACKAGE_NAME }}-${{ env.REPO_TAG }}-${{ env.ARCH }}.tar.gz -C yukigram/pkg .
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v7
+        with: 
+          name: ${{ env.PACKAGE_NAME }}-${{ env.ARCH }}-${{ env.ARCH }}
+          path: yukigram/pkg
+
+      - name: Upload Release Package
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          release_id: ${{ github.event.release.id }}
+          file: ${{ env.PACKAGE_NAME }}-${{ env.REPO_TAG }}-${{ env.ARCH }}.tar.gz
+        
