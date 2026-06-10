@@ -8,9 +8,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #pragma once
 
 #include "base/const_string.h"
-#include "base/invoke_queued.h"
-#include "base/object_ptr.h"
-#include "base/unique_qptr.h"
 #include "iv/iv_delegate.h"
 #include "ui/text/text.h"
 #include "webview/webview_common.h"
@@ -31,18 +28,6 @@ class RpWindow;
 namespace Iv {
 
 constexpr auto kTLViewerUrl = "tlv/tlv.html"_cs;
-
-struct Prepared;
-
-struct ShareBoxResult {
-	Fn<void()> focus;
-	Fn<void()> hide;
-	rpl::producer<> destroyRequests;
-};
-struct ShareBoxDescriptor {
-	not_null<Ui::RpWidget*> parent;
-	QString url;
-};
 
 class Controller final {
 public:
