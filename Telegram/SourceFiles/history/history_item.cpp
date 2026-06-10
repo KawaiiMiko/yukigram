@@ -5057,7 +5057,7 @@ void HistoryItem::applyTTL(const MTPDmessageService &data) {
 	}
 }
 
-void HistoryItem::createComponents(const MTPDmessage &data, bool blocked) {
+void HistoryItem::createComponents(const MTPDmessage &data) {
 	auto config = CreateConfig();
 	config.savedSublistPeer = data.vsaved_peer_id()
 		? peerFromMTP(*data.vsaved_peer_id())
@@ -5088,12 +5088,6 @@ void HistoryItem::createComponents(const MTPDmessage &data, bool blocked) {
 	config.restrictions = Data::UnavailableReason::Extract(
 		data.vrestriction_reason());
 	config.suggest = HistoryMessageSuggestInfo(data.vsuggested_post());
-	if (_media && _media->document() && _media->document()->sticker()) {
-		if (blocked) {
-			config.originalDate = 1;
-			config.originalSenderName = QString("Blocked User");
-		}
-	}
 	createComponents(std::move(config));
 }
 

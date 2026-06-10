@@ -732,7 +732,7 @@ private:
 	static void FillForwardedInfo(
 		CreateConfig &config,
 		const MTPDmessageFwdHeader &data);
-	void createComponents(const MTPDmessage &data, bool blocked);
+	void createComponents(const MTPDmessage &data);
 	void setMedia(const MTPMessageMedia &media);
 	void applyServiceDateEdition(const MTPDmessageService &data);
 	void setReactions(const MTPMessageReactions *reactions);
