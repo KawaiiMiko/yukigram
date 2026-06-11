@@ -16,7 +16,7 @@ jobs:
     env:
       PACKAGE_NAME: yukigram-rua
       REPO_TAG: ${{ github.event.release.tag_name }}
-      IMAGE_TAG: ghcr.io/telegramdesktop/tdesktop/centos_env@sha256:2a7b92ae9e6ba1dc7e9e35ae6d193f317f1f91cb076c7cb5084d18cbed393f71
+      IMAGE_TAG: ghcr.io/telegramdesktop/tdesktop/centos_env@sha256:6335f0789a3fced0e245fdf88838336cc369e332528b3f629f250f8b10efe9b3
 
     steps:
       - name: Clone.
