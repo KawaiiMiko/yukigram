@@ -14514,15 +14514,16 @@ window.TL_SCHEMA_FULL = {
     result.hash = e.long();
     return result;
   },
-  3136527755: function (e) {
-    var result = { _: `richMessage` };
-    var t = e.uint();
-    result.flags = t;
-    result.rtl = !!(t & 1);
-    result.part = !!(t & 2);
-    result.blocks = e.vector(e.object);
-    result.photos = e.vector(e.object);
-    result.documents = e.vector(e.object);
+  2600493611: function (e) {
+    var result = { _: `inputRichFilePhoto` };
+    result.id = e.string();
+    result.photo = e.object();
+    return result;
+  },
+  2200444349: function (e) {
+    var result = { _: `inputRichFileDocument` };
+    result.id = e.string();
+    result.document = e.object();
     return result;
   },
   3838069244: function (e) {
@@ -14541,6 +14542,41 @@ window.TL_SCHEMA_FULL = {
     if (t & 16) {
       result.users = e.vector(e.object);
     }
+    return result;
+  },
+  3670770538: function (e) {
+    var result = { _: `inputRichMessageHTML` };
+    var t = e.uint();
+    result.flags = t;
+    result.rtl = !!(t & 1);
+    result.noautolink = !!(t & 2);
+    result.html = e.string();
+    if (t & 4) {
+      result.files = e.vector(e.object);
+    }
+    return result;
+  },
+  4937516: function (e) {
+    var result = { _: `inputRichMessageMarkdown` };
+    var t = e.uint();
+    result.flags = t;
+    result.rtl = !!(t & 1);
+    result.noautolink = !!(t & 2);
+    result.markdown = e.string();
+    if (t & 4) {
+      result.files = e.vector(e.object);
+    }
+    return result;
+  },
+  3136527755: function (e) {
+    var result = { _: `richMessage` };
+    var t = e.uint();
+    result.flags = t;
+    result.rtl = !!(t & 1);
+    result.part = !!(t & 2);
+    result.blocks = e.vector(e.object);
+    result.photos = e.vector(e.object);
+    result.documents = e.vector(e.object);
     return result;
   },
   3572151633: function (e) {
