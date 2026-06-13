@@ -3,6 +3,8 @@ name: MacOS.
 on:
   workflow_dispatch:
   push:
+    tags-ignore:
+      - '**'
     paths-ignore:
       - 'docs/**'
       - '**.md'

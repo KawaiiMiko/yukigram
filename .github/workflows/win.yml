@@ -3,6 +3,8 @@ name: Windows.
 on:
   workflow_dispatch:
   push:
+    tags-ignore:
+      - '**'
     paths-ignore:
       - 'docs/**'
       - '**.md'
