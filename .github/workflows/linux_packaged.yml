@@ -12,11 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: read
 
     env:
       PACKAGE_NAME: yukigram-rua
       REPO_TAG: ${{ github.event.release.tag_name }}
-      IMAGE_TAG: ghcr.io/telegramdesktop/tdesktop/centos_env@sha256:6335f0789a3fced0e245fdf88838336cc369e332528b3f629f250f8b10efe9b3
+      IMAGE_REPOSITORY: ghcr.io/telegramdesktop/tdesktop/centos_env
 
     steps:
       - name: Clone.
@@ -29,14 +30,81 @@ jobs:
       - name: Setup envs.
         run: |
 
+          cd yukigram
+
           USERFLAGS=0:0
           if ! docker info -f "{{println .SecurityOptions}}" | grep rootless; then
             USERFLAGS=$(id -u):$(id -g)
           fi
 
+          VERSION=$(grep 'AppVersionStr' Telegram/SourceFiles/core/version.h | cut -d '"' -f 2)
+
           echo USERFLAGS=$USERFLAGS >> $GITHUB_ENV
           echo ARCH="$(uname -m)" >> $GITHUB_ENV
+          echo VERSION=$VERSION >> $GITHUB_ENV
 
+      - name: Setup Docker Image.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+
+          API_URL=https://api.github.com
+          API_VERSION=2026-03-10
+          RELEASE_TAG="v$VERSION"
+          PACKAGE_NAME=tdesktop%2Fcentos_env
+
+          request() {
+            curl --fail-with-body --silent --show-error --location \
+              --retry 3 \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              --header "X-GitHub-Api-Version: $API_VERSION" \
+              "$1"
+          }
+
+          echo "Try to get docker image label of release $RELEASE_TAG..."
+
+          RELEASE_DATE=$(request \
+            "$API_URL/repos/telegramdesktop/tdesktop/releases/tags/$RELEASE_TAG" \
+            | jq -er '.published_at')
+
+          VERSIONS_FILE=$(mktemp)
+          trap 'rm -f "$VERSIONS_FILE"' EXIT
+
+          PAGE=1
+          while true; do
+            VERSIONS=$(request \
+              "$API_URL/orgs/telegramdesktop/packages/container/$PACKAGE_NAME/versions?per_page=100&page=$PAGE")
+            COUNT=$(jq 'length' <<< "$VERSIONS")
+            jq -c '.[]' <<< "$VERSIONS" >> "$VERSIONS_FILE"
+
+            if [ "$COUNT" -lt 100 ]; then
+              break
+            fi
+            PAGE=$((PAGE + 1))
+          done
+
+          IMAGE_VERSION=$(jq -ser \
+            --arg release_date "$RELEASE_DATE" \
+            'map(select(.created_at < $release_date)) | max_by(.created_at)' \
+            "$VERSIONS_FILE")
+          IMAGE_DIGEST=$(jq -er '.name | select(startswith("sha256:"))' \
+            <<< "$IMAGE_VERSION")
+          IMAGE_DATE=$(jq -r '.created_at' <<< "$IMAGE_VERSION")
+          IMAGE_TAGS=$(jq -r \
+            'if .metadata.container.tags | length > 0
+             then .metadata.container.tags | join(", ")
+             else "untagged"
+             end' \
+            <<< "$IMAGE_VERSION")
+          IMAGE_TAG="$IMAGE_REPOSITORY@$IMAGE_DIGEST"
+
+          echo "Release $RELEASE_TAG was published at $RELEASE_DATE"
+          echo "Using image $IMAGE_TAG from $IMAGE_DATE ($IMAGE_TAGS)"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
+
+          docker pull $IMAGE_TAG
+          
       - name: Build.
         run: |
 
