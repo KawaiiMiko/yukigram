@@ -1436,6 +1436,7 @@ win_debug:
     ninja -C out/Debug%FolderPostfix% common crash_generation_client exception_handler
 win_release:
     ninja -C out/Release%FolderPostfix% common crash_generation_client exception_handler
+win32_win64_release:
     cd tools\\windows\\dump_syms
     gyp dump_syms.gyp --format=msvs
     msbuild -m dump_syms.vcxproj /property:Configuration=Release /property:Platform="x64" %ToolsetProp%
