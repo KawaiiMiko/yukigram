@@ -371,7 +371,8 @@ void Controller::createWebview(const Webview::StorageId &storageId) {
 	raw->setNavigationStartHandler([=](const QString &uri, bool newWindow) {
 		Q_UNUSED(newWindow);
 
-		if (uri == u"about:blank"_q
+		if (uri.startsWith(u"http://desktop-app-resource/"_q)
+			|| uri == u"about:blank"_q
 			|| QUrl(uri).host().toLower().endsWith(u".magic.org"_q)) {
 			return true;
 		}
