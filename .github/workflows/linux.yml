@@ -110,9 +110,9 @@ jobs:
           if [ -n "${{ matrix.defines }}" ]; then
             DEFINE="-D ${{ matrix.defines }}=ON"
             echo Define from matrix: $DEFINE
-            echo "ARTIFACT_NAME=Telegram ${{ matrix.defines }}" >> $GITHUB_ENV
+            echo "ARTIFACT_NAME=Yurigram ${{ matrix.defines }}" >> $GITHUB_ENV
           else
-            echo "ARTIFACT_NAME=Telegram" >> $GITHUB_ENV
+            echo "ARTIFACT_NAME=Yurigram" >> $GITHUB_ENV
           fi
 
           docker run --rm \
@@ -135,7 +135,7 @@ jobs:
       - name: Check.
         if: env.ONLY_CACHE == 'false'
         run: |
-          filePath="$REPO_NAME/out/Release/Telegram"
+          filePath="out/Release/Yurigram"
           if test -f "$filePath"; then
             echo "Build successfully done! :)"
 
@@ -151,4 +151,4 @@ jobs:
         name: Upload artifact.
         with:
           name: ${{ env.ARTIFACT_NAME }}
-          path: ${{ env.REPO_NAME }}/out/Release/Telegram
+          path: out/Release/Yurigram

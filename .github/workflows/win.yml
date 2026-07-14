@@ -166,7 +166,7 @@ jobs:
         shell: bash
         run: |
           cd "$TBUILD/$REPO_NAME"
-          ARTIFACT_NAME="Yukigram"
+          ARTIFACT_NAME="Yurigram"
           VERSION=$(grep 'AppVersionStr' Telegram/SourceFiles/core/version.h | cut -d '"' -f 2)
 
           ARCH=""
@@ -227,7 +227,7 @@ jobs:
         run: |
           set OUT=%TBUILD%\%REPO_NAME%\out\Release
           mkdir artifact
-          move %OUT%\Yukigram.exe artifact/
+          move %OUT%\Yurigram.exe artifact/
 
       - uses: actions/upload-artifact@v7
         name: Upload artifact.

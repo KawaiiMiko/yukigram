@@ -15,7 +15,7 @@ jobs:
       packages: read
 
     env:
-      PACKAGE_NAME: yukigram-rua
+      PACKAGE_NAME: yurigram
       REPO_TAG: ${{ github.event.release.tag_name }}
       IMAGE_REPOSITORY: ghcr.io/telegramdesktop/tdesktop/centos_env
 
@@ -24,13 +24,13 @@ jobs:
         uses: actions/checkout@v6
         with:
           submodules: recursive
-          path: yukigram
+          path: ${{ env.PACKAGE_NAME }}
           ref: ${{ env.REPO_TAG }}
           
       - name: Setup envs.
         run: |
 
-          cd yukigram
+          cd ${{ env.PACKAGE_NAME }}
 
           USERFLAGS=0:0
           if ! docker info -f "{{println .SecurityOptions}}" | grep rootless; then
@@ -110,7 +110,7 @@ jobs:
 
           docker run --rm \
             -u ${{ env.USERFLAGS }} \
-            -v "$PWD/yukigram:/usr/src/tdesktop" \
+            -v "$PWD/${{ env.PACKAGE_NAME }}:/usr/src/tdesktop" \
             -e CONFIG=${CONFIG:-Release} \
             ${{ env.IMAGE_TAG }} \
             /usr/src/tdesktop/Telegram/build/docker/centos_env/build.sh \
@@ -122,20 +122,20 @@ jobs:
 
           docker run --rm \
             -u ${{ env.USERFLAGS }} \
-            -v "$PWD/yukigram:/usr/src/tdesktop" \
+            -v "$PWD/${{ env.PACKAGE_NAME }}:/usr/src/tdesktop" \
             -e CONFIG=${CONFIG:-Release} \
             -e DESTDIR="/usr/src/tdesktop" \
             -w /usr/src/tdesktop/Telegram \
             ${{ env.IMAGE_TAG }} \
             cmake --install /usr/src/tdesktop/out --config "${CONFIG:-Release}" --prefix /pkg/usr
           
-          tar -czvf ${{ env.PACKAGE_NAME }}-${{ env.REPO_TAG }}-${{ env.ARCH }}.tar.gz -C yukigram/pkg .
+          tar -czvf ${{ env.PACKAGE_NAME }}-${{ env.REPO_TAG }}-${{ env.ARCH }}.tar.gz -C ${{ env.PACKAGE_NAME }}/pkg .
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v7
         with: 
           name: ${{ env.PACKAGE_NAME }}-${{ env.REPO_TAG }}-${{ env.ARCH }}
-          path: yukigram/pkg
+          path: ${{ env.PACKAGE_NAME }}/pkg
 
       - name: Upload Release Package
         uses: svenstaro/upload-release-action@v2

@@ -153,14 +153,14 @@ jobs:
           VERSION=$(grep 'AppVersionStr' Telegram/SourceFiles/core/version.h | cut -d '"' -f 2)
           cd out/Release
           mkdir artifact
-          mv Yukigram.app artifact/
+          mv Yurigram.app artifact/
           mv Updater artifact/
           if [ "${{ matrix.arch }}" == "arm64" ]; then
           	PLATFORM="AppleSilicon"
           else
             PLATFORM="Intel"
           fi
-          echo "name=Yukigram_v${VERSION}_${PLATFORM}" >> $GITHUB_OUTPUT
+          echo "name=Yurigram_v${VERSION}_${PLATFORM}" >> $GITHUB_OUTPUT
 
       - uses: actions/upload-artifact@v7
         if: env.UPLOAD_ARTIFACT == 'true'
