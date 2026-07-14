@@ -1,20 +1,25 @@
-﻿# Yukigram: [64Gram](https://github.com/TDesktop-x64/tdesktop) fork – Based on [Telegram Desktop](https://github.com/telegramdesktop/tdesktop)
+﻿# Yurigram — Yet Another Third-Party [Telegram Desktop](https://github.com/telegramdesktop/tdesktop) Client
+
+Yurigram was formerly forked from [64Gram](https://github.com/TDesktop-x64/tdesktop) and [Yukigram](https://github.com/yukigram/yukigram-legacy), but now it is a standalone client with some exclusive new features and directly follows official Telegram Desktop updates.
 
 The source code is published under GPLv3 with OpenSSL exception, the license is available [here][license].
 
-[![Preview of 64Gram][preview_image]][preview_image_url]
+## Features
 
-## Project Goal
+Yurigram includes [most features from 64Gram](https://github.com/TDesktop-x64/tdesktop/blob/dev/features.md), as it was originally forked from 64Gram.
 
-Provide Windows 64bit build with some enhancements.
+In addition, Yurigram includes the following features, listed in the order they were added:
 
-~~Cause official Telegram Desktop do not provide Windows 64bit build, so [Project TDesktop x64](https://github.com/TDesktop-x64) is aimed at provide Windows native x64 build(with few enhancements) to everybody.~~
+ 1. Show mutual contact label
+ 2. Directly send message in a group linked to a channel
+ 3. Translate messages with Google Translate
+ 4. Allow non-premium users to save custom emoji sets freely
+ 5. Ability to hide user stars rating
+ 6. Additional Fluent Emoji Packs
+ 7. Ability to temporarily hide messages and restore them easily
+ 8. Ability to add or edit webpage previews with custom URLs
 
-## Roadmap
-
-No Roadmap? Yes.
-
-## [Features](features.md)
+And more new features will ~~(may)~~ be added in the future.
 
 ## Supported systems
 
@@ -24,15 +29,15 @@ Linux 64 bit
 
 macOS > 10.12 and above
 
-The latest version is available on the [Release](https://github.com/TDesktop-x64/tdesktop/releases) page.
+The latest version is available on the [Release](https://github.com/Revincx/Yurigram/releases) page.
 
 ## Localization
 
 If you want to translate this project, **Just Do It!**
 
-Create a Pull Request: [Localization Repo](https://github.com/TDesktop-x64/Localization).
+Create a Pull Request: [Localization Repo](https://github.com/RuaGram/Localization).
 
-**Here is a project [translation template](https://github.com/TDesktop-x64/Localization/blob/master/en.json).**
+**Here is a project [translation template](https://github.com/RuaGram/Localization/blob/master/en.json).**
 
 You can find a language ID on Telegram's log.txt
 
@@ -50,13 +55,7 @@ Then your language translation filename is `de.json` or something like that.
 
 ## Links
 
-* [Official Telegram Channel](https://t.me/tg_x64)
-* [Official discussion group](https://t.me/tg_x64_chat)
-
-## Sponsors
-<a href="https://www.jetbrains.com/?from=64Gram">
-     <img src="https://www.jetbrains.com/icon-512.png"  alt="JetBrains" width="150"/>
-</a>
+* [Yurigram Dev Channel (Simplified Chinese)](https://t.me/ruadevs)
 
 [//]: # (LINKS)
 [license]: LICENSE
