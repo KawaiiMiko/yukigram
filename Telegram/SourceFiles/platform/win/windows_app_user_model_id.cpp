@@ -15,6 +15,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include <propvarutil.h>
 #include <propkey.h>
 
+#include <array>
+
 namespace Platform {
 namespace AppUserModelId {
 namespace {
@@ -28,8 +30,15 @@ const PROPERTYKEY pkey_AppUserModel_ToastActivator = { { 0x9F4C2855, 0x9F79, 0x4
 #ifdef OS_WIN_STORE
 const WCHAR AppUserModelIdBase[] = L"Telegram.TelegramDesktop.Store";
 #else // OS_WIN_STORE
-const WCHAR AppUserModelIdBase[] = L"Yuki.YukigramDesktop";
+const WCHAR AppUserModelIdBase[] = L"Rua.Yurigram";
 #endif // OS_WIN_STORE
+
+const auto kCurrentShortcutNames = std::array{
+	u"Yurigram.lnk"_q,
+	u"Yurigram/Yurigram.lnk"_q,
+};
+const auto kHistoricalShortcutName =
+	u"Telegram Win (Unofficial)/Telegram.lnk"_q;
 
 [[nodiscard]] QString PinnedIconsPath() {
 	WCHAR wstrPath[kMaxFileLen] = {};
@@ -207,48 +216,63 @@ QString systemShortcutPath() {
 	return QString();
 }
 
-void CleanupShortcut() {
+bool shortcutTargetsExecutable(const QString &path) {
 	const auto myid = MyExecutablePathId();
 	if (!myid) {
-		return;
+		return false;
 	}
 
-	QString path = systemShortcutPath() + u"Yukigram.lnk"_q;
-	std::wstring p = QDir::toNativeSeparators(path).toStdWString();
+	const auto native = QDir::toNativeSeparators(path).toStdWString();
 
-	DWORD attributes = GetFileAttributes(p.c_str());
-	if (attributes >= 0xFFFFFFF) return; // file does not exist
+	const auto attributes = GetFileAttributes(native.c_str());
+	if (attributes >= 0xFFFFFFF) {
+		return false;
+	}
 
 	auto shellLink = base::WinRT::TryCreateInstance<IShellLink>(
 		CLSID_ShellLink);
 	if (!shellLink) {
-		return;
+		return false;
 	}
 
 	auto persistFile = shellLink.try_as<IPersistFile>();
 	if (!persistFile) {
+		return false;
+	}
+
+	auto hr = persistFile->Load(native.c_str(), STGM_READ);
+	if (!SUCCEEDED(hr)) {
+		return false;
+	}
+
+	WCHAR target[kMaxFileLen] = { 0 };
+	hr = shellLink->GetPath(target, kMaxFileLen, nullptr, 0);
+	return SUCCEEDED(hr) && (GetUniqueFileId(target) == myid);
+}
+
+void removeShortcutIfMatches(const QString &path) {
+	if (shortcutTargetsExecutable(path)) {
+		QFile::remove(path);
+	}
+}
+
+void CleanupShortcut() {
+	const auto path = systemShortcutPath();
+	if (path.isEmpty()) {
 		return;
 	}
 
-	auto hr = persistFile->Load(p.c_str(), STGM_READWRITE);
-	if (!SUCCEEDED(hr)) return;
-
-	WCHAR szGotPath[MAX_PATH];
-	hr = shellLink->GetPath(szGotPath, MAX_PATH, nullptr, 0);
-	if (!SUCCEEDED(hr)) return;
-
-	if (GetUniqueFileId(szGotPath) == myid) {
-		QFile().remove(path);
+	for (const auto &name : kCurrentShortcutNames) {
+		removeShortcutIfMatches(path + name);
 	}
 }
 
 bool validateShortcutAt(const QString &path) {
-	const auto native = QDir::toNativeSeparators(path).toStdWString();
-
-	DWORD attributes = GetFileAttributes(native.c_str());
-	if (attributes >= 0xFFFFFFF) {
-		return false; // file does not exist
+	if (!shortcutTargetsExecutable(path)) {
+		return false;
 	}
+
+	const auto native = QDir::toNativeSeparators(path).toStdWString();
 
 	auto shellLink = base::WinRT::TryCreateInstance<IShellLink>(
 		CLSID_ShellLink);
@@ -263,16 +287,6 @@ bool validateShortcutAt(const QString &path) {
 
 	auto hr = persistFile->Load(native.c_str(), STGM_READWRITE);
 	if (!SUCCEEDED(hr)) return false;
-
-	WCHAR szGotPath[kMaxFileLen] = { 0 };
-	hr = shellLink->GetPath(szGotPath, kMaxFileLen, nullptr, 0);
-	if (!SUCCEEDED(hr)) {
-		return false;
-	}
-
-	if (GetUniqueFileId(szGotPath) != MyExecutablePathId()) {
-		return false;
-	}
 
 	auto propertyStore = shellLink.try_as<IPropertyStore>();
 	if (!propertyStore) {
@@ -345,10 +359,12 @@ bool checkInstalled(QString path = {}) {
 		}
 	}
 
-	const auto installed = u"Yukigram Desktop/Yukigram.lnk"_q;
-	const auto old = u"Telegram Win (Unofficial)/Telegram.lnk"_q;
-	return validateShortcutAt(path + installed)
-		|| validateShortcutAt(path + old);
+	for (const auto &name : kCurrentShortcutNames) {
+		if (validateShortcutAt(path + name)) {
+			return true;
+		}
+	}
+	return shortcutTargetsExecutable(path + kHistoricalShortcutName);
 }
 
 bool ValidateShortcut() {
@@ -363,14 +379,12 @@ bool ValidateShortcut() {
 			return true;
 		}
 	} else {
-		if (checkInstalled(path)) {
-			return true;
+		for (const auto &name : kCurrentShortcutNames) {
+			if (validateShortcutAt(path + name)) {
+				return true;
+			}
 		}
-
-		path += u"Yukigram.lnk"_q;
-		if (validateShortcutAt(path)) {
-			return true;
-		}
+		path += kCurrentShortcutNames.front();
 	}
 
 	auto shellLink = base::WinRT::TryCreateInstance<IShellLink>(
@@ -462,6 +476,9 @@ bool ValidateShortcut() {
 		return false;
 	}
 
+	if (!validateShortcutAt(path)) {
+		return false;
+	}
 	LOG(("App Info: Shortcut created and validated at \"%1\"").arg(path));
 	return true;
 }

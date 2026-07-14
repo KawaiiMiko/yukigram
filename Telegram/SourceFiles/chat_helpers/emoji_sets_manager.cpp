@@ -44,7 +44,7 @@ const auto kSets = {
 	Set{ { 1, 2774, 8'455'034, "Android" },   PreviewPath(1) },
 	Set{ { 2, 2775, 5'713'503, "Twemoji" },   PreviewPath(2) },
 	Set{ { 3, 2776, 7'347'332, "JoyPixels" }, PreviewPath(3) },
-	// Yukigram Extra Emoji set
+	// Yurigram Extra Emoji set
 	Set{ { 101, 4, 6'090'430, "Fluent Emoji Flat" },   PreviewPath(101) },
 	Set{ { 102, 5, 7'411'307, "Fluent Emoji Color" },   PreviewPath(102) },
 };

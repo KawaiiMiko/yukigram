@@ -1,4 +1,4 @@
-﻿/*
+/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -20,8 +20,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 // used in Updater.cpp and Setup.iss for Windows
 constexpr auto AppId = "{9DB6C981-7FD2-41B5-AEF2-20C933FD3F21}"_cs;
 constexpr auto AppNameOld = "Telegram Win (Unofficial)"_cs;
-constexpr auto AppName = "Yukigram"_cs;
-constexpr auto AppFile = "Yukigram"_cs;
+constexpr auto AppName = "Yurigram"_cs;
+constexpr auto AppFile = "Yurigram"_cs;
 constexpr auto AppVersion = 6009003;
 constexpr auto AppVersionStr = "6.9.3";
 constexpr auto AppBetaVersion = false;

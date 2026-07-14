@@ -1,4 +1,4 @@
-﻿/*
+/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -385,7 +385,7 @@ MainMenu::MainMenu(
 	parentResized();
 
 	_telegram->setMarkedText(tr::link(
-		u"Yukigram"_q,
+		u"Yurigram"_q,
 		u"https://github.com/Revincx/yukigram"_q));
 	_telegram->setLinksTrusted();
 	_version->setMarkedText(

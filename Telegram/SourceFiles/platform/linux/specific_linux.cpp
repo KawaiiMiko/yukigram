@@ -234,7 +234,7 @@ bool GenerateDesktopFile(
 	DEBUG_LOG(("App Info: placing .desktop file to %1").arg(targetPath));
 	if (!QDir(targetPath).exists()) QDir().mkpath(targetPath);
 
-	const auto sourceFile = u":/misc/sylfn.Yukigram.desktop"_q;
+	const auto sourceFile = u":/misc/rua.Yurigram.desktop"_q;
 	const auto targetFile = targetPath
 		+ QGuiApplication::desktopFileName()
 		+ u".desktop"_q;
@@ -442,6 +442,7 @@ bool GenerateServiceFile(bool silent = false) {
 		QFile::remove(u"%1sylfn.Yukigram._%2.service"_q.arg(
 			targetPath,
 			md5Hash));
+		QFile::remove(u"%1sylfn.Yukigram.service"_q.arg(targetPath));
 	}
 
 	XdgDBus::DBusProxy::new_for_bus(
@@ -739,11 +740,11 @@ void start() {
 		}
 
 		if (false && !Core::UpdaterDisabled()) {
-			return u"sylfn.Yukigram._%1"_q.arg(
+			return u"rua.Yurigram._%1"_q.arg(
 				Core::Launcher::Instance().instanceHash().constData());
 		}
 
-		return u"sylfn.Yukigram"_q;
+		return u"rua.Yurigram"_q;
 	}());
 
 	LOG(("App ID: %1").arg(QGuiApplication::desktopFileName()));

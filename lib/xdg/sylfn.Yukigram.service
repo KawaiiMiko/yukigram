@@ -1,3 +1,0 @@
-[D-BUS Service]
-Name=sylfn.Yukigram
-Exec=@CMAKE_INSTALL_FULL_BINDIR@/yukigram
