@@ -104,11 +104,17 @@ QString FormatDateTime(QDateTime date) {
 }
 
 QString FormatDateTimeSavedFrom(QDateTime dateTime) {
+	return FormatDateTimeSavedFrom(dateTime, false);
+}
+
+QString FormatDateTimeSavedFrom(QDateTime dateTime, bool showSeconds) {
 	const auto current = QDate::currentDate();
 	const auto date = dateTime.date();
 	const auto timeStr = QLocale().toString(
 		dateTime.time(),
-		QLocale::ShortFormat);
+		showSeconds
+			? QLocale::system().timeFormat(QLocale::LongFormat).remove("t")
+			: QLocale::system().timeFormat(QLocale::ShortFormat));
 
 	if (date == current) {
 		return tr::lng_mediaview_today(tr::now, lt_time, timeStr);

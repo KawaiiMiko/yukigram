@@ -1,4 +1,4 @@
-﻿/*
+/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -71,7 +71,11 @@ namespace {
 
 [[nodiscard]] QString FormatEditedDate(QDateTime sent, QDateTime edited) {
 	const auto today = QDateTime::currentDateTime().date();
-	const auto time = QLocale().toString(edited.time(), QLocale::ShortFormat);
+	const auto time = QLocale().toString(
+		edited.time(),
+		GetEnhancedBool("show_seconds")
+			? QLocale::system().timeFormat(QLocale::LongFormat).remove("t")
+			: QLocale::system().timeFormat(QLocale::ShortFormat));
 	if (sent.date() == today && edited.date() == today) {
 		return tr::lng_edited_at(tr::now, lt_time, time);
 	}
@@ -499,7 +503,9 @@ void BottomInfo::layoutDateText() {
 	const auto date = editedPrimary
 		? FormatEditedDate(_data.date, _data.editedDate)
 		: edited + ((_data.flags & Data::Flag::ForwardedDate)
-		? Ui::FormatDateTimeSavedFrom(_data.date)
+		? Ui::FormatDateTimeSavedFrom(
+			_data.date,
+			GetEnhancedBool("show_seconds"))
 		: QLocale().toString(_data.date.time(), GetEnhancedBool("show_seconds") 
 			? QLocale::system().timeFormat(QLocale::LongFormat).remove("t") 
 			: QLocale::system().timeFormat(QLocale::ShortFormat))) + _data.msgId;

@@ -384,7 +384,11 @@ TextForMimeData HistorySelectedItemPlainWrappedText(
 		TextForMimeData &&body) {
 	auto result = TextForMimeData();
 	const auto time = u"[%1] "_q.arg(
-		QLocale().toString(ItemDateTime(item), QLocale::ShortFormat));
+		QLocale().toString(
+			ItemDateTime(item),
+			GetEnhancedBool("show_seconds")
+				? QLocale::system().timeFormat(QLocale::LongFormat).remove("t")
+				: QLocale::system().timeFormat(QLocale::ShortFormat)));
 	const auto author = item->author()->name();
 	const auto size = time.size() + author.size() + 2 + body.expanded.size();
 	result.reserve(size);
@@ -494,7 +498,11 @@ TextForMimeData HistorySelectedItemWrappedText(
 	}
 	auto result = TextForMimeData();
 	const auto time = u"[%1] "_q.arg(
-		QLocale().toString(ItemDateTime(item), QLocale::ShortFormat));
+		QLocale().toString(
+			ItemDateTime(item),
+			GetEnhancedBool("show_seconds")
+				? QLocale::system().timeFormat(QLocale::LongFormat).remove("t")
+				: QLocale::system().timeFormat(QLocale::ShortFormat)));
 	const auto author = item->author()->name();
 	const auto replyTo = tr::lng_context_copy_in_reply_to(
 		tr::now,
