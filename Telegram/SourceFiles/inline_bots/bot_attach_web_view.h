@@ -194,7 +194,7 @@ struct WebViewResultData {
 	const MTPWebViewResult &result);
 
 struct WebViewSourceJoinChat {
-	WebViewResultData result;
+	uint64 queryId = 0;
 
 	friend inline bool operator==(
 		const WebViewSourceJoinChat &,
@@ -268,6 +268,7 @@ private:
 	void requestSimple();
 	void requestMain();
 	void requestApp(bool allowWrite);
+	void requestChatJoin();
 	void requestWithMainMenuDisclaimer();
 	void requestWithMenuAdd();
 	void maybeChooseAndRequestButton(PeerTypes supported);

@@ -83,6 +83,7 @@ DeclareSetting(int32, LastUpdateCheck);
 DeclareSetting(bool, NoStartUpdate);
 DeclareSetting(bool, StartToSettings);
 DeclareSetting(bool, DebugMode);
+DeclareSetting(bool, TestAgent);
 DeclareReadSetting(bool, ManyInstance);
 DeclareSetting(bool, Quit);
 
