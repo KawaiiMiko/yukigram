@@ -949,7 +949,7 @@ namespace {
 		const auto hideAllChats = AddButtonWithIcon(
 			container,
 			tr::lng_settings_hide_all_chats(),
-			st::settingsButtonNoIcon
+			st::settingsAttentionButton
 		);
 		registerHighlight(
 			u"enhanced/other/hide-all-chats"_q,
