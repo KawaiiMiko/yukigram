@@ -2835,49 +2835,38 @@ void TopBar::showTopBarMenu(
 		}
 	});
 
-	fillTopBarMenu(
-		controller,
-		Ui::Menu::CreateAddActionCallback(_topBarMenu));
-	if (_topBarMenu->empty()) {
-		_topBarMenu = nullptr;
-	}
 	if (tabSwapActive()) {
 		if (_tabFillMenu) {
-			_tabFillMenu(Ui::Menu::CreateAddActionCallback(_peerMenu));
+			_tabFillMenu(Ui::Menu::CreateAddActionCallback(_topBarMenu));
 		}
 	} else {
 		fillTopBarMenu(
 			controller,
-			Ui::Menu::CreateAddActionCallback(_peerMenu));
+			Ui::Menu::CreateAddActionCallback(_topBarMenu));
 	}
-	if (_peerMenu->empty()) {
-		_peerMenu = nullptr;
+	if (_topBarMenu->empty()) {
+		_topBarMenu = nullptr;
 		return;
 	} else if (check) {
 		return;
 	}
 	_topBarMenu->setForcedOrigin(Ui::PanelAnimation::Origin::TopRight);
-	_topBarMenuToggle->setForceRippled(true);
-	_topBarMenu->popup(_topBarMenuToggle->mapToGlobal(
-		st::infoLayerTopBarMenuPosition));
-	_peerMenu->setForcedOrigin(Ui::PanelAnimation::Origin::TopRight);
 	const auto tabToggle = (_tabMenuToggle && _tabMenuToggle->toggled())
 		? _tabMenuToggle->entity()
 		: nullptr;
-	const auto anchor = tabToggle
-		? static_cast<QWidget*>(tabToggle)
-		: static_cast<QWidget*>(_actionMore);
-	const auto extend = Ui::BoxShadow::ExtendFor(_peerMenu->st().shadow);
-	const auto skip = tabToggle
-		? extend.top()
-		: st::infoProfileTopBarActionMenuSkip;
-	_peerMenu->popup(anchor
-		? Ui::PopupMenu::ConstrainToParentScreen(
-			_peerMenu,
-			anchor->mapToGlobal(QPoint(
-				anchor->width() + extend.right(),
-				anchor->height() + skip)))
-		: QCursor::pos());
+	if (tabToggle) {
+		const auto extend = Ui::BoxShadow::ExtendFor(
+			_topBarMenu->st().shadow);
+		_topBarMenu->popup(Ui::PopupMenu::ConstrainToParentScreen(
+			_topBarMenu,
+			tabToggle->mapToGlobal(QPoint(
+				tabToggle->width() + extend.right(),
+				tabToggle->height() + extend.top()))));
+	} else {
+		_topBarMenuToggle->setForceRippled(true);
+		_topBarMenu->popup(_topBarMenuToggle->mapToGlobal(
+			st::infoLayerTopBarMenuPosition));
+	}
 }
 
 void TopBar::fillTopBarMenu(

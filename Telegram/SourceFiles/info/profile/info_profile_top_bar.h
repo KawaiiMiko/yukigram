@@ -334,9 +334,6 @@ private:
 
 	base::unique_qptr<Ui::FadeWrap<Ui::IconButton>> _tabMenuToggle;
 	base::unique_qptr<Ui::FadeWrap<Ui::IconButton>> _tabSearchToggle;
-	base::unique_qptr<Ui::PopupMenu> _peerMenu;
-
-	Ui::RpWidget *_actionMore = nullptr;
 
 	base::unique_qptr<Ui::HorizontalFitContainer> _actions;
 	base::unique_qptr<Ui::RpWidget> _actionsShadow;
