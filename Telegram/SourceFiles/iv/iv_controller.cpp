@@ -480,6 +480,21 @@ void Controller::minimize() {
 	}
 }
 
+void Controller::destroyWindow() {
+	if (!_window) {
+		return;
+	}
+	auto webview = base::take(_webview);
+	_window->hide();
+	_back = nullptr;
+	_forward = nullptr;
+	_subtitle = nullptr;
+	_subtitleWrap = nullptr;
+	_window = nullptr;
+	_container = nullptr;
+	webview = nullptr;
+}
+
 void Controller::close() {
 	_events.fire({ Event::Type::Close });
 }

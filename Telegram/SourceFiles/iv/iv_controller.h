@@ -59,6 +59,7 @@ public:
 
 	[[nodiscard]] bool active() const;
 	void minimize();
+	void destroyWindow();
 
 	[[nodiscard]] rpl::producer<Event> events() const {
 		return _events.events();

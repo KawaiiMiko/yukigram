@@ -413,6 +413,7 @@ private:
 class TLViewer final : public base::has_weak_ptr {
 public:
 	TLViewer(not_null<Delegate*> delegate, QString uri);
+	~TLViewer();
 
 	[[nodiscard]] bool active() const;
 
@@ -808,6 +809,12 @@ TLViewer::TLViewer(not_null<Delegate*> delegate, QString uri)
 	: _delegate(delegate)
 	, _uri(uri) {
 	showWindowed();
+}
+
+TLViewer::~TLViewer() {
+	if (_controller) {
+		_controller->destroyWindow();
+	}
 }
 
 void TLViewer::createController() {
@@ -1310,9 +1317,12 @@ void Instance::showTLViewer(int32 layer, const QString& object) {
 		const auto urlChecked = lower.startsWith("http://")
 			|| lower.startsWith("https://");
 		switch (event.type) {
-		case Type::Close:
-			_tlv = nullptr;
-			break;
+		case Type::Close: {
+			const auto weak = base::make_weak(_tlv);
+			crl::on_main(weak, [=] {
+				_tlv = nullptr;
+			});
+		} break;
 		case Type::Quit:
 			Shortcuts::Launch(Shortcuts::Command::Quit);
 			break;
