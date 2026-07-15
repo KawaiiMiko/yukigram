@@ -486,6 +486,8 @@ infoProfileTopBarStep1: infoProfileTopBarStep2 - infoProfileTopBarActionButtonsH
 
 infoProfileTopBarNoActionsHeightMax: infoProfileTopBarHeightMax - infoProfileTopBarActionButtonSize;
 
+infoProfileTopBarActionMenuSkip: 10px;
+
 infoProfileTopBarActionMessage: icon{{ "profile/message-23x23", windowBoldFg }};
 infoProfileTopBarActionMute: icon{{ "profile/mute-23x23", windowBoldFg }};
 infoProfileTopBarActionUnmute: icon{{ "profile/unmute-23x23", windowBoldFg }};
