@@ -537,7 +537,7 @@ window.TL_SCHEMA_FULL = {
     result.id = e.long();
     return result;
   },
-  829899656: function (e) {
+  2981678211: function (e) {
     var result = { _: `user` };
     var t = e.uint();
     result.flags = t;
@@ -631,6 +631,9 @@ window.TL_SCHEMA_FULL = {
     if (n & 32768) {
       result.sendPaidMessagesStars = e.long();
     }
+    if (n & 2097152) {
+      result.linkedCommunityId = e.long();
+    }
     return result;
   },
   1326562017: function (e) {
@@ -723,7 +726,7 @@ window.TL_SCHEMA_FULL = {
     result.title = e.string();
     return result;
   },
-  473084188: function (e) {
+  3567203526: function (e) {
     var result = { _: `channel` };
     var t = e.uint();
     result.flags = t;
@@ -812,6 +815,9 @@ window.TL_SCHEMA_FULL = {
     if (n & 262144) {
       result.linkedMonoforumId = e.long();
     }
+    if (n & 1048576) {
+      result.linkedCommunityId = e.long();
+    }
     return result;
   },
   399807445: function (e) {
@@ -826,6 +832,42 @@ window.TL_SCHEMA_FULL = {
     result.title = e.string();
     if (t & 65536) {
       result.untilDate = e.int();
+    }
+    return result;
+  },
+  4248623800: function (e) {
+    var result = { _: `communityForbidden` };
+    var t = e.uint();
+    result.flags = t;
+    result.id = e.long();
+    if (t & 8192) {
+      result.accessHash = e.long();
+    }
+    result.title = e.string();
+    return result;
+  },
+  1710221652: function (e) {
+    var result = { _: `community` };
+    var t = e.uint();
+    result.flags = t;
+    result.creator = !!(t & 1);
+    result.left = !!(t & 4);
+    result.min = !!(t & 4096);
+    var n = e.uint();
+    result.flags2 = n;
+    result.collapsedInDialogs = !!(n & 1048576);
+    result.id = e.long();
+    if (t & 8192) {
+      result.accessHash = e.long();
+    }
+    result.title = e.string();
+    result.photo = e.object();
+    result.date = e.int();
+    if (t & 16384) {
+      result.adminRights = e.object();
+    }
+    if (t & 262144) {
+      result.defaultBannedRights = e.object();
     }
     return result;
   },
@@ -1027,6 +1069,25 @@ window.TL_SCHEMA_FULL = {
     }
     if (n & 8388608) {
       result.guardBotId = e.long();
+    }
+    return result;
+  },
+  3417810183: function (e) {
+    var result = { _: `communityFull` };
+    var t = e.uint();
+    result.flags = t;
+    result.id = e.long();
+    result.about = e.string();
+    result.chatPhoto = e.object();
+    result.linkedPeers = e.vector(e.object);
+    if (t & 2) {
+      result.adminsCount = e.int();
+    }
+    if (t & 4) {
+      result.kickedCount = e.int();
+    }
+    if (t & 1) {
+      result.peerLinkRequestsPending = e.int();
     }
     return result;
   },
@@ -2116,6 +2177,15 @@ window.TL_SCHEMA_FULL = {
     result.botId = e.long();
     return result;
   },
+  1562426088: function (e) {
+    var result = { _: `messageActionChangeCommunity` };
+    var t = e.uint();
+    result.flags = t;
+    if (t & 1) {
+      result.communityId = e.long();
+    }
+    return result;
+  },
   4236900339: function (e) {
     var result = { _: `dialog` };
     var t = e.uint();
@@ -2158,6 +2228,15 @@ window.TL_SCHEMA_FULL = {
     result.unreadUnmutedPeersCount = e.int();
     result.unreadMutedMessagesCount = e.int();
     result.unreadUnmutedMessagesCount = e.int();
+    return result;
+  },
+  4153018739: function (e) {
+    var result = { _: `dialogCommunity` };
+    var t = e.uint();
+    result.flags = t;
+    result.pinned = !!(t & 4);
+    result.communityId = e.long();
+    result.notifySettings = e.object();
     return result;
   },
   590459437: function (e) {
@@ -2321,6 +2400,11 @@ window.TL_SCHEMA_FULL = {
     var result = { _: `inputNotifyForumTopic` };
     result.peer = e.object();
     result.topMsgId = e.int();
+    return result;
+  },
+  666573532: function (e) {
+    var result = { _: `inputNotifyCommunity` };
+    result.community = e.object();
     return result;
   },
   3402328802: function (e) {
@@ -4148,6 +4232,34 @@ window.TL_SCHEMA_FULL = {
     result.exception = e.object();
     return result;
   },
+  549239713: function (e) {
+    var result = { _: `updateNewEphemeralMessage` };
+    result.message = e.object();
+    return result;
+  },
+  1457257720: function (e) {
+    var result = { _: `updateDeleteEphemeralMessages` };
+    result.peer = e.object();
+    result.ids = e.vector(e.int);
+    return result;
+  },
+  1270583041: function (e) {
+    var result = { _: `updateEditEphemeralMessage` };
+    result.message = e.object();
+    return result;
+  },
+  1812827683: function (e) {
+    var result = { _: `updateBotStarsSubscription` };
+    var t = e.uint();
+    result.flags = t;
+    result.canceled = !!(t & 1);
+    result.paymentFailed = !!(t & 2);
+    result.restored = !!(t & 4);
+    result.userId = e.long();
+    result.payload = e.bytes();
+    result.qts = e.int();
+    return result;
+  },
   2775329342: function (e) {
     var result = { _: `updates.state` };
     result.pts = e.int();
@@ -4660,6 +4772,11 @@ window.TL_SCHEMA_FULL = {
     var result = { _: `notifyForumTopic` };
     result.peer = e.object();
     result.topMsgId = e.int();
+    return result;
+  },
+  3191302553: function (e) {
+    var result = { _: `notifyCommunity` };
+    result.communityId = e.long();
     return result;
   },
   381645902: function (e) {
@@ -5483,8 +5600,11 @@ window.TL_SCHEMA_FULL = {
     var result = { _: `messages.stickerSetNotModified` };
     return result;
   },
-  3262826695: function (e) {
+  2555565778: function (e) {
     var result = { _: `botCommand` };
+    var t = e.uint();
+    result.flags = t;
+    result.ephemeral = !!(t & 1);
     result.command = e.string();
     result.description = e.string();
     return result;
@@ -7176,6 +7296,12 @@ window.TL_SCHEMA_FULL = {
     result.date = e.int();
     return result;
   },
+  2525416272: function (e) {
+    var result = { _: `textDiff` };
+    result.text = e.object();
+    result.oldText = e.object();
+    return result;
+  },
   324435594: function (e) {
     var result = { _: `pageBlockUnsupported` };
     return result;
@@ -8463,6 +8589,11 @@ window.TL_SCHEMA_FULL = {
     result.folderId = e.int();
     return result;
   },
+  1777300164: function (e) {
+    var result = { _: `inputDialogPeerCommunity` };
+    result.community = e.object();
+    return result;
+  },
   3849174789: function (e) {
     var result = { _: `dialogPeer` };
     result.peer = e.object();
@@ -8471,6 +8602,11 @@ window.TL_SCHEMA_FULL = {
   1363483106: function (e) {
     var result = { _: `dialogPeerFolder` };
     result.folderId = e.int();
+    return result;
+  },
+  795199716: function (e) {
+    var result = { _: `dialogPeerCommunity` };
+    result.communityId = e.long();
     return result;
   },
   223655517: function (e) {
@@ -9169,6 +9305,7 @@ window.TL_SCHEMA_FULL = {
     result.deleteStories = !!(t & 65536);
     result.manageDirectMessages = !!(t & 131072);
     result.manageRanks = !!(t & 262144);
+    result.manageLinkedPeers = !!(t & 524288);
     return result;
   },
   2668758040: function (e) {
@@ -9197,6 +9334,7 @@ window.TL_SCHEMA_FULL = {
     result.sendPlain = !!(t & 33554432);
     result.editRank = !!(t & 67108864);
     result.sendReactions = !!(t & 134217728);
+    result.manageLinkedPeers = !!(t & 268435456);
     result.untilDate = e.int();
     return result;
   },
@@ -11783,6 +11921,11 @@ window.TL_SCHEMA_FULL = {
   1775660101: function (e) {
     var result = { _: `inputReplyToMonoForum` };
     result.monoforumPeerId = e.object();
+    return result;
+  },
+  1092204894: function (e) {
+    var result = { _: `inputReplyToEphemeralMessage` };
+    result.id = e.int();
     return result;
   },
   1070138683: function (e) {
@@ -14398,6 +14541,11 @@ window.TL_SCHEMA_FULL = {
     result.slug = e.string();
     return result;
   },
+  235681199: function (e) {
+    var result = { _: `inputAiComposeToneSingleUse` };
+    result.customPrompt = e.string();
+    return result;
+  },
   3489021609: function (e) {
     var result = { _: `aiComposeTone` };
     var t = e.uint();
@@ -14463,10 +14611,10 @@ window.TL_SCHEMA_FULL = {
     result.updates = e.object();
     return result;
   },
-  793887543: function (e) {
+  1640638931: function (e) {
     var result = { _: `messages.chatInviteJoinResultWebView` };
     result.botId = e.long();
-    result.webview = e.object();
+    result.queryId = e.long();
     result.users = e.vector(e.object);
     return result;
   },
@@ -14577,6 +14725,286 @@ window.TL_SCHEMA_FULL = {
     result.blocks = e.vector(e.object);
     result.photos = e.vector(e.object);
     result.documents = e.vector(e.object);
+    return result;
+  },
+  1981030077: function (e) {
+    var result = { _: `communityPeer` };
+    var t = e.uint();
+    result.flags = t;
+    result.canViewHistory = !!(t & 4);
+    if (t & 1) {
+      result.visible = e.object();
+    }
+    result.peer = e.object();
+    return result;
+  },
+  2078997125: function (e) {
+    var result = { _: `communityPeerRequest` };
+    var t = e.uint();
+    result.flags = t;
+    result.visible = !!(t & 1);
+    result.peer = e.object();
+    result.requestedBy = e.long();
+    result.date = e.int();
+    return result;
+  },
+  574926765: function (e) {
+    var result = { _: `communities.peerLinkRequests` };
+    var t = e.uint();
+    result.flags = t;
+    result.totalCount = e.int();
+    result.requests = e.vector(e.object);
+    if (t & 1) {
+      result.nextOffset = e.string();
+    }
+    result.chats = e.vector(e.object);
+    result.users = e.vector(e.object);
+    return result;
+  },
+  3653688346: function (e) {
+    var result = { _: `ephemeralMessage` };
+    var t = e.uint();
+    result.flags = t;
+    result.out = !!(t & 1);
+    result.id = e.int();
+    result.fromId = e.object();
+    result.peerId = e.object();
+    result.receiverId = e.long();
+    if (t & 2) {
+      result.topMsgId = e.int();
+    }
+    result.date = e.int();
+    result.message = e.string();
+    if (t & 4) {
+      result.entities = e.vector(e.object);
+    }
+    if (t & 8) {
+      result.media = e.object();
+    }
+    if (t & 16) {
+      result.replyMarkup = e.object();
+    }
+    if (t & 64) {
+      result.replyTo = e.object();
+    }
+    return result;
+  },
+  2373472554: function (e) {
+    var result = { _: `communities.participantJoinedChats` };
+    result.creatorChatIds = e.vector(e.long);
+    result.joinedChatIds = e.vector(e.long);
+    result.chats = e.vector(e.object);
+    result.users = e.vector(e.object);
+    return result;
+  },
+  1107532175: function (e) {
+    var result = { _: `messages.translatedRichMessage` };
+    result.result = e.vector(e.object);
+    return result;
+  },
+  1279604680: function (e) {
+    var result = { _: `messages.composedRichMessageWithAI` };
+    result.result = e.object();
+    return result;
+  },
+  829899656: function (e) {
+    var result = { _: `user` };
+    var t = e.uint();
+    result.flags = t;
+    result.self = !!(t & 1024);
+    result.contact = !!(t & 2048);
+    result.mutualContact = !!(t & 4096);
+    result.deleted = !!(t & 8192);
+    result.bot = !!(t & 16384);
+    result.botChatHistory = !!(t & 32768);
+    result.botNochats = !!(t & 65536);
+    result.verified = !!(t & 131072);
+    result.restricted = !!(t & 262144);
+    result.min = !!(t & 1048576);
+    result.botInlineGeo = !!(t & 2097152);
+    result.support = !!(t & 8388608);
+    result.scam = !!(t & 16777216);
+    result.applyMinPhoto = !!(t & 33554432);
+    result.fake = !!(t & 67108864);
+    result.botAttachMenu = !!(t & 134217728);
+    result.premium = !!(t & 268435456);
+    result.attachMenuEnabled = !!(t & 536870912);
+    var n = e.uint();
+    result.flags2 = n;
+    result.botCanEdit = !!(n & 2);
+    result.closeFriend = !!(n & 4);
+    result.storiesHidden = !!(n & 8);
+    result.storiesUnavailable = !!(n & 16);
+    result.contactRequirePremium = !!(n & 1024);
+    result.botBusiness = !!(n & 2048);
+    result.botHasMainApp = !!(n & 8192);
+    result.botForumView = !!(n & 65536);
+    result.botForumCanManageTopics = !!(n & 131072);
+    result.botCanManageBots = !!(n & 262144);
+    result.botGuestchat = !!(n & 524288);
+    result.botGuard = !!(n & 1048576);
+    result.id = e.long();
+    if (t & 1) {
+      result.accessHash = e.long();
+    }
+    if (t & 2) {
+      result.firstName = e.string();
+    }
+    if (t & 4) {
+      result.lastName = e.string();
+    }
+    if (t & 8) {
+      result.username = e.string();
+    }
+    if (t & 16) {
+      result.phone = e.string();
+    }
+    if (t & 32) {
+      result.photo = e.object();
+    }
+    if (t & 64) {
+      result.status = e.object();
+    }
+    if (t & 16384) {
+      result.botInfoVersion = e.int();
+    }
+    if (t & 262144) {
+      result.restrictionReason = e.vector(e.object);
+    }
+    if (t & 524288) {
+      result.botInlinePlaceholder = e.string();
+    }
+    if (t & 4194304) {
+      result.langCode = e.string();
+    }
+    if (t & 1073741824) {
+      result.emojiStatus = e.object();
+    }
+    if (n & 1) {
+      result.usernames = e.vector(e.object);
+    }
+    if (n & 32) {
+      result.storiesMaxId = e.object();
+    }
+    if (n & 256) {
+      result.color = e.object();
+    }
+    if (n & 512) {
+      result.profileColor = e.object();
+    }
+    if (n & 4096) {
+      result.botActiveUsers = e.int();
+    }
+    if (n & 16384) {
+      result.botVerificationIcon = e.long();
+    }
+    if (n & 32768) {
+      result.sendPaidMessagesStars = e.long();
+    }
+    return result;
+  },
+  473084188: function (e) {
+    var result = { _: `channel` };
+    var t = e.uint();
+    result.flags = t;
+    result.creator = !!(t & 1);
+    result.left = !!(t & 4);
+    result.broadcast = !!(t & 32);
+    result.verified = !!(t & 128);
+    result.megagroup = !!(t & 256);
+    result.restricted = !!(t & 512);
+    result.signatures = !!(t & 2048);
+    result.min = !!(t & 4096);
+    result.scam = !!(t & 524288);
+    result.hasLink = !!(t & 1048576);
+    result.hasGeo = !!(t & 2097152);
+    result.slowmodeEnabled = !!(t & 4194304);
+    result.callActive = !!(t & 8388608);
+    result.callNotEmpty = !!(t & 16777216);
+    result.fake = !!(t & 33554432);
+    result.gigagroup = !!(t & 67108864);
+    result.noforwards = !!(t & 134217728);
+    result.joinToSend = !!(t & 268435456);
+    result.joinRequest = !!(t & 536870912);
+    result.forum = !!(t & 1073741824);
+    var n = e.uint();
+    result.flags2 = n;
+    result.storiesHidden = !!(n & 2);
+    result.storiesHiddenMin = !!(n & 4);
+    result.storiesUnavailable = !!(n & 8);
+    result.signatureProfiles = !!(n & 4096);
+    result.autotranslation = !!(n & 32768);
+    result.broadcastMessagesAllowed = !!(n & 65536);
+    result.monoforum = !!(n & 131072);
+    result.forumTabs = !!(n & 524288);
+    result.id = e.long();
+    if (t & 8192) {
+      result.accessHash = e.long();
+    }
+    result.title = e.string();
+    if (t & 64) {
+      result.username = e.string();
+    }
+    result.photo = e.object();
+    result.date = e.int();
+    if (t & 512) {
+      result.restrictionReason = e.vector(e.object);
+    }
+    if (t & 16384) {
+      result.adminRights = e.object();
+    }
+    if (t & 32768) {
+      result.bannedRights = e.object();
+    }
+    if (t & 262144) {
+      result.defaultBannedRights = e.object();
+    }
+    if (t & 131072) {
+      result.participantsCount = e.int();
+    }
+    if (n & 1) {
+      result.usernames = e.vector(e.object);
+    }
+    if (n & 16) {
+      result.storiesMaxId = e.object();
+    }
+    if (n & 128) {
+      result.color = e.object();
+    }
+    if (n & 256) {
+      result.profileColor = e.object();
+    }
+    if (n & 512) {
+      result.emojiStatus = e.object();
+    }
+    if (n & 1024) {
+      result.level = e.int();
+    }
+    if (n & 2048) {
+      result.subscriptionUntilDate = e.int();
+    }
+    if (n & 8192) {
+      result.botVerificationIcon = e.long();
+    }
+    if (n & 16384) {
+      result.sendPaidMessagesStars = e.long();
+    }
+    if (n & 262144) {
+      result.linkedMonoforumId = e.long();
+    }
+    return result;
+  },
+  3262826695: function (e) {
+    var result = { _: `botCommand` };
+    result.command = e.string();
+    result.description = e.string();
+    return result;
+  },
+  793887543: function (e) {
+    var result = { _: `messages.chatInviteJoinResultWebView` };
+    result.botId = e.long();
+    result.webview = e.object();
+    result.users = e.vector(e.object);
     return result;
   },
   3572151633: function (e) {
