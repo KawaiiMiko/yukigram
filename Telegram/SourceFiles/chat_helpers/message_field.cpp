@@ -277,7 +277,9 @@ void EditLinkBox(
 	box->setWidth(st::boxWidth);
 
 	box->setFocusCallback([=] {
-		if (startText.text.isEmpty()) {
+		if (startText.text.isEmpty()
+			|| link.startsWith(u"tg://user?id="_q)) {
+			text->selectAll();
 			text->setFocusFast();
 		} else {
 			if (!url->empty()) {

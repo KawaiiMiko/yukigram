@@ -4348,10 +4348,21 @@ void FillSenderUserpicMenu(
 	const auto mention = !username.isEmpty() || peer->isUser();
 	if (const auto guard = mention ? fieldForMention : nullptr) {
 		addAction(tr::lng_context_mention(tr::now), crl::guard(guard, [=] {
-			if ((username.isEmpty() || base::IsCtrlPressed()) && peer->isUser()) {
+			const auto user = peer->asUser();
+			const auto modifiers = QGuiApplication::keyboardModifiers();
+			if (user
+				&& modifiers.testFlag(Qt::ControlModifier)
+				&& modifiers.testFlag(Qt::ShiftModifier)) {
+				const auto cursor = fieldForMention->textCursor();
+				DefaultEditLinkCallback(controller->uiShow(), fieldForMention)(
+					{ cursor.selectionStart(), cursor.selectionEnd() },
+					{ peer->shortName() },
+					u"tg://user?id="_q + QString::number(user->id.value),
+					Ui::InputField::EditLinkAction::Edit);
+			} else if ((username.isEmpty() || base::IsCtrlPressed()) && user) {
 				fieldForMention->insertTag(
 					peer->shortName(),
-					PrepareMentionTag(peer->asUser()));
+					PrepareMentionTag(user));
 			} else {
 				fieldForMention->insertTag('@' + username);
 			}
