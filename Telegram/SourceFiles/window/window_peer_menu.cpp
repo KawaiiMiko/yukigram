@@ -4348,12 +4348,12 @@ void FillSenderUserpicMenu(
 	const auto mention = !username.isEmpty() || peer->isUser();
 	if (const auto guard = mention ? fieldForMention : nullptr) {
 		addAction(tr::lng_context_mention(tr::now), crl::guard(guard, [=] {
-			if (!username.isEmpty()) {
-				fieldForMention->insertTag('@' + username);
-			} else {
+			if ((username.isEmpty() || base::IsCtrlPressed()) && peer->isUser()) {
 				fieldForMention->insertTag(
 					peer->shortName(),
 					PrepareMentionTag(peer->asUser()));
+			} else {
+				fieldForMention->insertTag('@' + username);
 			}
 		}), &st::menuIconUsername);
 	}
