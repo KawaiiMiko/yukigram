@@ -30,23 +30,33 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 namespace {
 
-constexpr auto kRichMessagePreviewDisabledIndex
+constexpr auto kRichMessagePreviewMaxIndex
 	= EnhancedSettings::kRichMessagePreviewBlocksLimitMax
-		- EnhancedSettings::kRichMessagePreviewBlocksLimitMin
-		+ 1;
+		- EnhancedSettings::kRichMessagePreviewBlocksLimitMin;
+constexpr auto kRichMessagePreviewDefaultGapSections = 5;
+constexpr auto kRichMessagePreviewDefaultIndex
+	= kRichMessagePreviewMaxIndex + kRichMessagePreviewDefaultGapSections;
 constexpr auto kRichMessagePreviewValuesCount
-	= kRichMessagePreviewDisabledIndex + 1;
+	= kRichMessagePreviewDefaultIndex + 1;
 
 [[nodiscard]] int RichMessagePreviewLimitForIndex(int index) {
-	return (index == kRichMessagePreviewDisabledIndex)
+	return (index == kRichMessagePreviewDefaultIndex)
 		? 0
-		: (EnhancedSettings::kRichMessagePreviewBlocksLimitMin + index);
+		: (EnhancedSettings::kRichMessagePreviewBlocksLimitMin
+			+ std::min(index, kRichMessagePreviewMaxIndex));
 }
 
 [[nodiscard]] int RichMessagePreviewIndexForLimit(int limit) {
 	return limit
 		? (limit - EnhancedSettings::kRichMessagePreviewBlocksLimitMin)
-		: kRichMessagePreviewDisabledIndex;
+		: kRichMessagePreviewDefaultIndex;
+}
+
+[[nodiscard]] QString RichMessagePreviewBlocksLabel(int limit) {
+	return tr::lng_settings_rich_message_preview_blocks_count(
+		tr::now,
+		lt_count,
+		limit);
 }
 
 } // namespace
@@ -288,31 +298,25 @@ void RichMessagePreviewBlocksBox::prepare() {
 		st::boxWidth - st::boxPadding.left() - st::boxPadding.right());
 	y += _description->height() + st::boxMediumSkip;
 
-	const auto minimum = Ui::CreateChild<Ui::FlatLabel>(
+	_limit = EnhancedSettings::RichMessagePreviewBlocksLimit();
+	_current.create(
 		this,
-		QString::number(EnhancedSettings::kRichMessagePreviewBlocksLimitMin),
-		st::boxLabel);
-	const auto maximum = Ui::CreateChild<Ui::FlatLabel>(
-		this,
-		tr::lng_font_default(tr::now),
-		st::boxLabel);
-	_current.create(this, QString(), st::boxLabel);
+		_limit
+			? RichMessagePreviewBlocksLabel(_limit)
+			: tr::lng_font_default(tr::now),
+		st::richMessagePreviewBlocksCurrent);
 	_labelsTop = y;
-	minimum->moveToLeft(st::boxPadding.left(), y);
-	maximum->moveToRight(st::boxPadding.right(), y);
-	y += std::max({
-		minimum->height(),
-		maximum->height(),
-		_current->height(),
-	}) + st::boxMediumSkip;
+	updateCurrentLabel();
+	y += _current->height() + st::boxMediumSkip;
 
 	_slider.create(this, st::localStorageLimitSlider);
+	const auto sliderWidth
+		= st::boxWidth - st::boxPadding.left() - st::boxPadding.right();
 	_slider->resize(
-		st::boxWidth - st::boxPadding.left() - st::boxPadding.right(),
+		sliderWidth,
 		st::localStorageLimitSlider.seekSize.height());
 	_slider->moveToLeft(st::boxPadding.left(), y);
 
-	_limit = EnhancedSettings::RichMessagePreviewBlocksLimit();
 	_slider->setPseudoDiscrete(
 		kRichMessagePreviewValuesCount,
 		[](int index) { return index; },
@@ -321,16 +325,59 @@ void RichMessagePreviewBlocksBox::prepare() {
 			_limit = RichMessagePreviewLimitForIndex(index);
 			updateCurrentLabel();
 		});
-	updateCurrentLabel();
+	for (const auto limit : {
+		EnhancedSettings::kRichMessagePreviewBlocksLimitMin,
+		15,
+		25,
+		35,
+		EnhancedSettings::kRichMessagePreviewBlocksLimitMax,
+	}) {
+		const auto progress = (limit
+			- EnhancedSettings::kRichMessagePreviewBlocksLimitMin)
+			/ float64(kRichMessagePreviewDefaultIndex);
+		_slider->addDivider(
+			progress,
+			st::richMessagePreviewBlocksDivider);
+	}
+	_slider->addDivider(
+		(kRichMessagePreviewMaxIndex + 1.)
+			/ kRichMessagePreviewDefaultIndex,
+		st::richMessagePreviewBlocksDefaultDivider);
 
-	y += _slider->height() + st::boxOptionListPadding.bottom();
+	y += _slider->height() + st::richMessagePreviewBlocksTickSkip;
+	const auto minimum = Ui::CreateChild<Ui::FlatLabel>(
+		this,
+		QString::number(EnhancedSettings::kRichMessagePreviewBlocksLimitMin),
+		st::richMessagePreviewBlocksTick);
+	const auto defaultLabel = Ui::CreateChild<Ui::FlatLabel>(
+		this,
+		tr::lng_font_default(tr::now),
+		st::richMessagePreviewBlocksTick);
+	minimum->moveToLeft(st::boxPadding.left(), y);
+	defaultLabel->moveToRight(st::boxPadding.right(), y, st::boxWidth);
+	for (const auto limit : { 15, 25, 35, 50 }) {
+		const auto label = Ui::CreateChild<Ui::FlatLabel>(
+			this,
+			QString::number(limit),
+			st::richMessagePreviewBlocksTick);
+		const auto progress = (limit
+			- EnhancedSettings::kRichMessagePreviewBlocksLimitMin)
+			/ float64(kRichMessagePreviewDefaultIndex);
+		const auto position = st::boxPadding.left()
+			+ (st::localStorageLimitSlider.seekSize.width() / 2)
+			+ base::SafeRound(progress * (sliderWidth
+				- st::localStorageLimitSlider.seekSize.width()));
+		label->moveToLeft(position - label->width() / 2, y);
+	}
+	y += std::max(minimum->height(), defaultLabel->height())
+		+ st::boxOptionListPadding.bottom();
 	showChildren();
 	setDimensions(st::boxWidth, y);
 }
 
 void RichMessagePreviewBlocksBox::updateCurrentLabel() {
 	_current->setText(_limit
-		? QString::number(_limit)
+		? RichMessagePreviewBlocksLabel(_limit)
 		: tr::lng_font_default(tr::now));
 	_current->moveToLeft((st::boxWidth - _current->width()) / 2, _labelsTop);
 }

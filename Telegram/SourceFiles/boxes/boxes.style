@@ -238,6 +238,22 @@ localStorageLimitSlider: MediaSlider(defaultContinuousSlider) {
 }
 localStorageLimitMargin: margins(22px, 5px, 20px, 10px);
 
+richMessagePreviewBlocksCurrent: FlatLabel(boxLabel) {
+	textFg: windowActiveTextFg;
+	style: TextStyle(boxLabelStyle) {
+		font: font(14px semibold);
+	}
+}
+richMessagePreviewBlocksTick: FlatLabel(boxLabel) {
+	textFg: windowSubTextFg;
+	style: TextStyle(boxLabelStyle) {
+		font: font(12px);
+	}
+}
+richMessagePreviewBlocksDivider: size(1px, 5px);
+richMessagePreviewBlocksDefaultDivider: size(2px, 9px);
+richMessagePreviewBlocksTickSkip: 5px;
+
 localStorageChartHeight: 200px;
 localStorageChartDiameter: 172px;
 localStorageChartThickness: 38px;
