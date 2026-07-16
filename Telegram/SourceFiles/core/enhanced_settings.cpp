@@ -148,11 +148,6 @@ namespace EnhancedSettings {
 			GetEnhancedInt(kRichMessagePreviewBlocksLimitKey));
 	}
 
-	bool IsRichMessagePreviewLimited(int blocksCount) {
-		const auto limit = RichMessagePreviewBlocksLimit();
-		return limit && (blocksCount > limit);
-	}
-
 	void SetRichMessagePreviewBlocksLimit(int limit) {
 		SetEnhancedValue(
 			kRichMessagePreviewBlocksLimitKey,

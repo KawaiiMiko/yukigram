@@ -14,7 +14,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/unixtime.h"
 #include "core/application.h"
 #include "core/click_handler_types.h" // ClickHandlerContext
-#include "core/enhanced_settings.h"
 #include "core/ui_integration.h"
 #include "history/view/history_view_cursor_state.h"
 #include "history/history_item_components.h"
@@ -5473,9 +5472,10 @@ void Message::updateViewButtonExistence() {
 	const auto shownRichPage = textItem()
 		? textItem()->translatedRichPage()
 		: richPage;
+	const auto localLimit = richMessagePreviewBlocksLimit();
 	const auto locallyLimited = shownRichPage
-		&& EnhancedSettings::IsRichMessagePreviewLimited(
-			int(shownRichPage->blocks.size()));
+		&& localLimit
+		&& (int(shownRichPage->blocks.size()) > localLimit);
 	if (richPage && (richPage->part || locallyLimited)) {
 		const auto itemId = item->fullId();
 		if (_viewButton && _viewButton->matches(itemId)) {

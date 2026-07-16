@@ -104,8 +104,8 @@ Element *PressedLinkElement/* = nullptr*/;
 Element *MousedElement/* = nullptr*/;
 
 [[nodiscard]] std::shared_ptr<const Iv::RichPage> RichPageForPreview(
-		const std::shared_ptr<const Iv::RichPage> &page) {
-	const auto limit = EnhancedSettings::RichMessagePreviewBlocksLimit();
+		const std::shared_ptr<const Iv::RichPage> &page,
+		int limit) {
 	if (!limit || int(page->blocks.size()) <= limit) {
 		return page;
 	}
@@ -1736,6 +1736,13 @@ const HistoryMessageRichPage *Element::richpage() const {
 	return const_cast<Element*>(this)->richpage();
 }
 
+int Element::richMessagePreviewBlocksLimit() const {
+	const auto peer = history()->peer;
+	return (peer->isBot() && data()->from() == peer)
+		? 0
+		: EnhancedSettings::RichMessagePreviewBlocksLimit();
+}
+
 OnlyEmojiAndSpaces Element::isOnlyEmojiAndSpaces() const {
 	if (data()->Has<HistoryMessageTranslation>()) {
 		return OnlyEmojiAndSpaces::No;
@@ -2003,7 +2010,9 @@ void Element::validateText() {
 		const auto session = &history()->session();
 		const auto richLimits = Iv::ResolveRichMessageLimits(session);
 		runtime->page = std::move(page);
-		runtime->renderedPage = RichPageForPreview(runtime->page);
+		runtime->renderedPage = RichPageForPreview(
+			runtime->page,
+			richMessagePreviewBlocksLimit());
 		runtime->mediaRuntime = Iv::CreateMessageMediaRuntime(
 			session,
 			not_null<Element*>{ this },

@@ -14,7 +14,6 @@ namespace EnhancedSettings {
 	inline constexpr auto kRichMessagePreviewBlocksLimitMax = 50;
 
 	[[nodiscard]] int RichMessagePreviewBlocksLimit();
-	[[nodiscard]] bool IsRichMessagePreviewLimited(int blocksCount);
 	void SetRichMessagePreviewBlocksLimit(int limit);
 
 	class Manager : public QObject {
