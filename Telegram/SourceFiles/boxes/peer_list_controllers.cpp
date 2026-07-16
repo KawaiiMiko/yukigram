@@ -219,11 +219,23 @@ void PeerListRowWithLink::rightActionPaint(
 class MutualContactRow final : public PeerListRow
 {
 public:
-	using PeerListRow::PeerListRow;
+	MutualContactRow(not_null<UserData*> user, bool shown)
+	: PeerListRow(user)
+	, _shown(shown) {
+	}
+
+	void setShown(bool shown) {
+		_shown = shown;
+		if (!shown) {
+			_ripple.reset();
+		}
+	}
 
 	QSize rightActionSize() const override
 	{
-		return QSize(st::contactsMutualIcon.width(), st::contactsMutualIcon.height());
+		return _shown
+			? QSize(st::contactsMutualIcon.width(), st::contactsMutualIcon.height())
+			: QSize();
 	}
 
 	QMargins rightActionMargins() const override
@@ -238,6 +250,9 @@ public:
 	void rightActionAddRipple(
 			   QPoint point,
 			   Fn<void()> updateCallback) {
+		if (!_shown) {
+			return;
+		}
 	   if (!_ripple) {
 			   const auto iconSize = rightActionSize();
 			   // Make ripple area slightly larger than the icon for better visual feedback
@@ -246,9 +261,9 @@ public:
 				   iconSize.height() + 16);
 			   auto mask = Ui::RippleAnimation::EllipseMask(rippleSize);
 			   _ripple = std::make_unique<Ui::RippleAnimation>(
-					   st::defaultRippleAnimation,
-					   std::move(mask),
-					   std::move(updateCallback));
+				   st::defaultRippleAnimation,
+				   std::move(mask),
+				   std::move(updateCallback));
 	   }
 	   // Adjust point to center the ripple on the icon
 	   const auto iconSize = rightActionSize();
@@ -270,19 +285,24 @@ public:
 		bool selected,
 		bool actionSelected) override
 	{
+		if (!_shown) {
+			return;
+		}
 		if (_ripple) {
-			   // Offset ripple painting to center it on the icon
-			   _ripple->paint(p, x - 8, y - 8, outerWidth);
-			   if (_ripple->empty()) {
-					   _ripple.reset();
-			   }
+		   // Offset ripple painting to center it on the icon
+		   _ripple->paint(p, x - 8, y - 8, outerWidth);
+		   if (_ripple->empty()) {
+				   _ripple.reset();
+		   }
 		}
 		const auto &icon = actionSelected
 							   ? st::contactsMutualIconOver
 							   : st::contactsMutualIcon;
 		icon.paint(p, style::rtlpoint(QPoint(x, y), outerWidth), outerWidth);
 	}
+
 private:
+	bool _shown = true;
 	   std::unique_ptr<Ui::RippleAnimation> _ripple;
 };
 
@@ -812,6 +832,7 @@ void ContactsBoxController::setSortMode(SortMode mode) {
 		return;
 	}
 	_sortMode = mode;
+	setMutualContactStyleShown(_sortMode != SortMode::Alphabet);
 	sort();
 	if (_sortMode == SortMode::Online) {
 		session().changes().peerUpdates(
@@ -826,6 +847,17 @@ void ContactsBoxController::setSortMode(SortMode mode) {
 		_sortByOnlineTimer.cancel();
 		_sortByOnlineLifetime.destroy();
 	}
+}
+
+void ContactsBoxController::setMutualContactStyleShown(bool shown) {
+	const auto count = delegate()->peerListFullRowsCount();
+	for (auto i = 0; i != count; ++i) {
+		if (const auto mutual = dynamic_cast<MutualContactRow*>(
+				delegate()->peerListRowAt(i).get())) {
+			mutual->setShown(shown);
+		}
+	}
+	delegate()->peerListRefreshRows();
 }
 
 void ContactsBoxController::setSectionHeadersShown(bool shown) {
@@ -901,7 +933,9 @@ std::unique_ptr<PeerListRow> ContactsBoxController::createRow(
 {
 	if (user->flags() & UserDataFlag::MutualContact)
 	{
-		return std::make_unique<MutualContactRow>(user);
+		return std::make_unique<MutualContactRow>(
+			user,
+			_sortMode != SortMode::Alphabet);
 	}
 	return std::make_unique<PeerListRow>(user);
 }

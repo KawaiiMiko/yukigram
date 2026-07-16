@@ -273,6 +273,7 @@ protected:
 
 private:
 	void sort();
+	void setMutualContactStyleShown(bool shown);
 	void sortByOnline();
 	void applySectionHeaders();
 	void rebuildRows();
