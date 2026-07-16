@@ -8,8 +8,12 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "core/application.h"
 #include "core/enhanced_settings.h"
+#include "data/data_histories.h"
+#include "data/data_session.h"
 #include <facades.h>
 #include "lang/lang_keys.h"
+#include "main/main_session.h"
+#include "mainwindow.h"
 #include "settings/sections/settings_enhanced.h"
 #include "ui/boxes/confirm_box.h"
 #include <ui/toast/toast.h>
@@ -17,6 +21,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/widgets/continuous_sliders.h"
 #include "ui/widgets/fields/input_field.h"
 #include "ui/widgets/labels.h"
+#include "window/window_session_controller.h"
 
 #include "styles/style_boxes.h"
 #include "styles/style_layers.h"
@@ -331,7 +336,13 @@ void RichMessagePreviewBlocksBox::updateCurrentLabel() {
 }
 
 void RichMessagePreviewBlocksBox::save() {
+	const auto changed = (_limit
+		!= EnhancedSettings::RichMessagePreviewBlocksLimit());
 	EnhancedSettings::SetRichMessagePreviewBlocksLimit(_limit);
 	EnhancedSettings::Write();
+	if (changed) {
+		App::wnd()->sessionController()->session().data().histories()
+			.refreshRichMessageViews();
+	}
 	closeBox();
 }

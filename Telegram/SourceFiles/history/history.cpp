@@ -821,6 +821,19 @@ void History::restoreBlockedHiddenMessages() {
 	requestChatListMessage();
 }
 
+void History::refreshRichMessageViews() {
+	auto items = std::vector<not_null<HistoryItem*>>();
+	items.reserve(_items.size());
+	for (const auto &message : _items) {
+		if (message->richPage()) {
+			items.push_back(message.get());
+		}
+	}
+	for (const auto &item : items) {
+		owner().requestItemViewRefresh(item);
+	}
+}
+
 void History::refreshHiddenReplyData(const std::vector<MsgId> &ids) {
 	if (ids.empty()) {
 		return;

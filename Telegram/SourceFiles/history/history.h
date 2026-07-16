@@ -155,6 +155,7 @@ public:
 	void hideBlockedMessages();
 	void syncBlockedPeerMessages(PeerData* peer, bool hide);
 	void restoreBlockedHiddenMessages();
+	void refreshRichMessageViews();
 	void destroyMessagesByTopic(MsgId topicRootId);
 	void refreshHiddenReplyData(const std::vector<MsgId> &ids);
 

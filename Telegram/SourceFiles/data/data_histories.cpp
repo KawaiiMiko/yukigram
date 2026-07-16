@@ -188,6 +188,12 @@ void Histories::restoreBlockedHiddenMessages() {
 	}
 }
 
+void Histories::refreshRichMessageViews() {
+	for (const auto &[peerId, history] : _map) {
+		history->refreshRichMessageViews();
+	}
+}
+
 void Histories::readInbox(not_null<History*> history) {
 	DEBUG_LOG(("Reading: readInbox called."));
 	if (history->lastServerMessageKnown()) {
