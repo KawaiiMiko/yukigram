@@ -386,7 +386,7 @@ MainMenu::MainMenu(
 
 	_telegram->setMarkedText(tr::link(
 		u"Yurigram"_q,
-		u"https://github.com/Revincx/yukigram"_q));
+		u"https://github.com/Revincx/Yurigram"_q));
 	_telegram->setLinksTrusted();
 	_version->setMarkedText(
 		tr::link(
