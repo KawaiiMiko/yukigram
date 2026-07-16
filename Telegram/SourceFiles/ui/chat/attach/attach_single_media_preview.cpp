@@ -35,7 +35,7 @@ SingleMediaPreview *SingleMediaPreview::Create(
 			? file.videoCover->preview
 			: video->thumbnail;
 		animated = true;
-		animationPreview = video->isGifv;
+		animationPreview = file.isGifv();
 	}
 	if (preview.isNull()) {
 		return nullptr;

@@ -188,10 +188,21 @@ bool PreparedFile::isVideoFile() const {
 	using Video = Ui::PreparedFileInformation::Video;
 	return (type == PreparedFile::Type::Video)
 		&& v::is<Video>(information->media)
-		&& !v::get<Video>(information->media).isGifv;
+		&& (!v::get<Video>(information->media).isGifv
+			|| !v::get<Video>(information->media).markAsGif);
 }
 
 bool PreparedFile::isGifv() const {
+	Expects(information != nullptr);
+
+	using Video = Ui::PreparedFileInformation::Video;
+	return (type == PreparedFile::Type::Video)
+		&& v::is<Video>(information->media)
+		&& v::get<Video>(information->media).isGifv
+		&& v::get<Video>(information->media).markAsGif;
+}
+
+bool PreparedFile::canBeMarkedAsGif() const {
 	Expects(information != nullptr);
 
 	using Video = Ui::PreparedFileInformation::Video;

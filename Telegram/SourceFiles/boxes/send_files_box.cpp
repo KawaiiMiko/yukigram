@@ -1100,6 +1100,32 @@ void SendFilesBox::toggleSpoilers(bool enabled) {
 	}
 }
 
+void SendFilesBox::setMarkAsGif(bool enabled) {
+	if (_list.files.size() != 1
+		|| !_list.files.front().canBeMarkedAsGif()) {
+		return;
+	}
+	using Video = Ui::PreparedFileInformation::Video;
+	auto &file = _list.files.front();
+	auto &video = v::get<Video>(file.information->media);
+	if (video.markAsGif == enabled) {
+		return;
+	}
+	applyBlockChanges();
+	video.markAsGif = enabled;
+	if (checkWithWay(_sendWay.current())) {
+		generatePreviewFrom(0);
+		_inner->resizeToWidth(st::boxWideWidth);
+		refreshControls();
+		captionResized();
+	} else {
+		video.markAsGif = !enabled;
+		Ui::PostponeCall(_markAsGif.data(), [=] {
+			_markAsGif->setChecked(!enabled);
+		});
+	}
+}
+
 void SendFilesBox::setSendLargePhotos(bool enabled) {
 	auto way = _sendWay.current();
 	if (way.sendLargePhotos() == enabled) {
@@ -1770,6 +1796,12 @@ void SendFilesBox::setupSendWayControls() {
 		groupFilesFirst,
 		_st.files.checkbox,
 		_st.files.check);
+	_markAsGif.create(
+		this,
+		tr::lng_send_mark_as_gif(tr::now),
+		false,
+		_st.files.checkbox,
+		_st.files.check);
 	_sendImagesAsPhotos.create(
 		this,
 		tr::lng_send_as_documents(tr::now),
@@ -1797,6 +1829,11 @@ void SendFilesBox::setupSendWayControls() {
 				_groupFiles->setChecked(!checked);
 			});
 		}
+	}, lifetime());
+
+	_markAsGif->checkedChanges(
+	) | rpl::on_next([=](bool checked) {
+		setMarkAsGif(checked);
 	}, lifetime());
 
 	_sendImagesAsPhotos->checkedChanges(
@@ -1862,6 +1899,12 @@ bool SendFilesBox::checkWith(
 void SendFilesBox::updateSendWayControls() {
 	const auto onlyOne = (_limits & SendFilesAllow::OnlyOne);
 	_groupFiles->setVisible(_list.hasGroupOption(onlyOne));
+	const auto canMarkAsGif = (_list.files.size() == 1)
+		&& _list.files.front().canBeMarkedAsGif();
+	_markAsGif->setVisible(
+		canMarkAsGif && _sendWay.current().sendImagesAsPhotos());
+	_markAsGif->setChecked(
+		canMarkAsGif && _list.files.front().isGifv());
 	_sendImagesAsPhotos->setVisible(
 		_list.hasSendImagesAsPhotosOption(onlyOne));
 	_sendImagesAsPhotos->setText((_list.files.size() > 1)
@@ -2256,8 +2299,9 @@ void SendFilesBox::updateBoxSize() {
 		footerHeight += st::boxPhotoCaptionSkip + _caption->height();
 	}
 	footerHeight += _replyHeaderHeight.current();
-	const auto pairs = std::array<std::pair<RpWidget*, int>, 4>{ {
+	const auto pairs = std::array<std::pair<RpWidget*, int>, 5>{ {
 		{ _groupFiles.data(), st::boxPhotoCompressedSkip },
+		{ _markAsGif.data(), st::boxPhotoCompressedSkip },
 		{ _sendImagesAsPhotos.data(), st::boxPhotoCompressedSkip },
 		{ _wayRemember.data(), st::boxPhotoCompressedSkip },
 		{ _hintLabel.data(), st::editMediaLabelMargins.top() },
@@ -2328,9 +2372,10 @@ void SendFilesBox::updateControlsGeometry() {
 			_aiButton->raise();
 		}
 	}
-	const auto pairs = std::array<std::pair<RpWidget*, int>, 4>{ {
+	const auto pairs = std::array<std::pair<RpWidget*, int>, 5>{ {
 		{ _hintLabel.data(), st::editMediaLabelMargins.top() },
 		{ _groupFiles.data(), st::boxPhotoCompressedSkip },
+		{ _markAsGif.data(), st::boxPhotoCompressedSkip },
 		{ _sendImagesAsPhotos.data(), st::boxPhotoCompressedSkip },
 		{ _wayRemember.data(), st::boxPhotoCompressedSkip },
 	} };

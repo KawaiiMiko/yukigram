@@ -41,6 +41,7 @@ struct PreparedFileInformation {
 	};
 	struct Video {
 		bool isGifv = false;
+		bool markAsGif = true;
 		bool isWebmSticker = false;
 		bool supportsStreaming = false;
 		crl::time duration = -1;
@@ -83,6 +84,7 @@ struct PreparedFile {
 	[[nodiscard]] bool isSticker() const;
 	[[nodiscard]] bool isVideoFile() const;
 	[[nodiscard]] bool isGifv() const;
+	[[nodiscard]] bool canBeMarkedAsGif() const;
 	[[nodiscard]] bool canUseHighQualityPhoto() const;
 
 	QString path;

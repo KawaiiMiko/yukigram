@@ -817,7 +817,7 @@ void FileLoadTask::process(ProcessArgs &&args) {
 			isVideo = true;
 			auto coverWidth = video->thumbnail.width();
 			auto coverHeight = video->thumbnail.height();
-			if (video->isGifv && !_album) {
+			if (video->isGifv && video->markAsGif && !_album) {
 				attributes.push_back(MTP_documentAttributeAnimated());
 			}
 			auto flags = MTPDdocumentAttributeVideo::Flags(
@@ -862,7 +862,7 @@ void FileLoadTask::process(ProcessArgs &&args) {
 			auto coverWidth = video->thumbnail.width();
 			auto coverHeight = video->thumbnail.height();
 			if (!_forceFile) {
-				if (video->isGifv && !_album) {
+				if (video->isGifv && video->markAsGif && !_album) {
 					attributes.push_back(MTP_documentAttributeAnimated());
 				}
 				auto flags = MTPDdocumentAttributeVideo::Flags(0);

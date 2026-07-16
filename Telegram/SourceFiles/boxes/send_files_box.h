@@ -222,6 +222,7 @@ private:
 	void addMenuButton();
 	void applyBlockChanges();
 	void toggleSpoilers(bool enabled);
+	void setMarkAsGif(bool enabled);
 	void setSendLargePhotos(bool enabled);
 	void changePrice();
 
@@ -327,6 +328,7 @@ private:
 	base::unique_qptr<CharactersLimitLabel> _charsLimitation;
 
 	object_ptr<Ui::Checkbox> _groupFiles = { nullptr };
+	object_ptr<Ui::Checkbox> _markAsGif = { nullptr };
 	object_ptr<Ui::Checkbox> _sendImagesAsPhotos = { nullptr };
 	object_ptr<Ui::Checkbox> _wayRemember = { nullptr };
 	object_ptr<Ui::FlatLabel> _hintLabel = { nullptr };
