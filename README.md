@@ -18,6 +18,8 @@ In addition, Yurigram includes the following features, listed in the order they 
  6. Additional Fluent Emoji Packs
  7. Ability to temporarily hide messages and restore them easily
  8. Ability to add or edit webpage previews with custom URLs
+ 9. Quickly create or edit inline user mentions with shortcuts
+ 10. Ability to set a custom render limit for rich message blocks
 
 And more new features will ~~(may)~~ be added in the future.
 
