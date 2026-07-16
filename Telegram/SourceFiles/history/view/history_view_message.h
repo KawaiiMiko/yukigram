@@ -91,6 +91,7 @@ struct HistoryMessageRichPage
 	};
 
 	std::shared_ptr<const Iv::RichPage> page;
+	std::shared_ptr<const Iv::RichPage> renderedPage;
 	std::shared_ptr<Iv::Markdown::MediaRuntime> mediaRuntime;
 
 	// The article and its media blocks keep a raw MediaBlockHost pointer,

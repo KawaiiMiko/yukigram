@@ -37,6 +37,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "boxes/premium_preview_box.h"
 #include "core/application.h"
 #include "core/core_settings.h"
+#include "core/enhanced_settings.h"
 #include "core/msg_extra_state.h"
 #include "core/click_handler_types.h"
 #include "core/ui_integration.h"
@@ -101,6 +102,21 @@ Element *PressedElement/* = nullptr*/;
 Element *HoveredLinkElement/* = nullptr*/;
 Element *PressedLinkElement/* = nullptr*/;
 Element *MousedElement/* = nullptr*/;
+
+[[nodiscard]] std::shared_ptr<const Iv::RichPage> RichPageForPreview(
+		const std::shared_ptr<const Iv::RichPage> &page) {
+	const auto limit = EnhancedSettings::RichMessagePreviewBlocksLimit();
+	if (!limit || int(page->blocks.size()) <= limit) {
+		return page;
+	}
+	auto result = std::make_shared<Iv::RichPage>();
+	result->url = page->url;
+	result->rtl = page->rtl;
+	result->part = page->part;
+	result->views = page->views;
+	result->blocks.assign(page->blocks.begin(), page->blocks.begin() + limit);
+	return result;
+}
 
 class KeyboardStyle : public ReplyKeyboard::Style {
 public:
@@ -1978,20 +1994,23 @@ void Element::validateText() {
 				}
 			}, runtime->highlightReadyLifetime);
 		}
-		if (runtime->page == page && runtime->mediaRuntime) {
+		if (runtime->page == page
+			&& runtime->renderedPage
+			&& runtime->mediaRuntime) {
 			return;
 		}
 		const auto &layoutSt = st::messageMarkdown;
 		const auto session = &history()->session();
 		const auto richLimits = Iv::ResolveRichMessageLimits(session);
 		runtime->page = std::move(page);
+		runtime->renderedPage = RichPageForPreview(runtime->page);
 		runtime->mediaRuntime = Iv::CreateMessageMediaRuntime(
 			session,
 			not_null<Element*>{ this },
 			[](QString) {}, // openChannel
 			[](QString) {}); // joinChannel
 		auto prepared = Iv::Markdown::TryPrepareNativeInstantView({
-			.richPage = runtime->page,
+			.richPage = runtime->renderedPage,
 			.mediaRuntime = runtime->mediaRuntime,
 			.dimensionsOverride = Iv::Markdown::CaptureMarkdownPrepareDimensions(
 				layoutSt),

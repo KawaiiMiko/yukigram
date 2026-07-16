@@ -4,20 +4,47 @@ the unofficial app based on Telegram Desktop.
 For license and copyright information please follow this link:
 https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
-#include <facades.h>
-#include <ui/toast/toast.h>
 #include "boxes/enhanced_options_box.h"
 
-#include "lang/lang_keys.h"
-#include "ui/widgets/checkbox.h"
-#include "ui/widgets/fields/input_field.h"
-#include "ui/widgets/labels.h"
-#include "styles/style_layers.h"
-#include "styles/style_boxes.h"
-#include "ui/boxes/confirm_box.h"
 #include "core/application.h"
 #include "core/enhanced_settings.h"
+#include <facades.h>
+#include "lang/lang_keys.h"
 #include "settings/sections/settings_enhanced.h"
+#include "ui/boxes/confirm_box.h"
+#include <ui/toast/toast.h>
+#include "ui/widgets/checkbox.h"
+#include "ui/widgets/continuous_sliders.h"
+#include "ui/widgets/fields/input_field.h"
+#include "ui/widgets/labels.h"
+
+#include "styles/style_boxes.h"
+#include "styles/style_layers.h"
+
+#include <algorithm>
+
+namespace {
+
+constexpr auto kRichMessagePreviewDisabledIndex
+	= EnhancedSettings::kRichMessagePreviewBlocksLimitMax
+		- EnhancedSettings::kRichMessagePreviewBlocksLimitMin
+		+ 1;
+constexpr auto kRichMessagePreviewValuesCount
+	= kRichMessagePreviewDisabledIndex + 1;
+
+[[nodiscard]] int RichMessagePreviewLimitForIndex(int index) {
+	return (index == kRichMessagePreviewDisabledIndex)
+		? 0
+		: (EnhancedSettings::kRichMessagePreviewBlocksLimitMin + index);
+}
+
+[[nodiscard]] int RichMessagePreviewIndexForLimit(int limit) {
+	return limit
+		? (limit - EnhancedSettings::kRichMessagePreviewBlocksLimitMin)
+		: kRichMessagePreviewDisabledIndex;
+}
+
+} // namespace
 
 NetBoostBox::NetBoostBox(QWidget *parent) {
 }
@@ -234,5 +261,77 @@ void BitrateController::save() {
 	SetEnhancedValue("bitrate", _bitrateGroup->current());
 	EnhancedSettings::Write();
 	Ui::Toast::Show(tr::lng_bitrate_controller_hint(tr::now));
+	closeBox();
+}
+
+RichMessagePreviewBlocksBox::RichMessagePreviewBlocksBox(QWidget *parent) {
+}
+
+void RichMessagePreviewBlocksBox::prepare() {
+	setTitle(tr::lng_settings_rich_message_preview_blocks());
+
+	addButton(tr::lng_settings_save(), [=] { save(); });
+	addButton(tr::lng_cancel(), [=] { closeBox(); });
+
+	auto y = st::boxOptionListPadding.top();
+	_description.create(
+		this,
+		tr::lng_settings_rich_message_preview_blocks_desc(tr::now),
+		st::boxLabel);
+	_description->moveToLeft(st::boxPadding.left(), y);
+	_description->resizeToWidth(
+		st::boxWidth - st::boxPadding.left() - st::boxPadding.right());
+	y += _description->height() + st::boxMediumSkip;
+
+	const auto minimum = Ui::CreateChild<Ui::FlatLabel>(
+		this,
+		QString::number(EnhancedSettings::kRichMessagePreviewBlocksLimitMin),
+		st::boxLabel);
+	const auto maximum = Ui::CreateChild<Ui::FlatLabel>(
+		this,
+		tr::lng_font_default(tr::now),
+		st::boxLabel);
+	_current.create(this, QString(), st::boxLabel);
+	_labelsTop = y;
+	minimum->moveToLeft(st::boxPadding.left(), y);
+	maximum->moveToRight(st::boxPadding.right(), y);
+	y += std::max({
+		minimum->height(),
+		maximum->height(),
+		_current->height(),
+	}) + st::boxMediumSkip;
+
+	_slider.create(this, st::localStorageLimitSlider);
+	_slider->resize(
+		st::boxWidth - st::boxPadding.left() - st::boxPadding.right(),
+		st::localStorageLimitSlider.seekSize.height());
+	_slider->moveToLeft(st::boxPadding.left(), y);
+
+	_limit = EnhancedSettings::RichMessagePreviewBlocksLimit();
+	_slider->setPseudoDiscrete(
+		kRichMessagePreviewValuesCount,
+		[](int index) { return index; },
+		RichMessagePreviewIndexForLimit(_limit),
+		[=](int index) {
+			_limit = RichMessagePreviewLimitForIndex(index);
+			updateCurrentLabel();
+		});
+	updateCurrentLabel();
+
+	y += _slider->height() + st::boxOptionListPadding.bottom();
+	showChildren();
+	setDimensions(st::boxWidth, y);
+}
+
+void RichMessagePreviewBlocksBox::updateCurrentLabel() {
+	_current->setText(_limit
+		? QString::number(_limit)
+		: tr::lng_font_default(tr::now));
+	_current->moveToLeft((st::boxWidth - _current->width()) / 2, _labelsTop);
+}
+
+void RichMessagePreviewBlocksBox::save() {
+	EnhancedSettings::SetRichMessagePreviewBlocksLimit(_limit);
+	EnhancedSettings::Write();
 	closeBox();
 }

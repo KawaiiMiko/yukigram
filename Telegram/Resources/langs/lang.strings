@@ -8578,6 +8578,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_settings_network" = "Network";
 "lng_settings_net_upload_speed_boost" = "Upload speed boost";
 "lng_settings_show_message_id" = "Show message ID";
+"lng_settings_rich_message_preview_blocks" = "Custom rich message blocks limit";
+"lng_settings_rich_message_preview_blocks_desc" = "Limit the number of blocks shown for rich messages in chats. Use Show more to open the full message.";
 "lng_settings_button" = "Button";
 "lng_settings_show_emoji_button_as_text" = "Show emoji button as text";
 "lng_settings_extra_context_menu_options" = "Extra context menu options";

@@ -46,6 +46,7 @@ namespace Settings {
 
 		rpl::event_stream<QString> _AlwaysDeleteChanged;
 		rpl::event_stream<QString> _BitrateChanged;
+		rpl::event_stream<> _RichMessagePreviewBlocksChanged;
 
 		std::vector<std::pair<QString, QPointer<QWidget>>> _highlightControls;
 

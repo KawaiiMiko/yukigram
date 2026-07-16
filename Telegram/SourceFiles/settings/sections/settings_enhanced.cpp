@@ -75,6 +75,21 @@ namespace {
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
+			.id = u"enhanced/messages/rich-message-blocks-limit"_q,
+			.title = tr::lng_settings_rich_message_preview_blocks(tr::now),
+			.keywords = {
+				u"rich message"_q,
+				u"blocks"_q,
+				u"preview"_q,
+				u"show more"_q,
+			},
+			.deeplink
+				= u"tg://settings/enhanced/messages/rich-message-blocks-limit"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
 			.id = u"enhanced/messages/no-animoji"_q,
 			.title = tr::lng_settings_no_animoji(tr::now),
 			.keywords = { u"animated"_q, u"emoji"_q, u"animoji"_q, u"disable"_q },
@@ -739,6 +754,7 @@ namespace {
 					anim::type::normal);
 			}
 		}, container->lifetime());
+
 		const auto repeaterReplyToOrig = AddButtonWithIcon(
 				repeaterSubInner,
 				tr::lng_settings_repeater_reply_to_orig_msg(),
@@ -757,6 +773,31 @@ namespace {
 			EnhancedSettings::Write();
 		}, container->lifetime());
 
+		auto richMessagePreviewBlocksValue = rpl::combine(
+			tr::lng_font_default(),
+			_RichMessagePreviewBlocksChanged.events_starting_with({})
+		) | rpl::map([](QString defaultLabel, auto) {
+			const auto limit
+				= EnhancedSettings::RichMessagePreviewBlocksLimit();
+			return limit ? QString::number(limit) : std::move(defaultLabel);
+		});
+		const auto richMessagePreviewBlocks = AddButtonWithLabel(
+			inner,
+			tr::lng_settings_rich_message_preview_blocks(),
+			std::move(richMessagePreviewBlocksValue),
+			st::settingsButtonNoIcon);
+		registerHighlight(
+			u"enhanced/messages/rich-message-blocks-limit"_q,
+			richMessagePreviewBlocks);
+		richMessagePreviewBlocks->events(
+		) | rpl::on_next([=](not_null<QEvent*> e) {
+			if (e->type() == QEvent::UpdateLater) {
+				_RichMessagePreviewBlocksChanged.fire({});
+			}
+		}, container->lifetime());
+		richMessagePreviewBlocks->addClickHandler([=] {
+			Ui::show(Box<RichMessagePreviewBlocksBox>());
+		});
 	}
 
 	void Enhanced::SetupEnhancedButton(not_null<Ui::VerticalLayout *> container) {

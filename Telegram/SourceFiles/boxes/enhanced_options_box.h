@@ -19,6 +19,8 @@ namespace Ui {
 	class FlatLabel;
 
 	class InputField;
+
+	class MediaSliderWheelless;
 } // namespace Ui
 
 class NetBoostBox : public Ui::BoxContent {
@@ -96,5 +98,24 @@ private:
 
 	object_ptr<Ui::FlatLabel> _description = {nullptr};
 	std::shared_ptr<Ui::RadiobuttonGroup> _bitrateGroup;
+
+};
+
+class RichMessagePreviewBlocksBox : public Ui::BoxContent {
+public:
+	RichMessagePreviewBlocksBox(QWidget *parent);
+
+protected:
+	void prepare() override;
+
+private:
+	void updateCurrentLabel();
+	void save();
+
+	object_ptr<Ui::FlatLabel> _description = { nullptr };
+	object_ptr<Ui::FlatLabel> _current = { nullptr };
+	object_ptr<Ui::MediaSliderWheelless> _slider = { nullptr };
+	int _labelsTop = 0;
+	int _limit = 0;
 
 };

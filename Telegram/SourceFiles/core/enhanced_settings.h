@@ -10,6 +10,13 @@ https://github.com/TDesktop-x64/tdesktop/blob/dev/LEGAL
 
 namespace EnhancedSettings {
 
+	inline constexpr auto kRichMessagePreviewBlocksLimitMin = 5;
+	inline constexpr auto kRichMessagePreviewBlocksLimitMax = 50;
+
+	[[nodiscard]] int RichMessagePreviewBlocksLimit();
+	[[nodiscard]] bool IsRichMessagePreviewLimited(int blocksCount);
+	void SetRichMessagePreviewBlocksLimit(int limit);
+
 	class Manager : public QObject {
 	Q_OBJECT
 

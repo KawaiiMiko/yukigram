@@ -20,10 +20,24 @@ https://github.com/TDesktop-x64/tdesktop/blob/dev/LEGAL
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonValue>
 
+#include <algorithm>
+
 namespace EnhancedSettings {
 	namespace {
 
 		constexpr auto kWriteJsonTimeout = crl::time(5000);
+		constexpr auto kRichMessagePreviewBlocksLimitKey
+			= "rich_message_preview_max_blocks";
+
+		[[nodiscard]] int NormalizeRichMessagePreviewBlocksLimit(int limit) {
+			if (limit <= 0) {
+				return 0;
+			}
+			return std::clamp(
+				limit,
+				kRichMessagePreviewBlocksLimitMin,
+				kRichMessagePreviewBlocksLimitMax);
+		}
 
 		QString DefaultFilePath() {
 			return cWorkingDir() + qsl("tdata/enhanced-settings-default.json");
@@ -129,6 +143,22 @@ namespace EnhancedSettings {
 
 	} // namespace
 
+	int RichMessagePreviewBlocksLimit() {
+		return NormalizeRichMessagePreviewBlocksLimit(
+			GetEnhancedInt(kRichMessagePreviewBlocksLimitKey));
+	}
+
+	bool IsRichMessagePreviewLimited(int blocksCount) {
+		const auto limit = RichMessagePreviewBlocksLimit();
+		return limit && (blocksCount > limit);
+	}
+
+	void SetRichMessagePreviewBlocksLimit(int limit) {
+		SetEnhancedValue(
+			kRichMessagePreviewBlocksLimitKey,
+			NormalizeRichMessagePreviewBlocksLimit(limit));
+	}
+
 	Manager::Manager() {
 		_jsonWriteTimer.setSingleShot(true);
 		connect(&_jsonWriteTimer, SIGNAL(timeout()), this, SLOT(writeTimeout()));
@@ -206,6 +236,11 @@ namespace EnhancedSettings {
 				}
 			}
 		});
+
+		ReadIntOption(
+			settings,
+			kRichMessagePreviewBlocksLimitKey,
+			SetRichMessagePreviewBlocksLimit);
 
 		ReadStringOption(settings, "radio_controller", [&](auto v) {
 			if (v.isEmpty()) {
@@ -310,6 +345,7 @@ namespace EnhancedSettings {
 		settings.insert(qsl("disable_global_search"), false);
 		settings.insert(qsl("show_group_sender_avatar"), false);
 		settings.insert(qsl("show_seconds"), false);
+		settings.insert(qsl("rich_message_preview_max_blocks"), 0);
 		settings.insert(qsl("hide_counter"), false);
 		settings.insert(qsl("use_gt_api"), false);
 		settings.insert(qsl("translate_to_tc"), false);
@@ -375,6 +411,9 @@ namespace EnhancedSettings {
 		settings.insert(qsl("disable_global_search"), GetEnhancedBool("disable_global_search"));
 		settings.insert(qsl("show_group_sender_avatar"), GetEnhancedBool("show_group_sender_avatar"));
 		settings.insert(qsl("show_seconds"), GetEnhancedBool("show_seconds"));
+		settings.insert(
+			qsl("rich_message_preview_max_blocks"),
+			RichMessagePreviewBlocksLimit());
 		settings.insert(qsl("hide_counter"), GetEnhancedBool("hide_counter"));
 		settings.insert(qsl("use_gt_api"), GetEnhancedBool("use_gt_api"));
 		settings.insert(qsl("translate_to_tc"), GetEnhancedBool("translate_to_tc"));
