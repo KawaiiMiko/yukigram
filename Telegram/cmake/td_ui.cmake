@@ -215,6 +215,8 @@ PRIVATE
     media/clip/media_clip_implementation.h
     media/clip/media_clip_reader.cpp
     media/clip/media_clip_reader.h
+    media/clip/media_clip_silent_audio.cpp
+    media/clip/media_clip_silent_audio.h
 
     media/player/media_player_button.cpp
     media/player/media_player_button.h

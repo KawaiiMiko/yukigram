@@ -22,6 +22,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "editor/scene/scene.h"
 #include "media/audio/media_audio.h"
 #include "media/clip/media_clip_reader.h"
+#include "media/clip/media_clip_silent_audio.h"
 #include "mtproto/facade.h"
 #include "lottie/lottie_animation.h"
 #include "history/history.h"
@@ -41,6 +42,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "main/main_session.h"
 
 #include <QtCore/QBuffer>
+#include <QtCore/QFile>
 #include <QtGui/QImageWriter>
 
 namespace {
@@ -786,6 +788,28 @@ void FileLoadTask::process(ProcessArgs &&args) {
 			}
 			fullimage = Images::Opaque(std::move(fullimage));
 			fullimagebytes = fullimageformat = QByteArray();
+		}
+	}
+	if (!_forceFile && !_album && _information) {
+		using Video = Ui::PreparedFileInformation::Video;
+		const auto video = std::get_if<Video>(&_information->media);
+		if (video && video->isGifv && !video->markAsGif) {
+			auto original = _content;
+			if (original.isEmpty()) {
+				auto file = QFile(_filepath);
+				if (file.open(QIODevice::ReadOnly)) {
+					original = file.readAll();
+				}
+			}
+			auto remuxed = Media::Clip::AddSilentAudioTrack(
+				original,
+				video->duration);
+			if (!remuxed.isEmpty()) {
+				_content = std::move(remuxed);
+				_filepath = QString();
+				filesize = _content.size();
+				filemime = u"video/mp4"_q;
+			}
 		}
 	}
 	_result->filesize = qMin(filesize, qint64(UINT_MAX));
