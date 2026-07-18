@@ -426,6 +426,7 @@ private:
 	ChatSearchTab _searchQueryTab = {};
 	ChannelData *_searchQueryCommunity = nullptr;
 	ChatTypeFilter _searchQueryFilter = {};
+	bool _searchQueryFromArchive = true;
 
 	Ui::Controls::SwipeBackResult _swipeBackData;
 	bool _swipeBackMirrored = false;
