@@ -357,6 +357,22 @@ namespace {
 			.deeplink = u"tg://settings/enhanced/other/force-mobile"_q,
 		};
 	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/other/community-chat-click"_q,
+			.title = tr::lng_settings_community_chat_click(tr::now),
+			.keywords = {
+				u"chat"_q,
+				u"community"_q,
+				u"avatar"_q,
+				u"userpic"_q,
+				u"profile"_q,
+			},
+			.deeplink
+				= u"tg://settings/enhanced/other/community-chat-click"_q,
+		};
+	});
 });
 
 } // namespace
@@ -1116,6 +1132,24 @@ namespace {
 			SetEnhancedValue("force_mobile", toggled);
 			EnhancedSettings::Write();
 			Core::Restart();
+		}, container->lifetime());
+
+		const auto communityChatClick = AddButtonWithIcon(
+				container,
+				tr::lng_settings_community_chat_click(),
+				st::settingsButtonNoIcon
+		);
+		registerHighlight(
+			u"enhanced/other/community-chat-click"_q,
+			communityChatClick);
+		communityChatClick->toggleOn(
+				rpl::single(GetEnhancedBool("community_chat_click"))
+		)->toggledChanges(
+		) | rpl::filter([](bool enabled) {
+			return (enabled != GetEnhancedBool("community_chat_click"));
+		}) | rpl::on_next([=](bool enabled) {
+			SetEnhancedValue("community_chat_click", enabled);
+			EnhancedSettings::Write();
 		}, container->lifetime());
 
 		AddSkip(container);

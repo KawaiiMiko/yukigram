@@ -993,7 +993,8 @@ void Widget::chosenRow(const ChosenRow &row) {
 	const auto userpicCommunity = [&]() -> ChannelData* {
 		if (!history
 			|| !row.userpicClick
-			|| (row.message.fullId.msg != ShowAtUnreadMsgId)) {
+			|| (row.message.fullId.msg != ShowAtUnreadMsgId)
+			|| GetEnhancedBool("community_chat_click")) {
 			return nullptr;
 		}
 		const auto communityId = Data::PeerLinkedCommunityId(history->peer);
