@@ -222,6 +222,7 @@ private:
 	void addMenuButton();
 	void applyBlockChanges();
 	void toggleSpoilers(bool enabled);
+	void applyMarkAsGifPreference();
 	void setMarkAsGif(bool enabled);
 	void setSendLargePhotos(bool enabled);
 	void changePrice();
@@ -333,6 +334,8 @@ private:
 	object_ptr<Ui::Checkbox> _wayRemember = { nullptr };
 	object_ptr<Ui::FlatLabel> _hintLabel = { nullptr };
 	rpl::variable<Ui::SendFilesWay> _sendWay = Ui::SendFilesWay();
+	const Ui::PreparedFileInformation *_markAsGifPreferenceFile = nullptr;
+	bool _markAsGifFirst = true;
 
 	rpl::variable<int> _footerHeight = 0;
 	rpl::lifetime _dimensionsLifetime;

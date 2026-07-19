@@ -79,6 +79,7 @@ namespace {
 
 constexpr auto kMaxMessageLength = 4096;
 constexpr auto kMaxDisplayNameLength = 64;
+constexpr auto kMarkAsGifPref = "send_video_mark_as_gif"_cs;
 
 using Ui::SendFilesWay;
 
@@ -700,6 +701,10 @@ SendFilesBox::SendFilesBox(QWidget*, SendFilesBoxDescriptor &&descriptor)
 	_scroll->setOwnedWidget(
 		object_ptr<Ui::VerticalLayout>(_scroll.data()))) {
 	setReplyTo(descriptor.replyTo);
+	_markAsGifFirst = Core::App().settings().readPref<bool>(
+		kMarkAsGifPref,
+		true);
+	applyMarkAsGifPreference();
 	enqueueNextPrepare();
 }
 
@@ -922,6 +927,7 @@ void SendFilesBox::refreshAllAfterChanges(int fromItem, Fn<void()> perform) {
 	if (perform) {
 		perform();
 	}
+	applyMarkAsGifPreference();
 	generatePreviewFrom(fromBlock);
 	{
 		auto sendWay = _sendWay.current();
@@ -1098,6 +1104,27 @@ void SendFilesBox::toggleSpoilers(bool enabled) {
 	for (auto &block : _blocks) {
 		block.toggleSpoilers(enabled);
 	}
+}
+
+void SendFilesBox::applyMarkAsGifPreference() {
+	if (_markAsGifPreferenceFile
+		&& ranges::none_of(_list.files, [=](const auto &file) {
+			return file.information.get() == _markAsGifPreferenceFile;
+		})) {
+		_markAsGifPreferenceFile = nullptr;
+	}
+	if (_list.files.size() != 1
+		|| !_list.files.front().canBeMarkedAsGif()) {
+		return;
+	}
+	auto &file = _list.files.front();
+	if (file.information.get() == _markAsGifPreferenceFile) {
+		return;
+	}
+	using Video = Ui::PreparedFileInformation::Video;
+	auto &video = v::get<Video>(file.information->media);
+	video.markAsGif = _markAsGifFirst;
+	_markAsGifPreferenceFile = file.information.get();
 }
 
 void SendFilesBox::setMarkAsGif(bool enabled) {
@@ -1790,6 +1817,8 @@ void SendFilesBox::refreshControls(bool initial) {
 void SendFilesBox::setupSendWayControls() {
 	const auto groupFilesFirst = _sendWay.current().groupFiles();
 	const auto asPhotosFirst = _sendWay.current().sendImagesAsPhotos();
+	const auto markAsGifChecked = (_list.files.size() == 1)
+		&& _list.files.front().isGifv();
 	_groupFiles.create(
 		this,
 		tr::lng_send_grouped(tr::now),
@@ -1799,7 +1828,7 @@ void SendFilesBox::setupSendWayControls() {
 	_markAsGif.create(
 		this,
 		tr::lng_send_mark_as_gif(tr::now),
-		false,
+		markAsGifChecked,
 		_st.files.checkbox,
 		_st.files.check);
 	_sendImagesAsPhotos.create(
@@ -1861,11 +1890,19 @@ void SendFilesBox::setupSendWayControls() {
 	_wayRemember->hide();
 	rpl::combine(
 		_groupFiles->checkedValue(),
+		_markAsGif->checkedValue(),
+		_markAsGif->shownValue(),
 		_sendImagesAsPhotos->checkedValue()
-	) | rpl::on_next([=](bool groupFiles, bool asDocuments) {
+	) | rpl::on_next([=](
+			bool groupFiles,
+			bool markAsGif,
+			bool markAsGifShown,
+			bool asDocuments) {
 		_wayRemember->setVisible(
 			(groupFiles != groupFilesFirst)
-				|| ((!asDocuments) != asPhotosFirst));
+				|| ((!asDocuments) != asPhotosFirst)
+				|| (markAsGifShown
+					&& markAsGif != _markAsGifFirst));
 		captionResized();
 	}, lifetime());
 
@@ -2250,6 +2287,7 @@ void SendFilesBox::addFile(Ui::PreparedFile &&file) {
 	// canBeSentInSlowmode checks for non empty filesToProcess.
 	auto saved = base::take(_list.filesToProcess);
 	_list.files.push_back(std::move(file));
+	applyMarkAsGifPreference();
 	const auto lastOk = [&] {
 		auto way = _sendWay.current();
 		if (_limits & SendFilesAllow::OnlyOne) {
@@ -2265,6 +2303,7 @@ void SendFilesBox::addFile(Ui::PreparedFile &&file) {
 	}();
 	if (!lastOk) {
 		_list.files.pop_back();
+		applyMarkAsGifPreference();
 	}
 	_list.filesToProcess = std::move(saved);
 }
@@ -2432,7 +2471,8 @@ void SendFilesBox::setInnerFocus() {
 
 void SendFilesBox::saveSendWaySettings(bool rememberAll) {
 	auto way = _sendWay.current();
-	auto oldWay = Core::App().settings().sendFilesWay();
+	auto &settings = Core::App().settings();
+	auto oldWay = settings.sendFilesWay();
 	if (!rememberAll) {
 		way.setGroupFiles(oldWay.groupFiles());
 		way.setSendImagesAsPhotos(oldWay.sendImagesAsPhotos());
@@ -2444,8 +2484,19 @@ void SendFilesBox::saveSendWaySettings(bool rememberAll) {
 			|| _sendImagesAsPhotos->isHidden())) {
 		way.setSendImagesAsPhotos(oldWay.sendImagesAsPhotos());
 	}
+	auto changed = false;
 	if (way != oldWay) {
-		Core::App().settings().setSendFilesWay(way);
+		settings.setSendFilesWay(way);
+		changed = true;
+	}
+	if (rememberAll && !_markAsGif->isHidden()) {
+		const auto markAsGif = _markAsGif->checked();
+		if (settings.readPref<bool>(kMarkAsGifPref, true) != markAsGif) {
+			settings.writePref<bool>(kMarkAsGifPref, markAsGif);
+			changed = true;
+		}
+	}
+	if (changed) {
 		Core::App().saveSettingsDelayed();
 	}
 }
