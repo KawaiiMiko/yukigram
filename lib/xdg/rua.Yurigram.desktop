@@ -2,7 +2,7 @@
 Name=Yurigram
 Comment=Unofficial desktop version of Telegram messaging app
 TryExec=yurigram
-Exec=yurigram-launcher -- %U
+Exec=yurigram -- %U
 Icon=rua.Yurigram
 Terminal=false
 StartupWMClass=rua.Yurigram
