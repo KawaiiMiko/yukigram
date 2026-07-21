@@ -512,7 +512,9 @@ private:
 	Fn<Api::SendAction()> actionFactory,
 	HistoryView::Controls::WebpageProcessor *preview,
 	Fn<SendMenu::Details()> sendMenuDetails,
-	Fn<void(bool)> attach);
+	Fn<void(bool)> attach,
+	Fn<TextWithTags()> composeFieldText = nullptr,
+	Fn<void()> composeFieldMigrated = nullptr);
 
 class MenuBotIcon final : public Ui::RpWidget {
 public:
