@@ -22,6 +22,8 @@ https://github.com/TDesktop-x64/tdesktop/blob/dev/LEGAL
 #include "ui/widgets/labels.h"
 #include "ui/widgets/checkbox.h"
 #include "ui/widgets/continuous_sliders.h"
+#include "ui/widgets/popup_menu.h"
+#include "ui/text/text_entity.h"
 #include "ui/text/text_utilities.h" // Ui::Text::ToUpper
 #include "boxes/connection_box.h"
 #include "boxes/enhanced_options_box.h"
@@ -40,6 +42,7 @@ https://github.com/TDesktop-x64/tdesktop/blob/dev/LEGAL
 #include "main/main_session.h"
 #include "layout/layout_item_base.h"
 #include "facades.h"
+#include "styles/style_chat_helpers.h"
 #include "styles/style_settings.h"
 #include "styles/style_menu_icons.h"
 #include "apiwrap.h"
@@ -1178,10 +1181,32 @@ namespace {
 		Ui::ResizeFitChild(this, content);
 	}
 
-	void Enhanced::registerHighlight(QString id, QWidget *widget) {
-		if (widget) {
-			_highlightControls.emplace_back(std::move(id), widget);
-		}
+	void Enhanced::registerHighlight(
+			QString id,
+			not_null<Ui::SettingsButton*> button) {
+		_highlightControls.emplace_back(id, button.get());
+
+		const auto link = u"tg://settings/"_q + id;
+		const auto menu = button->lifetime(
+		).make_state<base::unique_qptr<Ui::PopupMenu>>();
+		button->events(
+		) | rpl::filter([](not_null<QEvent*> e) {
+			return e->type() == QEvent::ContextMenu;
+		}) | rpl::on_next([=](not_null<QEvent*> e) {
+			*menu = base::make_unique_q<Ui::PopupMenu>(
+				button,
+				st::popupMenuWithIcons);
+			(*menu)->addAction(tr::lng_auction_menu_copy_link(tr::now), [=] {
+				TextUtilities::SetClipboardText({ link });
+				controller()->showToast({
+					.text = { tr::lng_username_copied(tr::now) },
+					.iconLottie = u"toast/voip_invite"_q,
+					.iconLottieSize = st::toastLottieIconSize,
+				});
+			}, &st::menuIconCopy);
+			(*menu)->popup(QCursor::pos());
+			e->accept();
+		}, button->lifetime());
 	}
 
 	void Enhanced::showFinished() {

@@ -21,6 +21,10 @@ class Controller;
 class SessionController;
 } // namespace Window
 
+namespace Ui {
+class SettingsButton;
+} // namespace Ui
+
 namespace Settings {
 
 	[[nodiscard]] Type EnhancedId();
@@ -42,7 +46,9 @@ namespace Settings {
 		void SetupEnhancedOthers(not_null<Window::SessionController*> controller, not_null<Ui::VerticalLayout *> container);
 		void reqBlocked(int offset);
 		void writeBlocklistFile();
-		void registerHighlight(QString id, QWidget *widget);
+		void registerHighlight(
+			QString id,
+			not_null<Ui::SettingsButton*> button);
 
 		rpl::event_stream<QString> _AlwaysDeleteChanged;
 		rpl::event_stream<QString> _BitrateChanged;
