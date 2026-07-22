@@ -2842,13 +2842,16 @@ void TopBar::setupButtons(
 			}, _close->lifetime());
 		}
 
+		const auto &tabMenuStyle = isLayer
+			? (shouldUseColored
+				? st::infoLayerTopBarColoredMenu
+				: st::infoLayerTopBarBlackMenu)
+			: (shouldUseColored
+				? st::infoTopBarColoredMenu
+				: st::infoTopBarBlackMenu);
 		_tabMenuToggle = base::make_unique_q<Ui::FadeWrap<Ui::IconButton>>(
 			this,
-			object_ptr<Ui::IconButton>(
-				this,
-				shouldUseColored
-					? st::infoTopBarColoredMenu
-					: st::infoTopBarBlackMenu),
+			object_ptr<Ui::IconButton>(this, tabMenuStyle),
 			st::infoTopBarScale);
 		_tabMenuToggle->QWidget::show();
 		_tabMenuToggle->setDuration(st::infoTopBarDuration);
@@ -2859,13 +2862,22 @@ void TopBar::setupButtons(
 			showTopBarMenu(controller, false);
 		});
 
+		const auto &tabSearchStyle = shouldUseColored
+			? st::infoTopBarColoredSearch
+			: st::infoTopBarBlackSearch;
+		auto tabSearchButton = object_ptr<Ui::IconButton>(
+			this,
+			isLayer ? st::infoLayerTopBarSearch : tabSearchStyle);
+		if (isLayer) {
+			tabSearchButton->setIconOverride(
+				&tabSearchStyle.icon,
+				&tabSearchStyle.iconOver);
+			tabSearchButton->setRippleColorOverride(
+				&tabSearchStyle.ripple.color);
+		}
 		_tabSearchToggle = base::make_unique_q<Ui::FadeWrap<Ui::IconButton>>(
 			this,
-			object_ptr<Ui::IconButton>(
-				this,
-				shouldUseColored
-					? st::infoTopBarColoredSearch
-					: st::infoTopBarBlackSearch),
+			std::move(tabSearchButton),
 			st::infoTopBarScale);
 		_tabSearchToggle->QWidget::show();
 		_tabSearchToggle->setDuration(st::infoTopBarDuration);
@@ -2876,13 +2888,24 @@ void TopBar::setupButtons(
 			showTabSearch();
 		});
 
+		const auto &tabGroupStyle = shouldUseColored
+			? st::infoTopBarColoredGroup
+			: st::infoTopBarBlackGroup;
+		auto tabGroupButton = object_ptr<Ui::IconButton>(
+			this,
+			isLayer
+				? (shouldUseColored
+					? st::infoLayerTopBarColoredEdit
+					: st::infoLayerTopBarBlackEdit)
+				: tabGroupStyle);
+		if (isLayer) {
+			tabGroupButton->setIconOverride(
+				&tabGroupStyle.icon,
+				&tabGroupStyle.iconOver);
+		}
 		_tabGroupToggle = base::make_unique_q<Ui::FadeWrap<Ui::IconButton>>(
 			this,
-			object_ptr<Ui::IconButton>(
-				this,
-				shouldUseColored
-					? st::infoTopBarColoredGroup
-					: st::infoTopBarBlackGroup),
+			std::move(tabGroupButton),
 			st::infoTopBarScale);
 		_tabGroupToggle->QWidget::show();
 		_tabGroupToggle->setDuration(st::infoTopBarDuration);
