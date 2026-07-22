@@ -420,6 +420,7 @@ infoTopBarBlackMenu: IconButton(infoTopBarMenu) {
 infoLayerTopBarBlackMenu: IconButton(infoLayerTopBarMenu) {
 	icon: icon {{ "title_menu_dots", windowBoldFg }};
 	iconOver: icon {{ "title_menu_dots", windowBoldFg }};
+	ripple: universalRippleAnimation;
 }
 infoTopBarColoredSearch: IconButton(infoTopBarSearch) {
 	icon: icon {{ "top_bar_search", groupCallMembersFg }};
