@@ -17,6 +17,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "info/info_controller.h"
 #include "lang/lang_keys.h"
 #include "main/main_session.h"
+#include "settings/settings_common.h"
+#include "settings.h"
 #include "ui/text/text_utilities.h"
 #include "ui/vertical_list.h"
 #include "ui/widgets/buttons.h"
@@ -25,6 +27,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/ui_utility.h"
 #include "styles/style_info.h"
 #include "styles/style_layers.h"
+#include "styles/style_settings.h"
+
+#include <QtGui/QClipboard>
+#include <QtGui/QGuiApplication>
 
 namespace Info::Community {
 
@@ -67,6 +73,21 @@ InnerWidget::InnerWidget(
 , _controller(controller)
 , _peer(peer) {
 	if (const auto community = peer->asChannel()) {
+		if (GetEnhancedBool("show_peer_id")) {
+			const auto communityId = QString::number(
+				peerToChannel(community->id).bare);
+			Ui::AddSkip(this);
+			::Settings::AddButtonWithLabel(
+				this,
+				rpl::single(u"ID"_q),
+				rpl::single(communityId),
+				st::settingsButtonNoIcon,
+				{})->addClickHandler([=] {
+				QGuiApplication::clipboard()->setText(communityId);
+				controller->uiShow()->showToast(
+					tr::lng_copy_profile_id(tr::now));
+			});
+		}
 		SetupCommunityContent(
 			this,
 			controller->parentController(),
