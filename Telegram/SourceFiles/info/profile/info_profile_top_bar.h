@@ -343,7 +343,7 @@ private:
 	rpl::variable<bool> _backToggles;
 
 	rpl::event_stream<> _backClicks;
-	base::unique_qptr<Ui::IconButton> _topBarMenuToggle;
+	base::unique_qptr<Ui::FadeWrap<Ui::IconButton>> _topBarMenuToggle;
 	base::unique_qptr<Ui::IconButton> _topBarButton;
 	base::unique_qptr<Ui::PopupMenu> _topBarMenu;
 	Ui::Controls::SwipeBackResult _swipeBackData;

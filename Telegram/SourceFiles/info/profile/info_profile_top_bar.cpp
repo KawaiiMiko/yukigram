@@ -1747,7 +1747,7 @@ int TopBar::calculateRightButtonsWidth() const {
 	if (_topBarButton) {
 		width += _topBarButton->width();
 	}
-	if (_topBarMenuToggle) {
+	if (_topBarMenuToggle && _topBarMenuToggle->toggled()) {
 		width += _topBarMenuToggle->width();
 	}
 	if (_tabMenuToggle && _tabMenuToggle->toggled()) {
@@ -2466,6 +2466,13 @@ void TopBar::updateTabSwapVisibility() {
 		hideTabSearch();
 	}
 	auto togglesChanged = false;
+	if (_topBarMenuToggle) {
+		const auto shown = !swap;
+		if (_topBarMenuToggle->toggled() != shown) {
+			_topBarMenuToggle->toggle(shown, anim::type::normal);
+			togglesChanged = true;
+		}
+	}
 	if (_tabMenuToggle) {
 		const auto shown = swap
 			&& !_tabSearchShown
@@ -2924,17 +2931,22 @@ void TopBar::addTopBarMenuButton(
 			return;
 		}
 	}
-	_topBarMenuToggle = base::make_unique_q<Ui::IconButton>(
+	_topBarMenuToggle = base::make_unique_q<Ui::FadeWrap<Ui::IconButton>>(
 		this,
-		((wrap == Wrap::Layer)
-			? (shouldUseColored
-				? st::infoLayerTopBarColoredMenu
-				: st::infoLayerTopBarBlackMenu)
-			: (shouldUseColored
-				? st::infoTopBarColoredMenu
-				: st::infoTopBarBlackMenu)));
-	_topBarMenuToggle->show();
-	_topBarMenuToggle->addClickHandler([=] {
+		object_ptr<Ui::IconButton>(
+			this,
+			((wrap == Wrap::Layer)
+				? (shouldUseColored
+					? st::infoLayerTopBarColoredMenu
+					: st::infoLayerTopBarBlackMenu)
+				: (shouldUseColored
+					? st::infoTopBarColoredMenu
+					: st::infoTopBarBlackMenu))),
+		st::infoTopBarScale);
+	_topBarMenuToggle->QWidget::show();
+	_topBarMenuToggle->setDuration(st::infoTopBarDuration);
+	_topBarMenuToggle->toggle(true, anim::type::instant);
+	_topBarMenuToggle->entity()->addClickHandler([=] {
 		showTopBarMenu(controller, false);
 	});
 
@@ -3002,7 +3014,7 @@ void TopBar::showTopBarMenu(
 	_topBarMenu->setDestroyedCallback([this] {
 		InvokeQueued(this, [this] { _topBarMenu = nullptr; });
 		if (auto toggle = _topBarMenuToggle.get()) {
-			toggle->setForceRippled(false);
+			toggle->entity()->setForceRippled(false);
 		}
 	});
 
@@ -3034,8 +3046,9 @@ void TopBar::showTopBarMenu(
 				tabToggle->width() + extend.right(),
 				tabToggle->height() + extend.top()))));
 	} else {
-		_topBarMenuToggle->setForceRippled(true);
-		_topBarMenu->popup(_topBarMenuToggle->mapToGlobal(
+		const auto toggle = _topBarMenuToggle->entity();
+		toggle->setForceRippled(true);
+		_topBarMenu->popup(toggle->mapToGlobal(
 			st::infoLayerTopBarMenuPosition));
 	}
 }
