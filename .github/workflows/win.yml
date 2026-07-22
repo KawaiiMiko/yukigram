@@ -200,8 +200,33 @@ jobs:
           echo "TDESKTOP_BUILD_API=$API" >> $GITHUB_ENV
 
       - name: Free up some disk space.
-        shell: bash
-        run: find $LibrariesPath '(' '(' ! '(' -name '*.lib' -o -name '*.a' -o -name '*.exe' -o -name '*.h' -o -name '*.hpp' -o -name '*.inc' -o -name '*.cmake' -o -path '*/include/*' -o -path '*/objects-*' -o -path '*/cache_keys/*' -o -path '*/patches/*' ')' -type f ')' -o -empty ')' -delete
+        shell: pwsh
+        run: |
+          bash -lc 'find "$LibrariesPath" \( \( ! \( -name "*.lib" -o -name "*.a" -o -name "*.exe" -o -name "*.h" -o -name "*.hpp" -o -name "*.inc" -o -name "*.cmake" -o -path "*/include/*" -o -path "*/objects-*" -o -path "*/cache_keys/*" -o -path "*/patches/*" \) -type f \) -o -empty \) -delete'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          $cacheDirectories = @(
+            "$env:TBUILD\ThirdParty\msys64\var\cache\pacman\pkg",
+            "$env:TBUILD\ThirdParty\msys64\tmp",
+            "$env:USERPROFILE\.nuget\packages",
+            "$env:LOCALAPPDATA\NuGet\http-cache",
+            "$env:LOCALAPPDATA\NuGet\plugins-cache",
+            "$env:LOCALAPPDATA\NuGet\v3-cache",
+            "$env:LOCALAPPDATA\pip\Cache",
+            "$env:LOCALAPPDATA\npm-cache",
+            "$env:ProgramData\chocolatey\cache"
+          )
+          foreach ($path in $cacheDirectories) {
+            if (Test-Path -LiteralPath $path) {
+              Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue |
+                Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+            }
+          }
+          Get-PSDrive -PSProvider FileSystem |
+            Select-Object Name,
+              @{ Name = 'FreeGiB'; Expression = { [math]::Round($_.Free / 1GB, 2) } },
+              @{ Name = 'UsedGiB'; Expression = { [math]::Round($_.Used / 1GB, 2) } } |
+            Format-Table -AutoSize
 
       - name: Telegram Desktop build.
         if: env.ONLY_CACHE == 'false'
