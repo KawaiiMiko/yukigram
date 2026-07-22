@@ -160,7 +160,7 @@ jobs:
 
       - name: Libraries.
         run: |
-          %TBUILD%\%REPO_NAME%\Telegram\build\prepare\win.bat skip-debug silent ${{ matrix.qt }}
+          %TBUILD%\%REPO_NAME%\Telegram\build\prepare\win.bat skip-debug skip-dump-syms silent ${{ matrix.qt }}
 
       - name: Read configuration matrix.
         shell: bash
