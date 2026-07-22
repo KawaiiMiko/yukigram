@@ -1784,6 +1784,14 @@ void RegisterSettingsHandlers(Router &router) {
 	});
 
 	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/rich-message-blocks-limit"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/rich-message-blocks-limit"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
 		.path = u"enhanced/messages/no-animoji"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
@@ -1800,26 +1808,10 @@ void RegisterSettingsHandlers(Router &router) {
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/wide-messages"_q,
-		.action = SettingsControl{
-			::Settings::EnhancedId(),
-			u"enhanced/messages/wide-messages"_q,
-		},
-	});
-
-	router.add(u"settings"_q, {
 		.path = u"enhanced/messages/show-similar-on-joined"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
 			u"enhanced/messages/show-similar-on-joined"_q,
-		},
-	});
-
-	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/multichoice-squares"_q,
-		.action = SettingsControl{
-			::Settings::EnhancedId(),
-			u"enhanced/messages/multichoice-squares"_q,
 		},
 	});
 
@@ -1832,18 +1824,10 @@ void RegisterSettingsHandlers(Router &router) {
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/show-repeater-option"_q,
+		.path = u"enhanced/messages/extra-context-menu-options"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/messages/show-repeater-option"_q,
-		},
-	});
-
-	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/show-view-as-json"_q,
-		.action = SettingsControl{
-			::Settings::EnhancedId(),
-			u"enhanced/messages/show-view-as-json"_q,
+			u"enhanced/messages/extra-context-menu-options"_q,
 		},
 	});
 
@@ -1856,26 +1840,10 @@ void RegisterSettingsHandlers(Router &router) {
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/always-delete-for"_q,
-		.action = SettingsControl{
-			::Settings::EnhancedId(),
-			u"enhanced/messages/always-delete-for"_q,
-		},
-	});
-
-	router.add(u"settings"_q, {
 		.path = u"enhanced/messages/disable-cloud-draft-sync"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
 			u"enhanced/messages/disable-cloud-draft-sync"_q,
-		},
-	});
-
-	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/hide-classic-forward"_q,
-		.action = SettingsControl{
-			::Settings::EnhancedId(),
-			u"enhanced/messages/hide-classic-forward"_q,
 		},
 	});
 
@@ -2060,6 +2028,14 @@ void RegisterSettingsHandlers(Router &router) {
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
 			u"enhanced/other/force-mobile"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/other/community-chat-click"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/other/community-chat-click"_q,
 		},
 	});
 
