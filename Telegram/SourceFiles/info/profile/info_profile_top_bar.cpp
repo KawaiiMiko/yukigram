@@ -2465,9 +2465,16 @@ void TopBar::updateTabSwapVisibility() {
 	if (!swap) {
 		hideTabSearch();
 	}
+	const auto groupCollapsed = _standaloneGroup
+		? (_progress.current() < kStandaloneGroupProgress)
+		: swap;
+	const auto groupShown = groupCollapsed
+		&& !_tabSearchShown
+		&& (_tabSetGroup != nullptr)
+		&& _tabGroupAvailable;
 	auto togglesChanged = false;
 	if (_topBarMenuToggle) {
-		const auto shown = !swap;
+		const auto shown = !swap && !(_standaloneGroup && groupShown);
 		if (_topBarMenuToggle->toggled() != shown) {
 			_topBarMenuToggle->toggle(shown, anim::type::normal);
 			togglesChanged = true;
@@ -2492,18 +2499,11 @@ void TopBar::updateTabSwapVisibility() {
 		}
 	}
 	if (_tabGroupToggle) {
-		const auto collapsed = _standaloneGroup
-			? (_progress.current() < kStandaloneGroupProgress)
-			: swap;
-		const auto shown = collapsed
-			&& !_tabSearchShown
-			&& (_tabSetGroup != nullptr)
-			&& _tabGroupAvailable;
-		if (_tabGroupToggle->toggled() != shown) {
-			if (shown) {
+		if (_tabGroupToggle->toggled() != groupShown) {
+			if (groupShown) {
 				updateTabGroupActive();
 			}
-			_tabGroupToggle->toggle(shown, anim::type::normal);
+			_tabGroupToggle->toggle(groupShown, anim::type::normal);
 			togglesChanged = true;
 		}
 	}
@@ -2931,12 +2931,10 @@ void TopBar::setupButtons(
 		updateTabSwapVisibility();
 		updateRightButtonsPosition();
 
-		if (wrap != Wrap::Side) {
-			if (source == Source::Profile) {
-				addTopBarMenuButton(controller, wrap, shouldUseColored);
-			} else if (source == Source::Stories) {
-				addTopBarEditButton(controller, wrap, shouldUseColored);
-			}
+		if (source == Source::Profile) {
+			addTopBarMenuButton(controller, wrap, shouldUseColored);
+		} else if (source == Source::Stories && wrap != Wrap::Side) {
+			addTopBarEditButton(controller, wrap, shouldUseColored);
 		}
 		raiseTabSearchOverlay();
 		raiseTabSelectionOverlay();
