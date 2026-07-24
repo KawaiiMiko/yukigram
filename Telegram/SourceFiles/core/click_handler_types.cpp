@@ -290,7 +290,7 @@ void HiddenUrlClickHandler::Open(QString url, QVariant context) {
 		auto openContext = context;
 		const auto forceConfirmation = my.forceExternalUrlConfirmation
 			&& my.ignoreIv;
-		const auto skipConfirmation = base::IsCtrlPressed() && !GetEnhancedBool("disable_link_warning");
+		const auto skipConfirmation = base::IsCtrlPressed();
 		if (forceConfirmation) {
 			my.forceExternalUrlConfirmation = false;
 			openContext = QVariant::fromValue(my);
@@ -307,10 +307,11 @@ void HiddenUrlClickHandler::Open(QString url, QVariant context) {
 		const auto open = [=] {
 			UrlClickHandler::Open(url, openContext);
 		};
-		if (forceConfirmation
-			|| (confirmAfterIvFallback && !canTryIv)
-			|| (HiddenUrlRequiresConfirmation(parsedUrl)
-				&& !skipConfirmation)) {
+		if (!GetEnhancedBool("disable_link_warning")
+			&& (forceConfirmation
+				|| (confirmAfterIvFallback && !canTryIv)
+				|| (HiddenUrlRequiresConfirmation(parsedUrl)
+					&& !skipConfirmation))) {
 			if (!my.show) {
 				Core::App().hideMediaView();
 			}
