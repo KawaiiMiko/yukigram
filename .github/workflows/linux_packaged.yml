@@ -67,6 +67,9 @@ jobs:
           RELEASE_DATE=$(request \
             "$API_URL/repos/telegramdesktop/tdesktop/releases/tags/$RELEASE_TAG" \
             | jq -er '.published_at')
+          IMAGE_CUTOFF_DATE=$(date -u \
+            --date="$RELEASE_DATE + 4 hours" \
+            '+%Y-%m-%dT%H:%M:%SZ')
 
           VERSIONS_FILE=$(mktemp)
           trap 'rm -f "$VERSIONS_FILE"' EXIT
@@ -85,8 +88,8 @@ jobs:
           done
 
           IMAGE_VERSION=$(jq -ser \
-            --arg release_date "$RELEASE_DATE" \
-            'map(select(.created_at < $release_date)) | max_by(.created_at)' \
+            --arg cutoff_date "$IMAGE_CUTOFF_DATE" \
+            'map(select(.created_at < $cutoff_date)) | max_by(.created_at)' \
             "$VERSIONS_FILE")
           IMAGE_DIGEST=$(jq -er '.name | select(startswith("sha256:"))' \
             <<< "$IMAGE_VERSION")
@@ -100,6 +103,7 @@ jobs:
           IMAGE_TAG="$IMAGE_REPOSITORY@$IMAGE_DIGEST"
 
           echo "Release $RELEASE_TAG was published at $RELEASE_DATE"
+          echo "Using image cutoff $IMAGE_CUTOFF_DATE (release + 4 hours)"
           echo "Using image $IMAGE_TAG from $IMAGE_DATE ($IMAGE_TAGS)"
           echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
 
