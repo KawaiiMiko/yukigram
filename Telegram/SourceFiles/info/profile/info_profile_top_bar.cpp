@@ -158,7 +158,6 @@ constexpr auto kMinContrast = 5.5;
 constexpr auto kStoryOutlineFadeEnd = 0.4;
 constexpr auto kStoryOutlineFadeRange = 1. - kStoryOutlineFadeEnd;
 constexpr auto kSwapMoveAmplitude = 0.3;
-constexpr auto kStandaloneGroupProgress = 0.5;
 
 using AnimatedPatternPoint = TopBar::AnimatedPatternPoint;
 
@@ -2062,11 +2061,13 @@ void TopBar::applyTabBindings(TabTopBarBindings &&bindings) {
 void TopBar::setupStandaloneGroupControl(
 		rpl::producer<bool> state,
 		rpl::producer<bool> available,
+		rpl::producer<bool> reached,
 		Fn<void(bool)> toggle) {
 	_standaloneGroup = true;
 	_tabSetGroup = std::move(toggle);
 	_tabGroupActive = false;
 	_tabGroupAvailable = false;
+	_standaloneGroupReached = false;
 	std::move(
 		state
 	) | rpl::on_next([=](bool grouped) {
@@ -2080,8 +2081,10 @@ void TopBar::setupStandaloneGroupControl(
 		_tabGroupAvailable = value;
 		updateTabSwapVisibility();
 	}, lifetime());
-	_progress.changes(
-	) | rpl::on_next([=] {
+	std::move(
+		reached
+	) | rpl::on_next([=](bool value) {
+		_standaloneGroupReached = value;
 		updateTabSwapVisibility();
 	}, lifetime());
 	updateTabGroupActive();
@@ -2465,10 +2468,10 @@ void TopBar::updateTabSwapVisibility() {
 	if (!swap) {
 		hideTabSearch();
 	}
-	const auto groupCollapsed = _standaloneGroup
-		? (_progress.current() < kStandaloneGroupProgress)
+	const auto groupReached = _standaloneGroup
+		? _standaloneGroupReached
 		: swap;
-	const auto groupShown = groupCollapsed
+	const auto groupShown = groupReached
 		&& !_tabSearchShown
 		&& (_tabSetGroup != nullptr)
 		&& _tabGroupAvailable;

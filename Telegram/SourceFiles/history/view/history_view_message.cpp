@@ -4726,7 +4726,10 @@ void Message::updatePressed(QPoint point) {
 	}
 }
 
-bool Message::consumeHorizontalScroll(QPoint position, int delta) {
+bool Message::consumeHorizontalScroll(
+		QPoint position,
+		int delta,
+		Qt::ScrollPhase phase) {
 	const auto rich = richpage();
 	auto trect = QRect();
 	if (!rich || !prepareRichPageTextRect(trect)) {
@@ -4734,7 +4737,8 @@ bool Message::consumeHorizontalScroll(QPoint position, int delta) {
 	}
 	return rich->article.consumeHorizontalScroll(
 		prepareRichPageStateRect(position, trect),
-		delta);
+		delta,
+		phase);
 }
 
 bool Message::canConsumeHorizontalScroll(QPoint position, int delta) const {
