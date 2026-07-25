@@ -226,25 +226,16 @@ UnwrappedMedia::SurroundingInfo UnwrappedMedia::surroundingInfo(
 		panelHeight += st::msgServiceNameFont->height
 			+ (reply ? st::msgReplyPadding.top() : 0);
 	}
-	if (GetEnhancedBool("old_reply_layout")) {
-		if (reply) {
-			panelHeight += reply->height();
-		}
-		if (panelHeight) {
-			panelHeight += st::msgReplyPadding.top() + st::msgReplyPadding.bottom();
-		}
-	} else {
-		if (panelHeight) {
-			panelHeight += st::msgReplyPadding.top();
-		}
-		if (reply) {
-			const auto replyMargins = reply->margins();
-			panelHeight += reply->height()
-					- ((forwarded || via) ? 0 : replyMargins.top())
-					- replyMargins.bottom();
-		} else if (panelHeight) {
-			panelHeight += st::msgReplyPadding.bottom();
-		}
+	if (panelHeight) {
+		panelHeight += st::msgReplyPadding.top();
+	}
+	if (reply) {
+		const auto replyMargins = reply->margins();
+		panelHeight += reply->height()
+				- ((forwarded || via) ? 0 : replyMargins.top())
+				- replyMargins.bottom();
+	} else if (panelHeight) {
+		panelHeight += st::msgReplyPadding.bottom();
 	}
 	const auto ephemeralSize = EphemeralPlateSize(_ephemeralText, outerw);
 	const auto rest = (topic || via || reply || forwarded)
@@ -386,22 +377,13 @@ void UnwrappedMedia::drawSurrounding(
 				recty += skip;
 			}
 			if (reply) {
-				if (GetEnhancedBool("old_reply_layout")) {
+				if (forwarded || via) {
 					recty += st::msgReplyPadding.top();
-					rectx += st::msgReplyPadding.left();
-					if (forwarded || via) {
-						recth -= st::msgReplyPadding.top();
-					}
-					reply->paint(p, _parent, context, rectx, recty, textw, false);
+					recth -= st::msgReplyPadding.top();
 				} else {
-					if (forwarded || via) {
-						recty += st::msgReplyPadding.top();
-						recth -= st::msgReplyPadding.top();
-					} else {
-						recty -= reply->margins().top();
-					}
-					reply->paint(p, _parent, context, rectx, recty, rectw, false);
+					recty -= reply->margins().top();
 				}
+				reply->paint(p, _parent, context, rectx, recty, rectw, false);
 			}
 			replyLeft = rectx;
 			replyRight = rectx + rectw;

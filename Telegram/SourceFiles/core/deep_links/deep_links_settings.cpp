@@ -1800,14 +1800,6 @@ void RegisterSettingsHandlers(Router &router) {
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/old-reply-layout"_q,
-		.action = SettingsControl{
-			::Settings::EnhancedId(),
-			u"enhanced/messages/old-reply-layout"_q,
-		},
-	});
-
-	router.add(u"settings"_q, {
 		.path = u"enhanced/messages/show-similar-on-joined"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),

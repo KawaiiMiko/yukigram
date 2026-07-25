@@ -102,15 +102,6 @@ namespace {
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/old-reply-layout"_q,
-			.title = tr::lng_settings_old_reply_layout(tr::now),
-			.keywords = { u"reply"_q, u"old"_q, u"layout"_q, u"classic"_q },
-			.deeplink = u"tg://settings/enhanced/messages/old-reply-layout"_q,
-		};
-	});
-
-	builder.add(nullptr, [] {
-		return Builder::SearchEntry{
 			.id = u"enhanced/messages/show-similar-on-joined"_q,
 			.title = tr::lng_settings_show_similar_on_joined(tr::now),
 			.keywords = { u"similar"_q, u"recommendations"_q, u"joined"_q },
@@ -510,24 +501,6 @@ namespace {
 			SetEnhancedValue("no_animoji", toggled);
 			EnhancedSettings::Write();
 			Core::Restart();
-		}, container->lifetime());
-
-		const auto oldReplyLayout = AddButtonWithIcon(
-				inner,
-				tr::lng_settings_old_reply_layout(),
-				st::settingsButtonNoIcon
-		);
-		registerHighlight(
-			u"enhanced/messages/old-reply-layout"_q,
-			oldReplyLayout);
-		oldReplyLayout->toggleOn(
-				rpl::single(GetEnhancedBool("old_reply_layout"))
-		)->toggledChanges(
-		) | rpl::filter([=](bool toggled) {
-			return (toggled != GetEnhancedBool("old_reply_layout"));
-		}) | rpl::on_next([=](bool toggled) {
-			SetEnhancedValue("old_reply_layout", toggled);
-			EnhancedSettings::Write();
 		}, container->lifetime());
 
 		const auto showSimilarOnJoined = AddButtonWithIcon(

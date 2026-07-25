@@ -347,7 +347,6 @@ namespace EnhancedSettings {
 		settings.insert(qsl("translate_to_tc"), false);
 		settings.insert(qsl("hide_stories"), false);
 		settings.insert(qsl("no_animoji"), false);
-		settings.insert(qsl("old_reply_layout"), false);
 		settings.insert(qsl("force_mobile"), false);
 		settings.insert(qsl("show_similar_on_joined"), false);
 		settings.insert(qsl("more_right_action_comments"), false);
@@ -416,7 +415,6 @@ namespace EnhancedSettings {
 		settings.insert(qsl("translate_to_tc"), GetEnhancedBool("translate_to_tc"));
 		settings.insert(qsl("hide_stories"), GetEnhancedBool("hide_stories"));
 		settings.insert(qsl("no_animoji"), GetEnhancedBool("no_animoji"));
-		settings.insert(qsl("old_reply_layout"), GetEnhancedBool("old_reply_layout"));
 		settings.insert(qsl("force_mobile"), GetEnhancedBool("force_mobile"));
 		settings.insert(qsl("show_similar_on_joined"), GetEnhancedBool("show_similar_on_joined"));
 		settings.insert(qsl("more_right_action_comments"), GetEnhancedBool("more_right_action_comments"));
