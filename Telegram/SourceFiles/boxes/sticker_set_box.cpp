@@ -1039,6 +1039,11 @@ void StickerSetBox::updateButtons() {
 							&st::menuIconProfile);
 						if (fillSetCreatorFooter) {
 							fillSetCreatorFooter(raw);
+						} else {
+							raw->addAction(
+								tr::lng_stickers_context_delete_pack(tr::now),
+								remove,
+								&st::menuIconRemove);
 						}
 					}
 					raw->setForcedOrigin(
