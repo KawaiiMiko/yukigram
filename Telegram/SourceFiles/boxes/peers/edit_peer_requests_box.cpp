@@ -131,8 +131,11 @@ QRect Row::elementGeometry(int element, int outerWidth) const {
 		const auto reject = _delegate->rowRejectButtonSize();
 		const auto size = _delegate->rowBanButtonSize();
 		return QRect(
-					(st::requestAcceptPosition
-				+ QPoint(accept.width() + reject.width() + st::requestButtonsSkip, 0)),
+					(st::communityRequestAcceptPosition
+					+ QPoint(
+						accept.width() + reject.width()
+							+ (2 * st::requestButtonsSkip),
+						0)),
 				size);
 	} break;
 	}
@@ -601,7 +604,6 @@ void RequestsBoxController::RowHelper::rowPaintBan(
 		std::unique_ptr<Ui::RippleAnimation> &ripple,
 		int outerWidth,
 		bool over) {
-	_banRect.setColor(st::attentionButtonFg);
 	paintButton(
 		p,
 		geometry,
