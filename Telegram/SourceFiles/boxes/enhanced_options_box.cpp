@@ -25,6 +25,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "styles/style_boxes.h"
 #include "styles/style_layers.h"
+#include "styles/style_passcode_box.h"
+#include "styles/style_edit_peer_members.h"
+#include "styles/style_settings_local_storage.h"
 
 #include <algorithm>
 
