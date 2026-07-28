@@ -202,7 +202,7 @@ jobs:
       - name: Free up some disk space.
         shell: pwsh
         run: |
-          bash -lc 'find "$LibrariesPath" \( \( ! \( -name "*.lib" -o -name "*.a" -o -name "*.exe" -o -name "*.h" -o -name "*.hpp" -o -name "*.inc" -o -name "*.cmake" -o -path "*/include/*" -o -path "*/objects-*" -o -path "*/cache_keys/*" -o -path "*/patches/*" \) -type f \) -o -empty \) -delete'
+          bash -lc 'find "$LibrariesPath" \( \( ! \( -name "*.lib" -o -name "*.a" -o -name "*.exe" -o -name "*.h" -o -name "*.hpp" -o -name "*.inc" -o -name "*.cmake" -o -path "*/include/*" -o -path "*/gas-preprocessor/*" -o -path "*/local/lib/pkgconfig/*" -o -path "*/nv-codec-headers/*" -o -path "*/objects-*" -o -path "*/cache_keys/*" -o -path "*/patches/*" \) -type f \) -o -empty \) -delete'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
           $cacheDirectories = @(
