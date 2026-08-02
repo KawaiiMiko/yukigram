@@ -6,7 +6,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "boxes/enhanced_options_box.h"
 
-#include "core/application.h"
 #include "core/enhanced_settings.h"
 #include "data/data_histories.h"
 #include "data/data_session.h"
@@ -15,7 +14,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "main/main_session.h"
 #include "mainwindow.h"
 #include "settings/sections/settings_enhanced.h"
-#include "ui/boxes/confirm_box.h"
 #include <ui/toast/toast.h>
 #include "ui/widgets/checkbox.h"
 #include "ui/widgets/continuous_sliders.h"
@@ -63,72 +61,6 @@ constexpr auto kRichMessagePreviewValuesCount
 }
 
 } // namespace
-
-NetBoostBox::NetBoostBox(QWidget *parent) {
-}
-
-void NetBoostBox::prepare() {
-	setTitle(tr::lng_settings_net_upload_speed_boost());
-
-	addButton(tr::lng_settings_save(), [=] { save(); });
-	addButton(tr::lng_cancel(), [=] { closeBox(); });
-
-	auto y = st::boxOptionListPadding.top();
-	_description.create(
-			this,
-			tr::lng_net_speed_boost_desc(tr::now),
-			st::boxLabel);
-	_description->moveToLeft(st::boxPadding.left(), y);
-	_description->resizeToWidth(st::boxWidth - st::boxPadding.left() - st::boxPadding.right());
-
-	y += _description->height() + st::boxMediumSkip;
-
-	_boostGroup = std::make_shared<Ui::RadiobuttonGroup>(GetEnhancedInt("net_speed_boost"));
-	
-
-	for (int i = 0; i <= 3; i++) {
-		const auto button = Ui::CreateChild<Ui::Radiobutton>(
-				this,
-				_boostGroup,
-				i,
-				BoostLabel(i),
-				st::autolockButton);
-		button->moveToLeft(st::boxPadding.left(), y);
-		y += button->heightNoMargins() + st::boxOptionListSkip;
-	}
-	showChildren();
-	setDimensions(st::boxWidth, y);
-}
-
-QString NetBoostBox::BoostLabel(int boost) {
-	switch (boost) {
-		case 0:
-			return tr::lng_net_speed_boost_default(tr::now);
-		case 1:
-			return tr::lng_net_speed_boost_slight(tr::now);
-		case 2:
-			return tr::lng_net_speed_boost_medium(tr::now);
-		case 3:
-			return tr::lng_net_speed_boost_big(tr::now);
-		default:
-			Unexpected("Boost in NetBoostBox::BoostLabel.");
-	}
-}
-
-void NetBoostBox::save() {
-	const auto changeBoost = [=](Fn<void()> &&close) {
-		SetNetworkBoost(_boostGroup->current());
-		EnhancedSettings::Write();
-		Core::Restart();
-	};
-
-	getDelegate()->show(Ui::MakeConfirmBox({
-		.text = tr::lng_net_boost_restart_desc(tr::now),
-		.confirmed = std::move(changeBoost),
-		.confirmText = tr::lng_settings_restart_now(tr::now),
-		.cancelText = tr::lng_cancel(tr::now),
-	}));
-}
 
 ExtraContextMenuBox::ExtraContextMenuBox(QWidget *parent) {
 }

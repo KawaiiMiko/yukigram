@@ -206,19 +206,6 @@ namespace EnhancedSettings {
 
 		loadSettings(settings);
 
-		ReadOption(settings, "net_speed_boost", [&](auto v) {
-			if (v.isDouble()) {
-				int value = v.toInt();
-				if (value < 0) {
-					SetNetworkBoost(0);
-				} else if (value > 3) {
-					SetNetworkBoost(3);
-				} else {
-					SetNetworkBoost(value);
-				}
-			}
-		});
-
 		ReadOption(settings, "bitrate", [&](auto v) {
 			if (v.isDouble()) {
 				int value = v.toInt();
@@ -318,7 +305,6 @@ namespace EnhancedSettings {
 		file.write(defaultHeader);
 
 		auto settings = QJsonObject();
-		settings.insert(qsl("net_speed_boost"), 0);
 		settings.insert(qsl("show_messages_id"), false);
 		settings.insert(qsl("extra_context_menu_options"), QJsonArray());
 		settings.insert(qsl("show_emoji_button_as_text"), false);
@@ -378,7 +364,6 @@ namespace EnhancedSettings {
 		file.write(customHeader);
 
 		auto settings = QJsonObject();
-		settings.insert(qsl("net_speed_boost"), GetEnhancedInt("net_speed_boost"));
 		settings.insert(qsl("show_messages_id"), GetEnhancedBool("show_messages_id"));
 		{
 			QJsonArray arr;

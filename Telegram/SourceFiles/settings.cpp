@@ -69,7 +69,4 @@ bool gVoiceChatPinned = false;
 QList<int64> gBlockList;
 EnhancedSetting gEnhancedOptions;
 
-int gNetRequestsCount = 2;
-int gNetUploadSessionsCount = 2;
-int gNetUploadRequestInterval = 500;
 int gAlwaysDeleteFor = 0;

@@ -2,8 +2,6 @@
     "lng_intro_about2": "Welcome to the Yurigram app.\nIt's fast and secure.",
 
     "lng_settings_enhanced": "Enhanced Settings",
-    "lng_settings_network": "Network",
-    "lng_settings_net_upload_speed_boost": "Upload speed boost",
     "lng_settings_show_message_id": "Show message ID",
     "lng_settings_button": "Button",
     "lng_settings_show_emoji_button_as_text": "Show emoji button as text",
@@ -31,23 +29,13 @@
     "lng_settings_hide_counter": "Hide online users counter",
     "lng_settings_hide_stories": "Hide Stories",
     "lng_settings_screen_shot_mode": "Screenshot Mode",
-    "lng_settings_restart_hint": "WARNING: Changing options that are colored in red will take effect only after the app restarts.",
-
     "lng_settings_skip_message": "Skip to next unread chat",
     "lng_settings_skip_message_desc": "Note: Allow ALT+↑/↓ shortcut to skip to next unread chat",
 
-    "lng_net_speed_boost_title": "Network speed boost",
-    "lng_net_speed_boost_desc": "Warning: changing this parameter to high values on slow networks can make it even worse. Use it at your own risk.",
     "lng_show_emoji_button_as_text_desc": "Note: If you can't see an emoji button, please turn on this option.",
     "lng_radio_controller_desc": "Note: Radio controller is an experimental bot for controlling your music streaming session.",
     "lng_auto_unmute_desc": "Note: Auto unmute when you've joined the voice chat.",
 
-    "lng_net_speed_boost_default": "Disabled",
-    "lng_net_speed_boost_slight": "Slight",
-    "lng_net_speed_boost_medium": "Medium",
-    "lng_net_speed_boost_big": "Big",
-
-    "lng_net_boost_restart_desc": "You'll need to restart app to change network boost.\n\nRestart now?",
     "lng_show_messages_id_desc": "Warning: the changes will take effect immediately with restart.",
 
     "lng_chat_restriction_reason": "Restriction Reason",
@@ -120,5 +108,5 @@
     
     "lng_copy_profile_id": "ID copied to clipboard.",
 
-    "lng_group_requests_ban": "Ban",
+    "lng_group_requests_ban": "Ban"
 }

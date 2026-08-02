@@ -60,15 +60,6 @@ namespace {
 }, [](Builder::SectionBuilder &builder) {
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/network/upload-speed-boost"_q,
-			.title = tr::lng_settings_net_upload_speed_boost(tr::now),
-			.keywords = { u"upload"_q, u"speed"_q, u"network"_q, u"boost"_q },
-			.deeplink = u"tg://settings/enhanced/network/upload-speed-boost"_q,
-		};
-	});
-
-	builder.add(nullptr, [] {
-		return Builder::SearchEntry{
 			.id = u"enhanced/messages/show-message-id"_q,
 			.title = tr::lng_settings_show_message_id(tr::now),
 			.keywords = { u"message"_q, u"id"_q, u"info"_q },
@@ -373,33 +364,6 @@ namespace {
 
 	Type EnhancedId() {
 		return Enhanced::Id();
-	}
-
-	void Enhanced::SetupEnhancedNetwork(not_null<Ui::VerticalLayout *> container) {
-		const auto wrap = container->add(
-				object_ptr<Ui::SlideWrap<Ui::VerticalLayout>>(
-						container,
-						object_ptr<Ui::VerticalLayout>(container)));
-		const auto inner = wrap->entity();
-
-		AddDividerText(inner, tr::lng_settings_restart_hint());
-		AddSkip(inner);
-		AddSubsectionTitle(inner, tr::lng_settings_network());
-
-		const auto uploadBoost = AddButtonWithLabel(
-				inner,
-				tr::lng_settings_net_upload_speed_boost(),
-				rpl::single(NetBoostBox::BoostLabel(GetEnhancedInt("net_speed_boost"))),
-				st::settingsAttentionButton
-		);
-		registerHighlight(
-			u"enhanced/network/upload-speed-boost"_q,
-			uploadBoost);
-		uploadBoost->addClickHandler([=] {
-			Ui::show(Box<NetBoostBox>());
-		});
-
-		AddSkip(container);
 	}
 
 	void Enhanced::writeBlocklistFile() {
@@ -1145,7 +1109,6 @@ namespace {
 	void Enhanced::setupContent(not_null<Window::SessionController *> controller) {
 		const auto content = Ui::CreateChild<Ui::VerticalLayout>(this);
 
-		SetupEnhancedNetwork(content);
 		SetupEnhancedMessages(content);
 		SetupEnhancedButton(content);
 		SetupEnhancedVoiceChat(content);

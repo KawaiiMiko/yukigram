@@ -1768,14 +1768,6 @@ void RegisterSettingsHandlers(Router &router) {
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/network/upload-speed-boost"_q,
-		.action = SettingsControl{
-			::Settings::EnhancedId(),
-			u"enhanced/network/upload-speed-boost"_q,
-		},
-	});
-
-	router.add(u"settings"_q, {
 		.path = u"enhanced/messages/show-message-id"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),

@@ -154,10 +154,6 @@ enum class ExtraContextMenuOption : int {
 	ViewAsJson = 3,
 };
 
-DeclareSetting(int, NetRequestsCount);
-DeclareSetting(int, NetUploadSessionsCount);
-DeclareSetting(int, NetUploadRequestInterval);
-
 inline bool GetEnhancedBool(const QString& key) {
 	if (!gEnhancedOptions.contains(key)) {
 		return false;
@@ -192,20 +188,6 @@ inline bool HasExtraContextMenuOption(ExtraContextMenuOption value) {
 
 inline void SetEnhancedValue(const QString& key, const QVariant& value) {
 	gEnhancedOptions.insert(key, value);
-}
-
-inline void SetNetworkBoost(int boost) {
-	if (boost < 0) {
-		gEnhancedOptions.insert("net_speed_boost", 0);
-	} else if (boost > 3) {
-		gEnhancedOptions.insert("net_speed_boost", 3);
-	} else {
-		gEnhancedOptions.insert("net_speed_boost", boost);
-	}
-
-	cSetNetRequestsCount(2 + (2 * GetEnhancedInt("net_speed_boost")));
-	cSetNetUploadSessionsCount(2 + (2 * GetEnhancedInt("net_speed_boost")));
-	cSetNetUploadRequestInterval(500 - (100 * GetEnhancedInt("net_speed_boost")));
 }
 
 inline bool blockExist(int64 id) {

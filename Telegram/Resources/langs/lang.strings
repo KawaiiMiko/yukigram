@@ -8630,8 +8630,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_settings_more_right_action_comments" = "Move comments button to the right";
 "lng_settings_mpris_call_hangup" = "Use media controls to accept or hangup";
 "lng_settings_enhanced" = "Enhanced Settings";
-"lng_settings_network" = "Network";
-"lng_settings_net_upload_speed_boost" = "Upload speed boost";
 "lng_settings_show_message_id" = "Show message ID";
 "lng_settings_rich_message_preview_blocks" = "Custom rich message blocks limit";
 "lng_settings_rich_message_preview_blocks_desc" = "Limit the number of blocks shown for rich messages in chats. Use Show more to open the full message.";
@@ -8665,22 +8663,12 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_settings_use_gt_api" = "Use Google Translate";
 "lng_settings_translate_to_tc" = "使用正體中文翻譯訊息";
 "lng_settings_screen_shot_mode" = "Screenshot Mode";
-"lng_settings_restart_hint" = "WARNING: Changing options that are colored in red will take effect only after the app restarts.";
 "lng_settings_hide_star_ratings" = "Hide user star ratings";
 "lng_settings_show_peer_id" = "Show Peer ID";
 
 "lng_settings_skip_message" = "Skip to next unread chat";
 "lng_settings_skip_message_desc" = "Note: Allow ALT+↑/↓ shortcut to skip to next unread chat";
 
-"lng_net_speed_boost_title" = "Network speed boost";
-"lng_net_speed_boost_desc" = "Warning: changing this parameter to high values on slow networks can make it even worse. Use it at your own risk.";
-
-"lng_net_speed_boost_default" = "Disabled";
-"lng_net_speed_boost_slight" = "Slight";
-"lng_net_speed_boost_medium" = "Medium";
-"lng_net_speed_boost_big" = "Big";
-
-"lng_net_boost_restart_desc" = "You'll need to restart app to change network boost.\n\nRestart now?";
 "lng_show_messages_id_desc" = "Warning: the changes will take effect immediately with restart.";
 "lng_show_emoji_button_as_text_desc" = "Note: If you can't see an emoji button, please turn on this option.";
 "lng_stereo_mode_hint" = "Stereo mode is enabled! Re-join a voice chat if you're already joined.";
