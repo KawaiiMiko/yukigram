@@ -7,6 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "iv/iv_controller.h"
 
+#include "base/call_delayed.h"
 #include "base/event_filter.h"
 #include "base/platform/base_platform_info.h"
 #include "base/qt/qt_key_modifiers.h"
@@ -44,6 +45,7 @@ namespace Iv {
 namespace {
 
 constexpr auto kZoomStep = int(10);
+constexpr auto kWaylandWebviewTeardownDelay = crl::time(1000);
 
 [[nodiscard]] QByteArray ReadResource(
 		const QString &prefix,
@@ -492,7 +494,13 @@ void Controller::destroyWindow() {
 	_subtitleWrap = nullptr;
 	_window = nullptr;
 	_container = nullptr;
-	webview = nullptr;
+	if (Platform::IsWayland() && webview) {
+		base::call_delayed(
+			kWaylandWebviewTeardownDelay,
+			[webview = std::move(webview)]() mutable {
+				webview = nullptr;
+			});
+	}
 }
 
 void Controller::close() {
