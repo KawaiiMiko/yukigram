@@ -115,6 +115,7 @@ struct SendFilesBoxDescriptor {
 	Fn<SendMenu::Details()> sendMenuDetails = nullptr;
 	const style::ComposeControls *stOverride = nullptr;
 	SendFilesConfirmed confirmed;
+	Fn<void(bool)> keepScrollPositionCallback;
 	Fn<void()> cancelled;
 	FullReplyTo replyTo;
 };
@@ -310,6 +311,7 @@ private:
 	not_null<PeerData*> _toPeer;
 	SendFilesCheck _check;
 	SendFilesConfirmed _confirmedCallback;
+	Fn<void(bool)> _keepScrollPositionCallback;
 	Fn<void()> _cancelledCallback;
 	rpl::variable<uint64> _price = 0;
 	std::unique_ptr<Ui::RpWidget> _priceTag;
@@ -317,6 +319,7 @@ private:
 	bool _confirmed = false;
 	bool _textTaken = false;
 	bool _invertCaption = false;
+	bool _keepScrollPositionOnSend = false;
 
 	const object_ptr<Ui::InputField> _caption;
 	std::unique_ptr<ChatHelpers::FieldAutocomplete> _autocomplete;

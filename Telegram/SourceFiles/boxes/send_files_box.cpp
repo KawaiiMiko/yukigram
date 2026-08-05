@@ -689,6 +689,8 @@ SendFilesBox::SendFilesBox(QWidget*, SendFilesBoxDescriptor &&descriptor)
 , _toPeer(descriptor.toPeer)
 , _check(std::move(descriptor.check))
 , _confirmedCallback(std::move(descriptor.confirmed))
+, _keepScrollPositionCallback(
+	std::move(descriptor.keepScrollPositionCallback))
 , _cancelledCallback(std::move(descriptor.cancelled))
 , _caption(
 	this,
@@ -1007,7 +1009,10 @@ void SendFilesBox::refreshButtons() {
 		(_sendType == Api::SendType::Normal
 			? tr::lng_send_button()
 			: tr::lng_create_group_next()),
-		[=] { send({}); });
+		[=] {
+			_keepScrollPositionOnSend = false;
+			send({});
+		});
 	refreshMessagesCount();
 
 	const auto ephemeralReply = _show->session().ephemeralMessages()
@@ -2003,6 +2008,7 @@ void SendFilesBox::setupCaption() {
 		const auto ctrlShiftEnter = modifiers.testFlag(Qt::ShiftModifier)
 			&& (modifiers.testFlag(Qt::ControlModifier)
 				|| modifiers.testFlag(Qt::MetaModifier));
+		_keepScrollPositionOnSend = modifiers.testFlag(Qt::AltModifier);
 		send({}, ctrlShiftEnter);
 	}, _caption->lifetime());
 	_caption->cancelled(
@@ -2362,6 +2368,7 @@ void SendFilesBox::keyPressEvent(QKeyEvent *e) {
 		const auto ctrl = modifiers.testFlag(Qt::ControlModifier)
 			|| modifiers.testFlag(Qt::MetaModifier);
 		const auto shift = modifiers.testFlag(Qt::ShiftModifier);
+		_keepScrollPositionOnSend = modifiers.testFlag(Qt::AltModifier);
 		send({}, ctrl && shift);
 	} else {
 		BoxContent::keyPressEvent(e);
@@ -2524,7 +2531,14 @@ void SendFilesBox::send(
 		child.caption = SendMenu::CaptionState::None;
 		child.photoQuality = SendMenu::PhotoQualityState::None;
 		child.price = std::nullopt;
-		return SendMenu::DefaultCallback(_show, sendCallback())(
+		const auto keepScrollPosition = _keepScrollPositionOnSend;
+		const auto sendScheduled = crl::guard(
+			this,
+			[=](Api::SendOptions options) {
+				_keepScrollPositionOnSend = keepScrollPosition;
+				this->send(std::move(options), false);
+			});
+		return SendMenu::DefaultCallback(_show, sendScheduled)(
 			{ .type = SendMenu::ActionType::Schedule },
 			child);
 	}
@@ -2597,6 +2611,9 @@ void SendFilesBox::send(
 			}
 		}
 
+		if (_keepScrollPositionCallback) {
+			_keepScrollPositionCallback(base::take(_keepScrollPositionOnSend));
+		}
 		_confirmedCallback(std::move(bundle), options, _replyTo);
 	}
 	closeBox();
@@ -2604,6 +2621,7 @@ void SendFilesBox::send(
 
 Fn<void(Api::SendOptions)> SendFilesBox::sendCallback() {
 	return crl::guard(this, [=](Api::SendOptions options) {
+		_keepScrollPositionOnSend = false;
 		send(options, false);
 	});
 }

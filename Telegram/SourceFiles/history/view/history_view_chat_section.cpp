@@ -857,6 +857,9 @@ void ChatWidget::setupComposeControls() {
 				Fn<void()> done) {
 			sendWithTextOverride(std::move(text), options, std::move(done));
 		},
+		.setKeepScrollPositionOnSend = [=](bool keepScrollPosition) {
+			_keepScrollPositionOnSend = keepScrollPosition;
+		},
 		.slowmodeSecondsLeft = SlowmodeSecondsLeft(_peer),
 		.sendDisabledBySlowmode = SendDisabledBySlowmode(_peer),
 		.writeRestriction = std::move(writeRestriction),
@@ -1251,13 +1254,21 @@ bool ChatWidget::confirmSendingFiles(
 		return false;
 	}
 
-	auto box = Box<SendFilesBox>(
-		controller(),
-		std::move(list),
-		_composeControls->getTextWithAppliedMarkdown(),
-		_peer,
-		Api::SendType::Normal,
-		sendMenuDetails());
+	const auto details = sendMenuDetails();
+	auto box = Box<SendFilesBox>(SendFilesBoxDescriptor{
+		.show = controller()->uiShow(),
+		.list = std::move(list),
+		.caption = _composeControls->getTextWithAppliedMarkdown(),
+		.toPeer = _peer,
+		.limits = DefaultLimitsForPeer(_peer),
+		.check = DefaultCheckForPeer(controller(), _peer),
+		.sendType = Api::SendType::Normal,
+		.sendMenuDetails = [=] { return details; },
+		.keepScrollPositionCallback = crl::guard(this, [=](
+				bool keepScrollPosition) {
+			_keepScrollPositionOnSend = keepScrollPosition;
+		}),
+	});
 	box->setReplyTo(_composeControls->replyingToMessage());
 
 	box->setConfirmedCallback(crl::guard(this, [=](
@@ -1447,6 +1458,7 @@ Api::SendAction ChatWidget::prepareSendAction(
 		_peer->id,
 		_repliesRootId,
 		_monoforumPeerId);
+	result.keepScrollPosition = _keepScrollPositionOnSend;
 	return result;
 }
 
@@ -1976,6 +1988,8 @@ bool ChatWidget::sendExistingDocument(
 		}
 	}
 
+	messageToSend.action.keepScrollPosition = false;
+	_keepScrollPositionOnSend = false;
 	Api::SendExistingDocument(
 		std::move(messageToSend),
 		document,
@@ -2020,6 +2034,7 @@ bool ChatWidget::sendExistingPhoto(
 		}
 	}
 
+	_keepScrollPositionOnSend = false;
 	Api::SendExistingPhoto(
 		Api::MessageToSend(prepareSendAction(options)),
 		photo);
@@ -2069,6 +2084,7 @@ void ChatWidget::sendInlineResult(
 		return;
 	}
 
+	_keepScrollPositionOnSend = false;
 	auto action = prepareSendAction(options);
 	action.generateLocal = true;
 	session().api().sendInlineResult(
@@ -2659,10 +2675,13 @@ void ChatWidget::showAtEnd() {
 }
 
 void ChatWidget::finishSending() {
+	const auto keepScrollPosition = base::take(_keepScrollPositionOnSend);
 	_composeControls->hidePanelsAnimated();
 	//if (_previewData && _previewData->pendingTill) previewCancel();
 	doSetInnerFocus();
-	showAtEnd();
+	if (!keepScrollPosition) {
+		showAtEnd();
+	}
 	refreshTopBarActiveChat();
 }
 
@@ -3639,6 +3658,8 @@ void ChatWidget::sendBotCommandWithOptions(
 		}
 	}
 
+	message.action.keepScrollPosition = false;
+	_keepScrollPositionOnSend = false;
 	session().api().sendMessage(std::move(message));
 	finishSending();
 }

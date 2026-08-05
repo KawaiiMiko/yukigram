@@ -438,6 +438,7 @@ HistoryWidget::HistoryWidget(
 	}, lifetime());
 
 	setupSendMenu(_send.get(), [=](SendMenu::Action action, SendMenu::Details) {
+		_keepScrollPositionOnSend = false;
 		if (action.type == SendMenu::ActionType::Send) {
 			send(action.options);
 		} else {
@@ -826,7 +827,18 @@ HistoryWidget::HistoryWidget(
 	}) | rpl::on_next([=](const Data::HistoryUpdate &update) {
 		const auto flags = update.flags;
 		if (flags & HistoryUpdateFlag::MessageSent) {
-			synteticScrollToY(_scroll->scrollTopMax());
+			if (_keepScrollPositionOnSend) {
+				const auto history = update.history;
+				const auto scrollTop = _scroll->scrollTop();
+				crl::on_main(this, [=] {
+					if (_history == history) {
+						synteticScrollToY(scrollTop);
+					}
+					_keepScrollPositionOnSend = false;
+				});
+			} else {
+				synteticScrollToY(_scroll->scrollTopMax());
+			}
 		}
 		if (flags & HistoryUpdateFlag::BotKeyboard) {
 			updateBotKeyboard(update.history);
@@ -1144,6 +1156,7 @@ HistoryWidget::HistoryWidget(
 		}
 		return (action.history == _history);
 	}) | rpl::on_next([=](const Api::SendAction &action) {
+		_keepScrollPositionOnSend = action.keepScrollPosition;
 		const auto lastKeyboardUsed = lastForceReplyReplied(
 			action.replyTo.messageId);
 		if (action.replaceMediaOf) {
@@ -1154,7 +1167,9 @@ HistoryWidget::HistoryWidget(
 					std::make_shared<HistoryView::ScheduledMemento>(history));
 			});
 		} else {
-			fastShowAtEnd(action.history);
+			if (!action.keepScrollPosition) {
+				fastShowAtEnd(action.history);
+			}
 			if (!_justMarkingAsRead
 				&& cancelReplyOrSuggest(lastKeyboardUsed)
 				&& !action.clearDraft) {
@@ -1489,13 +1504,21 @@ void HistoryWidget::sendTextAsFile(
 
 	_field->setTextWithTags({});
 
-	auto box = Box<SendFilesBox>(
-		controller(),
-		std::move(result),
-		TextWithTags{},
-		_peer,
-		Api::SendType::Normal,
-		sendMenuDetails());
+	const auto details = sendMenuDetails();
+	auto box = Box<SendFilesBox>(SendFilesBoxDescriptor{
+		.show = controller()->uiShow(),
+		.list = std::move(result),
+		.caption = TextWithTags{},
+		.toPeer = _peer,
+		.limits = DefaultLimitsForPeer(_peer),
+		.check = DefaultCheckForPeer(controller(), _peer),
+		.sendType = Api::SendType::Normal,
+		.sendMenuDetails = [=] { return details; },
+		.keepScrollPositionCallback = crl::guard(this, [=](
+				bool keepScrollPosition) {
+			_keepScrollPositionOnSend = keepScrollPosition;
+		}),
+	});
 	box->setReplyTo(replyTo());
 	box->setConfirmedCallback(crl::guard(this, [=](
 			std::shared_ptr<Ui::PreparedBundle> bundle,
@@ -4414,7 +4437,7 @@ void HistoryWidget::newItemAdded(not_null<HistoryItem*> item) {
 	// - on second we get wrong markingMessagesRead() and read both.
 	session().data().sendHistoryChangeNotifications();
 
-	if (item->isSending()) {
+	if (item->isSending() && !_keepScrollPositionOnSend) {
 		synteticScrollToY(_scroll->scrollTopMax());
 	} else if (_scroll->scrollTop() < _scroll->scrollTopMax()) {
 		return;
@@ -5541,6 +5564,7 @@ Api::SendAction HistoryWidget::prepareSendAction(
 			_history->peer).get()
 		: nullptr;
 	result.clearDraft = !isComposeBoxOpen();
+	result.keepScrollPosition = _keepScrollPositionOnSend;
 	return result;
 }
 
@@ -5819,6 +5843,7 @@ void HistoryWidget::sendWithModifiers(Qt::KeyboardModifiers modifiers) {
 		&& !HasSendText(_field)) {
 			return;
 		}
+	_keepScrollPositionOnSend = modifiers.testFlag(Qt::AltModifier);
 	send({ .handleSupportSwitch = Support::HandleSwitch(modifiers) });
 }
 
@@ -6300,6 +6325,7 @@ void HistoryWidget::sendButtonClicked() {
 		cancelInlineBot();
 	} else if (type != Ui::SendButton::Type::Record
 		&& type != Ui::SendButton::Type::Round) {
+		_keepScrollPositionOnSend = false;
 		send({});
 	}
 }
@@ -7718,13 +7744,21 @@ bool HistoryWidget::confirmSendingFiles(
 	const auto position = cursor.position();
 	const auto anchor = cursor.anchor();
 	const auto text = _field->getTextWithTags();
-	auto box = Box<SendFilesBox>(
-		controller(),
-		std::move(list),
-		text,
-		_peer,
-		Api::SendType::Normal,
-		sendMenuDetails());
+	const auto details = sendMenuDetails();
+	auto box = Box<SendFilesBox>(SendFilesBoxDescriptor{
+		.show = controller()->uiShow(),
+		.list = std::move(list),
+		.caption = text,
+		.toPeer = _peer,
+		.limits = DefaultLimitsForPeer(_peer),
+		.check = DefaultCheckForPeer(controller(), _peer),
+		.sendType = Api::SendType::Normal,
+		.sendMenuDetails = [=] { return details; },
+		.keepScrollPositionCallback = crl::guard(this, [=](
+				bool keepScrollPosition) {
+			_keepScrollPositionOnSend = keepScrollPosition;
+		}),
+	});
 	box->setReplyTo(replyTo());
 	_field->setTextWithTags({});
 	box->setConfirmedCallback(crl::guard(this, [=](
@@ -8400,6 +8434,8 @@ void HistoryWidget::updateHistoryGeometry(
 		newScrollTop = countInitialScrollTop();
 		_historyInited = true;
 		_scrollToAnimation.stop();
+	} else if (_keepScrollPositionOnSend) {
+		newScrollTop = wasScrollTop;
 	} else if (wasAtBottom && !loadedDown && !_history->unreadBar()) {
 		newScrollTop = countAutomaticScrollTop();
 	} else {

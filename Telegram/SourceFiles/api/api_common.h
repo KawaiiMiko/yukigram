@@ -61,6 +61,7 @@ struct SendAction {
 	FullReplyTo replyTo;
 	bool clearDraft = true;
 	bool generateLocal = true;
+	bool keepScrollPosition = false;
 	MsgId replaceMediaOf = 0;
 
 	[[nodiscard]] MTPInputReplyTo mtpReplyTo() const;

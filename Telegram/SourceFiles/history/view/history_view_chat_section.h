@@ -449,6 +449,7 @@ private:
 	bool _canSendTexts = false;
 	bool _skipScrollEvent = false;
 	bool _synteticScrollEvent = false;
+	bool _keepScrollPositionOnSend = false;
 
 	std::unique_ptr<TranslateBar> _translateBar;
 	int _translateBarHeight = 0;
