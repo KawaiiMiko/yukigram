@@ -4242,31 +4242,30 @@ void ApiWrap::forwardMessagesUnquoted(
 				: Flag(0))
 			| (action.options.effectId ? Flag::f_effect : Flag(0))
 			| (starsPaid ? Flag::f_allow_paid_stars : Flag(0));
-		histories.sendPreparedMessage(
-			history,
-			action.replyTo,
-			uint64(0),
-			Data::Histories::PrepareMessage<MTPmessages_SendMultiMedia>(
+		const auto requestType = Data::Histories::RequestType::Send;
+		histories.sendRequest(history, requestType, [=](Fn<void()> finish) {
+			history->sendRequestId = request(MTPmessages_SendMultiMedia(
 				MTP_flags(flags),
 				peer->input(),
-				Data::Histories::ReplyToPlaceholder(),
-				MTP_vector<MTPInputSingleMedia>(std::move(mediaInputs)),
+				action.mtpReplyTo(),
+				MTP_vector<MTPInputSingleMedia>(mediaInputs),
 				MTP_int(scheduled),
 				(sendAs ? sendAs->input() : MTP_inputPeerEmpty()),
 				Data::ShortcutIdToMTP(
 					_session,
 					action.options.shortcutId),
 				MTP_long(action.options.effectId),
-				MTP_long(starsPaid)),
-			[=](const MTPUpdates &result, const MTP::Response &) {
+				MTP_long(starsPaid)
+			)).done([=](const MTPUpdates &result) {
+				applyUpdates(result);
 				if (!scheduled) {
 					_session->api().updates().checkForSentToScheduled(result);
 				}
 				if (shared && !--shared->requestsLeft) {
 					shared->callback();
 				}
-			},
-			[=](const MTP::Error &error, const MTP::Response &) {
+				finish();
+			}).fail([=](const MTP::Error &error) {
 				for (const auto &[randomId, itemId] : localIds) {
 					_session->api().sendMessageFail(
 						error,
@@ -4274,7 +4273,10 @@ void ApiWrap::forwardMessagesUnquoted(
 						randomId,
 						itemId);
 				}
-			});
+				finish();
+			}).afterRequest(history->sendRequestId).send();
+			return history->sendRequestId;
+		});
 	}
 	if (!fallback.items.empty()) {
 		forwardMessages(

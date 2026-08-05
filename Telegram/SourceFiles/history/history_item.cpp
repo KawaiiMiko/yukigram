@@ -789,6 +789,12 @@ HistoryItem::HistoryItem(
 		.spoiler = fields.mediaSpoiler,
 	});
 	setText(caption);
+	if (fields.groupedId) {
+		setGroupId(MessageGroupId::FromRaw(
+			history->peer->id,
+			fields.groupedId,
+			_flags & MessageFlag::IsOrWasScheduled));
+	}
 }
 
 HistoryItem::HistoryItem(
@@ -802,6 +808,12 @@ HistoryItem::HistoryItem(
 	const auto spoiler = fields.mediaSpoiler;
 	_media = std::make_unique<Data::MediaPhoto>(this, photo, spoiler);
 	setText(caption);
+	if (fields.groupedId) {
+		setGroupId(MessageGroupId::FromRaw(
+			history->peer->id,
+			fields.groupedId,
+			_flags & MessageFlag::IsOrWasScheduled));
+	}
 }
 
 HistoryItem::HistoryItem(
