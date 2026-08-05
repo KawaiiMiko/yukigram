@@ -3278,12 +3278,19 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		}
 		void setForwardOptions(Ui::ForwardOptions forwardOptions) {
 			_forwardOptions = forwardOptions;
+			if (!_forwardOptions.dropNames
+				&& _groupingOptions == Data::GroupingOptions::RegroupAll) {
+				_groupingOptions = Data::GroupingOptions::GroupAsIs;
+			}
 		}
 		[[nodiscard]] Data::GroupingOptions groupingOptions() const {
 			return _groupingOptions;
 		}
 		void setGroupingOptions(Data::GroupingOptions groupingOptions) {
 			_groupingOptions = groupingOptions;
+			if (_groupingOptions == Data::GroupingOptions::RegroupAll) {
+				_forwardOptions.dropNames = true;
+			}
 		}
 
 		not_null<PeerListContent*> peerListContent() const {
@@ -3516,7 +3523,7 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		return boxRaw->lifetime().make_state<State>(std::move(state));
 	}();
 
-	if (hasMediaForGrouping) {
+	const auto addGroupingMenu = [=] {
 		const auto top = state->box->addTopButton(st::infoTopBarMenu);
 		const auto menu = top->lifetime().make_state<
 			base::unique_qptr<Ui::PopupMenu>>();
@@ -3585,12 +3592,15 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 				QPoint(top->width(), top->height() - st::lineWidth * 3)));
 			return true;
 		});
-	}
-
+	};
 	{ // Chosen a single.
 		auto chosen = [show, draft = std::move(draft), state](
 				not_null<Data::Thread*> thread) mutable {
 			draft.groupOptions = state->box->groupingOptions();
+			if (draft.groupOptions == Data::GroupingOptions::RegroupAll
+				&& draft.options == Data::ForwardOptions::PreserveInfo) {
+				draft.options = Data::ForwardOptions::NoSenderNames;
+			}
 			const auto peer = thread->peer();
 			if (peer->isSelf()
 				&& !draft.ids.empty()
@@ -3862,6 +3872,9 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		const auto shown = state->controller->hasSelected();
 
 		state->box->clearButtons();
+		if (hasMediaForGrouping) {
+			addGroupingMenu();
+		}
 		state->refreshStarsToSend();
 		if (shown) {
 			const auto send = state->box->addButton(

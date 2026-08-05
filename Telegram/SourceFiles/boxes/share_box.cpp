@@ -516,75 +516,6 @@ void ShareBox::prepare() {
 		getBottomScrollSkip());
 
 	createButtons();
-	if (_descriptor.forwardOptions.hasMediaForGrouping) {
-		const auto top = addTopButton(st::infoTopBarMenu);
-		const auto menu = top->lifetime().make_state<
-			base::unique_qptr<Ui::PopupMenu>>();
-		top->setClickedCallback([=] {
-			*menu = base::make_unique_q<Ui::PopupMenu>(
-				top,
-				st::popupMenuWithIcons);
-			const auto createView = [&](
-					rpl::producer<QString> &&text,
-					bool checked) {
-				auto item = base::make_unique_q<Menu::ItemWithCheck>(
-					(*menu)->menu(),
-					st::popupMenuWithIcons.menu,
-					Ui::CreateChild<QAction>((*menu)->menu().get()),
-					nullptr,
-					nullptr);
-				std::move(text) | rpl::on_next([action = item->action()](
-						QString text) {
-					action->setText(text);
-				}, item->lifetime());
-				item->init(checked);
-				const auto view = item->checkView();
-				(*menu)->addAction(std::move(item));
-				return view;
-			};
-			const auto regroup = createView(
-				tr::lng_forward_regroup_media(),
-				_groupingOptions == Data::GroupingOptions::RegroupAll);
-			const auto separate = createView(
-				tr::lng_forward_separate_messages(),
-				_groupingOptions == Data::GroupingOptions::Separate);
-			const auto update = [=, this](
-					Data::GroupingOptions option,
-					bool checked) {
-				if (checked) {
-					_groupingOptions = option;
-					regroup->setChecked(
-						option == Data::GroupingOptions::RegroupAll,
-						anim::type::normal);
-					separate->setChecked(
-						option == Data::GroupingOptions::Separate,
-						anim::type::normal);
-				} else if (_groupingOptions == option) {
-					_groupingOptions = Data::GroupingOptions::GroupAsIs;
-				}
-			};
-			regroup->checkedChanges(
-			) | rpl::on_next([=](bool checked) {
-				update(Data::GroupingOptions::RegroupAll, checked);
-			}, (*menu)->lifetime());
-			separate->checkedChanges(
-			) | rpl::on_next([=](bool checked) {
-				update(Data::GroupingOptions::Separate, checked);
-			}, (*menu)->lifetime());
-
-			const auto raw = menu->get();
-			raw->setForcedOrigin(Ui::PanelAnimation::Origin::TopRight);
-			top->setForceRippled(true);
-			raw->setDestroyedCallback([=] {
-				if (const auto strong = top.data()) {
-					strong->setForceRippled(false);
-				}
-			});
-			raw->popup(top->mapToGlobal(
-				QPoint(top->width(), top->height() - st::lineWidth * 3)));
-			return true;
-		});
-	}
 
 	setDimensions(st::boxWideWidth, st::boxMaxListHeight);
 
@@ -878,7 +809,7 @@ void ShareBox::showMenu(not_null<Ui::RpWidget*> parent) {
 		Ui::FillForwardOptions(
 			std::move(createView),
 			_forwardOptions,
-			[=](Ui::ForwardOptions value) { _forwardOptions = value; },
+			[=](Ui::ForwardOptions value) { setForwardOptions(value); },
 			_menu->lifetime());
 
 		_menu->addSeparator();
@@ -942,6 +873,94 @@ void ShareBox::createButtons() {
 		addButton(_copyLinkText.value(), [=] { copyLink(); });
 	}
 	addButton(tr::lng_cancel(), [=] { closeBox(); });
+	setupGroupingMenu();
+}
+
+void ShareBox::setupGroupingMenu() {
+	if (!_descriptor.forwardOptions.hasMediaForGrouping) {
+		return;
+	}
+	const auto top = addTopButton(st::infoTopBarMenu);
+	const auto menu = top->lifetime().make_state<
+		base::unique_qptr<Ui::PopupMenu>>();
+	top->setClickedCallback([=] {
+		*menu = base::make_unique_q<Ui::PopupMenu>(
+			top,
+			st::popupMenuWithIcons);
+		const auto createView = [&](rpl::producer<QString> &&text, bool checked) {
+			auto item = base::make_unique_q<Menu::ItemWithCheck>(
+				(*menu)->menu(),
+				st::popupMenuWithIcons.menu,
+				Ui::CreateChild<QAction>((*menu)->menu().get()),
+				nullptr,
+				nullptr);
+			std::move(text) | rpl::on_next([action = item->action()](
+					QString text) {
+				action->setText(text);
+			}, item->lifetime());
+			item->init(checked);
+			const auto view = item->checkView();
+			(*menu)->addAction(std::move(item));
+			return view;
+		};
+		const auto regroup = createView(
+			tr::lng_forward_regroup_media(),
+			_groupingOptions == Data::GroupingOptions::RegroupAll);
+		const auto separate = createView(
+			tr::lng_forward_separate_messages(),
+			_groupingOptions == Data::GroupingOptions::Separate);
+		const auto update = [=, this](
+				Data::GroupingOptions option,
+				bool checked) {
+			if (checked) {
+				setGroupingOptions(option);
+				regroup->setChecked(
+					option == Data::GroupingOptions::RegroupAll,
+					anim::type::normal);
+				separate->setChecked(
+					option == Data::GroupingOptions::Separate,
+					anim::type::normal);
+			} else if (_groupingOptions == option) {
+				_groupingOptions = Data::GroupingOptions::GroupAsIs;
+			}
+		};
+		regroup->checkedChanges(
+		) | rpl::on_next([=](bool checked) {
+			update(Data::GroupingOptions::RegroupAll, checked);
+		}, (*menu)->lifetime());
+		separate->checkedChanges(
+		) | rpl::on_next([=](bool checked) {
+			update(Data::GroupingOptions::Separate, checked);
+		}, (*menu)->lifetime());
+
+		const auto raw = menu->get();
+		raw->setForcedOrigin(Ui::PanelAnimation::Origin::TopRight);
+		top->setForceRippled(true);
+		raw->setDestroyedCallback([=] {
+			if (const auto strong = top.data()) {
+				strong->setForceRippled(false);
+			}
+		});
+		raw->popup(top->mapToGlobal(
+			QPoint(top->width(), top->height() - st::lineWidth * 3)));
+		return true;
+	});
+}
+
+void ShareBox::setForwardOptions(Ui::ForwardOptions forwardOptions) {
+	_forwardOptions = forwardOptions;
+	if (!_forwardOptions.dropNames
+		&& _groupingOptions == Data::GroupingOptions::RegroupAll) {
+		_groupingOptions = Data::GroupingOptions::GroupAsIs;
+	}
+}
+
+void ShareBox::setGroupingOptions(
+		Data::GroupingOptions groupingOptions) {
+	_groupingOptions = groupingOptions;
+	if (_groupingOptions == Data::GroupingOptions::RegroupAll) {
+		_forwardOptions.dropNames = true;
+	}
 }
 
 void ShareBox::applyFilterUpdate(const QString &query) {
@@ -2150,7 +2169,9 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 			const auto donePhraseArgs = CreateForwardedMessagePhraseArgs(
 				result,
 				msgIds);
-			const auto draftOptions = no_quote
+			const auto draftOptions = (no_quote
+				|| (groupingOptions == Data::GroupingOptions::RegroupAll
+					&& forwardOptions == Data::ForwardOptions::PreserveInfo))
 				? Data::ForwardOptions::NoSenderNames
 				: forwardOptions;
 			for (const auto &thread : result) {
