@@ -113,7 +113,13 @@ namespace {
 		return Builder::SearchEntry{
 			.id = u"enhanced/messages/extra-context-menu-options"_q,
 			.title = tr::lng_settings_extra_context_menu_options(tr::now),
-			.keywords = { u"repeater"_q, u"json"_q, u"context"_q, u"menu"_q },
+			.keywords = {
+				u"forward"_q,
+				u"repeater"_q,
+				u"json"_q,
+				u"context"_q,
+				u"menu"_q,
+			},
 			.deeplink = u"tg://settings/enhanced/messages/extra-context-menu-options"_q,
 		};
 	});

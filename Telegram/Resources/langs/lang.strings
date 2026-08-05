@@ -8736,6 +8736,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_context_repeater" = "Repeater";
 "lng_context_hide_message" = "Hide";
 "lng_context_view_as_json" = "View As JSON";
+"lng_context_more_forward" = "More forwards";
 
 "lng_pinned_message_show" = "Show pinned message";
 "lng_pinned_message_hide" = "Hide pinned message";
