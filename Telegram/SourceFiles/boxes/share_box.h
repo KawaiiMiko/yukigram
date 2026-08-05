@@ -47,6 +47,7 @@ class IndexedList;
 
 namespace Data {
 enum class ForwardOptions;
+enum class GroupingOptions;
 class Thread;
 } // namespace Data
 
@@ -112,7 +113,8 @@ public:
 		Fn<bool()> checkPaid,
 		TextWithTags&&,
 		Api::SendOptions,
-		Data::ForwardOptions)>;
+		Data::ForwardOptions,
+		Data::GroupingOptions)>;
 	using FilterCallback = Fn<bool(not_null<Data::Thread*>)>;
 
 	[[nodiscard]] static auto DefaultForwardCountMessages(
@@ -140,6 +142,7 @@ public:
 			int sendersCount = 0;
 			int captionsCount = 0;
 			bool show = false;
+			bool hasMediaForGrouping = false;
 		} forwardOptions;
 
 		using MoneyRestrictionError = RecipientMoneyRestrictionError;
@@ -195,6 +198,7 @@ private:
 
 	base::unique_qptr<Ui::PopupMenu> _menu;
 	Ui::ForwardOptions _forwardOptions;
+	Data::GroupingOptions _groupingOptions = {};
 
 	class Inner;
 	QPointer<Inner> _inner;

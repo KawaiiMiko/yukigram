@@ -342,6 +342,10 @@ public:
 		Data::ResolvedForwardDraft &&draft,
 		SendAction action,
 		FnMut<void()> &&successCallback = nullptr);
+	void forwardMessagesUnquoted(
+		Data::ResolvedForwardDraft &&draft,
+		const SendAction &action,
+		FnMut<void()> &&successCallback = nullptr);
 	void shareContact(
 		const QString &phone,
 		const QString &firstName,

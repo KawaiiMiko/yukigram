@@ -394,6 +394,12 @@ enum class ForwardOptions {
 	NoNamesAndCaptions,
 };
 
+enum class GroupingOptions {
+	GroupAsIs,
+	RegroupAll,
+	Separate,
+};
+
 enum class ViewRemovalReason : uchar {
 	Removed,
 	Detached,
@@ -402,6 +408,7 @@ enum class ViewRemovalReason : uchar {
 struct ForwardDraft {
 	MessageIdsList ids;
 	ForwardOptions options = ForwardOptions::PreserveInfo;
+	GroupingOptions groupOptions = GroupingOptions::GroupAsIs;
 
 	friend inline auto operator<=>(
 		const ForwardDraft&,
@@ -411,6 +418,7 @@ struct ForwardDraft {
 struct ResolvedForwardDraft {
 	HistoryItemsList items;
 	ForwardOptions options = ForwardOptions::PreserveInfo;
+	GroupingOptions groupOptions = GroupingOptions::GroupAsIs;
 };
 
 } // namespace Data

@@ -516,6 +516,75 @@ void ShareBox::prepare() {
 		getBottomScrollSkip());
 
 	createButtons();
+	if (_descriptor.forwardOptions.hasMediaForGrouping) {
+		const auto top = addTopButton(st::infoTopBarMenu);
+		const auto menu = top->lifetime().make_state<
+			base::unique_qptr<Ui::PopupMenu>>();
+		top->setClickedCallback([=] {
+			*menu = base::make_unique_q<Ui::PopupMenu>(
+				top,
+				st::popupMenuWithIcons);
+			const auto createView = [&](
+					rpl::producer<QString> &&text,
+					bool checked) {
+				auto item = base::make_unique_q<Menu::ItemWithCheck>(
+					(*menu)->menu(),
+					st::popupMenuWithIcons.menu,
+					Ui::CreateChild<QAction>((*menu)->menu().get()),
+					nullptr,
+					nullptr);
+				std::move(text) | rpl::on_next([action = item->action()](
+						QString text) {
+					action->setText(text);
+				}, item->lifetime());
+				item->init(checked);
+				const auto view = item->checkView();
+				(*menu)->addAction(std::move(item));
+				return view;
+			};
+			const auto regroup = createView(
+				tr::lng_forward_regroup_media(),
+				_groupingOptions == Data::GroupingOptions::RegroupAll);
+			const auto separate = createView(
+				tr::lng_forward_separate_messages(),
+				_groupingOptions == Data::GroupingOptions::Separate);
+			const auto update = [=, this](
+					Data::GroupingOptions option,
+					bool checked) {
+				if (checked) {
+					_groupingOptions = option;
+					regroup->setChecked(
+						option == Data::GroupingOptions::RegroupAll,
+						anim::type::normal);
+					separate->setChecked(
+						option == Data::GroupingOptions::Separate,
+						anim::type::normal);
+				} else if (_groupingOptions == option) {
+					_groupingOptions = Data::GroupingOptions::GroupAsIs;
+				}
+			};
+			regroup->checkedChanges(
+			) | rpl::on_next([=](bool checked) {
+				update(Data::GroupingOptions::RegroupAll, checked);
+			}, (*menu)->lifetime());
+			separate->checkedChanges(
+			) | rpl::on_next([=](bool checked) {
+				update(Data::GroupingOptions::Separate, checked);
+			}, (*menu)->lifetime());
+
+			const auto raw = menu->get();
+			raw->setForcedOrigin(Ui::PanelAnimation::Origin::TopRight);
+			top->setForceRippled(true);
+			raw->setDestroyedCallback([=] {
+				if (const auto strong = top.data()) {
+					strong->setForceRippled(false);
+				}
+			});
+			raw->popup(top->mapToGlobal(
+				QPoint(top->width(), top->height() - st::lineWidth * 3)));
+			return true;
+		});
+	}
 
 	setDimensions(st::boxWideWidth, st::boxMaxListHeight);
 
@@ -996,7 +1065,8 @@ void ShareBox::submit(Api::SendOptions options) {
 			checkPaid,
 			std::move(comment),
 			options,
-			forwardOptions);
+			forwardOptions,
+			_groupingOptions);
 	}
 }
 
@@ -2049,7 +2119,8 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 			Fn<bool()> checkPaid,
 			TextWithTags comment,
 			Api::SendOptions options,
-			Data::ForwardOptions forwardOptions) {
+			Data::ForwardOptions forwardOptions,
+			Data::GroupingOptions groupingOptions) {
 		if (!state->requests.empty()) {
 			return; // Share clicked already.
 		}
@@ -2073,6 +2144,60 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 			show->showBox(MakeSendErrorBox(error, result.size() > 1));
 			return;
 		} else if (!checkPaid()) {
+			return;
+		}
+		if (groupingOptions != Data::GroupingOptions::GroupAsIs) {
+			const auto donePhraseArgs = CreateForwardedMessagePhraseArgs(
+				result,
+				msgIds);
+			const auto draftOptions = no_quote
+				? Data::ForwardOptions::NoSenderNames
+				: forwardOptions;
+			for (const auto &thread : result) {
+				const auto threadHistory = thread->owningHistory();
+				const auto forum = threadHistory->asForum();
+				const auto needNewTopic = forum
+					&& forum->bot()
+					&& Data::IsBotUserCreatesTopics(thread->peer())
+					&& !thread->asTopic();
+				const auto effectiveThread = [&]() -> not_null<Data::Thread*> {
+					if (needNewTopic) {
+						const auto topic = forum->reserveNewBotTopic();
+						Assert(topic != nullptr);
+						return topic;
+					}
+					return thread;
+				}();
+				if (!comment.text.isEmpty()) {
+					auto message = Api::MessageToSend(
+						Api::SendAction(effectiveThread, options));
+					message.textWithTags = comment;
+					message.action.clearDraft = false;
+					history->session().api().sendMessage(std::move(message));
+				}
+				auto action = Api::SendAction(effectiveThread, options);
+				action.clearDraft = false;
+				const auto requestKey = ++state->nextRequestKey;
+				state->requests.insert(requestKey);
+				auto draft = effectiveThread->owningHistory()->resolveForwardDraft({
+					.ids = existingIds,
+					.options = draftOptions,
+					.groupOptions = groupingOptions,
+				});
+				history->session().api().forwardMessages(
+					std::move(draft),
+					std::move(action),
+					[=] {
+						state->requests.remove(requestKey);
+						if (state->requests.empty() && show->valid()) {
+							show->hideLayer();
+							ShowForwardedMessageToast(
+								show,
+								&history->session(),
+								donePhraseArgs);
+						}
+					});
+			}
 			return;
 		}
 
@@ -2317,6 +2442,23 @@ void FastShareMessage(
 	const auto canCopyLink = item->hasDirectLink() || isGame;
 
 	const auto items = owner->idsToItems(msgIds);
+	const auto hasMediaForGrouping = [&] {
+		if (msgIds.size() < 2) {
+			return false;
+		}
+		auto grouppableMediaCount = 0;
+		for (const auto &item : items) {
+			if (item->media() && item->media()->canBeGrouped()) {
+				++grouppableMediaCount;
+				if (grouppableMediaCount > 1) {
+					return true;
+				}
+			} else {
+				grouppableMediaCount = 0;
+			}
+		}
+		return false;
+	}();
 	const auto hasCaptions = ranges::any_of(items, [](auto item) {
 		return item->media()
 			&& !item->originalText().text.isEmpty()
@@ -2394,6 +2536,7 @@ void FastShareMessage(
 			.captionsCount = ItemsForwardCaptionsCount(items),
 			.show = !hasOnlyForcedForwardedInfo
 				&& canShowRichForwardOptions,
+			.hasMediaForGrouping = hasMediaForGrouping,
 		},
 		.moneyRestrictionError = ShareMessageMoneyRestrictionError(),
 	}), Ui::LayerOption::CloseOther);
@@ -2469,7 +2612,8 @@ void FastShareLink(
 			Fn<bool()> checkPaid,
 			TextWithTags &&comment,
 			Api::SendOptions options,
-			::Data::ForwardOptions) {
+			::Data::ForwardOptions,
+			::Data::GroupingOptions) {
 		if (*sending || result.empty()) {
 			return;
 		}
