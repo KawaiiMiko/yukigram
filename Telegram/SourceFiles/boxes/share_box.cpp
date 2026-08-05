@@ -26,6 +26,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/widgets/multi_select.h"
 #include "ui/widgets/scroll_area.h"
 #include "ui/widgets/fields/input_field.h"
+#include "ui/widgets/menu/menu_add_action_callback.h"
+#include "ui/widgets/menu/menu_add_action_callback_factory.h"
+#include "ui/widgets/menu/menu_action.h"
 #include "ui/widgets/popup_menu.h"
 #include "ui/wrap/slide_wrap.h"
 #include "ui/text/text_options.h"
@@ -73,6 +76,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "styles/style_dialogs.h"
 #include "styles/style_info.h"
 #include "styles/style_layers.h"
+#include "styles/style_menu_icons.h"
 #include "styles/style_share_box.h"
 
 #include <QtGui/QGuiApplication>
@@ -94,7 +98,8 @@ not_null<Ui::RpWidget*> Ui::AddForwardRecentTabsStrip(
 		not_null<RpWidget*> parent,
 		not_null<Main::Session*> session,
 		Fn<void(FilterId)> chooseFilter,
-		Fn<void()> chooseRecent) {
+		Fn<void()> chooseRecent,
+		rpl::producer<> recentChanges) {
 	const auto wrap = CreateChild<SlideWrap<RpWidget>>(
 		parent,
 		object_ptr<RpWidget>(parent));
@@ -140,14 +145,17 @@ not_null<Ui::RpWidget*> Ui::AddForwardRecentTabsStrip(
 
 	const auto rebuild = [=] {
 		const auto &list = session->data().chatsFilters().list();
-		auto sections = std::vector<TextWithEntities>{
-			tr::marked(tr::lng_recent_title(tr::now)),
-		};
-		auto icons = std::vector<const style::internal::Icon*>{
-			LookupFilterIcon(FilterIcon::Favorite).tabs.get(),
-		};
-		sections.reserve(list.size() + 1);
-		icons.reserve(list.size() + 1);
+		const auto hasRecent = !session->recentForwardTargets().list().empty();
+		const auto offset = hasRecent ? 1 : 0;
+		auto sections = std::vector<TextWithEntities>();
+		auto icons = std::vector<const style::internal::Icon*>();
+		sections.reserve(list.size() + offset);
+		icons.reserve(list.size() + offset);
+		if (hasRecent) {
+			sections.push_back(tr::marked(tr::lng_recent_title(tr::now)));
+			icons.push_back(LookupFilterIcon(
+				FilterIcon::Favorite).tabs.get());
+		}
 		for (const auto &filter : list) {
 			auto title = filter.title();
 			sections.push_back(title.text.empty()
@@ -182,7 +190,7 @@ not_null<Ui::RpWidget*> Ui::AddForwardRecentTabsStrip(
 			const auto premiumFrom = (reorderAll ? 0 : 1) + maxLimit;
 			slider->setLockedFrom((premiumFrom >= list.size())
 				? 0
-				: premiumFrom + 1);
+				: premiumFrom + offset);
 			slider->lockedClicked() | rpl::on_next([=] {
 				controller->show(Box(FiltersLimitBox, session, std::nullopt));
 			}, state->rebuildLifetime);
@@ -190,16 +198,22 @@ not_null<Ui::RpWidget*> Ui::AddForwardRecentTabsStrip(
 			slider->setLockedFrom(0);
 		}
 
-		auto active = 0;
+		if (!hasRecent) {
+			state->recent = false;
+			state->filterId = list.empty() ? 0 : list.front().id();
+		}
+		auto active = state->recent ? 0 : offset;
 		if (!state->recent) {
 			for (auto i = 0; i != list.size(); ++i) {
 				if (list[i].id() == state->filterId) {
-					active = i + 1;
+					active = i + offset;
 					break;
 				}
 			}
-			if (!active) {
-				state->recent = true;
+			if (active == offset && list.empty()) {
+				state->filterId = 0;
+			} else if (active == offset && state->filterId) {
+				state->filterId = list.front().id();
 			}
 		}
 		slider->setActiveSectionFast(active);
@@ -214,30 +228,33 @@ not_null<Ui::RpWidget*> Ui::AddForwardRecentTabsStrip(
 			slider->sectionActivated()
 		) | rpl::combine_previous(
 		) | rpl::on_next([=](int was, int index) {
-			if (index) {
-				const auto &list = session->data().chatsFilters().list();
-				if (index > list.size()) {
-					return;
-				}
-				state->recent = false;
-				state->filterId = list[index - 1].id();
-				if (was != index) {
-					scrollToIndex(index, anim::type::normal);
-				}
-				chooseFilter(state->filterId);
-			} else {
+			const auto hasRecent = !session->recentForwardTargets().list().empty();
+			const auto offset = hasRecent ? 1 : 0;
+			if (hasRecent && !index) {
 				state->recent = true;
 				if (was != index) {
 					scrollToIndex(index, anim::type::normal);
 				}
 				chooseRecent();
+			} else {
+				const auto &list = session->data().chatsFilters().list();
+				if (index < offset || (index - offset) >= list.size()) {
+					return;
+				}
+				state->recent = false;
+				state->filterId = list[index - offset].id();
+				if (was != index) {
+					scrollToIndex(index, anim::type::normal);
+				}
+				chooseFilter(state->filterId);
 			}
 		}, state->rebuildLifetime);
-		wrap->toggle(true, anim::type::instant);
+		wrap->toggle(hasRecent || (list.size() > 1), anim::type::instant);
 	};
-	rpl::combine(
-		session->data().chatsFilters().changed(),
-		Data::AmPremiumValue(session) | rpl::to_empty
+	rpl::merge(
+		session->data().chatsFilters().changed() | rpl::to_empty,
+		Data::AmPremiumValue(session) | rpl::to_empty,
+		std::move(recentChanges)
 	) | rpl::on_next(rebuild, wrap->lifetime());
 	Core::App().settings().chatFiltersTabsModeValue(
 	) | rpl::on_next([=](ChatsFiltersTabsMode mode) {
@@ -314,6 +331,8 @@ public:
 
 	void applyChatFilter(FilterId id);
 	void applyRecentFilter();
+	void removeRecent(not_null<PeerData*> peer);
+	[[nodiscard]] rpl::producer<> recentChanges() const;
 
 protected:
 	void visibleTopBottomUpdated(
@@ -382,6 +401,8 @@ private:
 	not_null<Chat*> getChat(not_null<Dialogs::Row*> row);
 	void setActive(int active);
 	void updateUpon(const QPoint &pos);
+	void rebuildRecentChats();
+	void showRecentMenu(not_null<Chat*> chat);
 
 	void refresh();
 
@@ -404,6 +425,8 @@ private:
 	std::unique_ptr<Dialogs::IndexedList> _customChatsIndexed;
 	std::unique_ptr<Dialogs::IndexedList> _recentChatsIndexed;
 	not_null<Dialogs::IndexedList*> _chatsIndexed;
+	base::unique_qptr<Ui::PopupMenu> _recentMenu;
+	bool _recentFilter = false;
 	QString _filter;
 	std::vector<not_null<Dialogs::Row*>> _filtered;
 
@@ -419,6 +442,7 @@ private:
 
 	rpl::event_stream<Ui::ScrollToRequest> _scrollToRequests;
 	rpl::event_stream<> _searchRequests;
+	rpl::event_stream<> _recentChanges;
 
 };
 
@@ -598,7 +622,8 @@ void ShareBox::prepare() {
 				this,
 				_descriptor.session,
 				chooseFilter,
-				chooseRecent)
+				chooseRecent,
+				_inner->recentChanges())
 			: AddChatFiltersTabsStrip(
 				this,
 				_descriptor.session,
@@ -1190,19 +1215,7 @@ ShareBox::Inner::Inner(
 		addList(folder->chatsList()->indexed());
 	}
 	addList(_descriptor.session->data().contactsNoChatsList());
-	const auto &recent = _descriptor.session->recentForwardTargets().list();
-	if (!recent.empty()) {
-		_recentChatsIndexed = std::make_unique<Dialogs::IndexedList>(
-			Dialogs::SortMode::Add);
-		for (const auto &peer : recent) {
-			const auto history = peer->owner().history(peer);
-			if (history->asForum()
-				|| JoinedCommunityChats(peer)
-				|| _descriptor.filterCallback(history)) {
-				_recentChatsIndexed->addToEnd(history);
-			}
-		}
-	}
+	rebuildRecentChats();
 
 	_filter = u"a"_q;
 	updateFilter();
@@ -1685,6 +1698,11 @@ void ShareBox::Inner::mousePressEvent(QMouseEvent *e) {
 	if (e->button() == Qt::LeftButton) {
 		updateUpon(e->pos());
 		changeCheckState(getChatAtIndex(_upon));
+	} else if (e->button() == Qt::RightButton && _recentFilter) {
+		updateUpon(e->pos());
+		if (const auto chat = getChatAtIndex(_upon)) {
+			showRecentMenu(chat);
+		}
 	}
 }
 
@@ -1972,6 +1990,7 @@ rpl::producer<> ShareBox::Inner::searchRequests() const {
 }
 
 void ShareBox::Inner::applyChatFilter(FilterId id) {
+	_recentFilter = false;
 	if (!id) {
 		_chatsIndexed = _defaultChatsIndexed.get();
 	} else {
@@ -1999,8 +2018,64 @@ void ShareBox::Inner::applyChatFilter(FilterId id) {
 void ShareBox::Inner::applyRecentFilter() {
 	Expects(_recentChatsIndexed != nullptr);
 
+	_recentFilter = true;
 	_chatsIndexed = _recentChatsIndexed.get();
 	refresh();
+}
+
+void ShareBox::Inner::removeRecent(not_null<PeerData*> peer) {
+	const auto wasRecent = _recentFilter;
+	_descriptor.session->recentForwardTargets().remove(peer);
+	rebuildRecentChats();
+	if (wasRecent) {
+		_recentFilter = (_recentChatsIndexed != nullptr);
+		_chatsIndexed = _recentFilter
+			? _recentChatsIndexed.get()
+			: _defaultChatsIndexed.get();
+		if (!_filter.isEmpty()) {
+			_filtered = _chatsIndexed->filtered(
+				TextUtilities::PrepareSearchWords(_lastQuery));
+		}
+		refresh();
+	}
+	_recentChanges.fire({});
+}
+
+rpl::producer<> ShareBox::Inner::recentChanges() const {
+	return _recentChanges.events();
+}
+
+void ShareBox::Inner::rebuildRecentChats() {
+	_recentChatsIndexed = nullptr;
+	const auto &recent = _descriptor.session->recentForwardTargets().list();
+	if (recent.empty()) {
+		return;
+	}
+	_recentChatsIndexed = std::make_unique<Dialogs::IndexedList>(
+		Dialogs::SortMode::Add);
+	for (const auto &peer : recent) {
+		const auto history = peer->owner().history(peer);
+		if (history->asForum()
+			|| JoinedCommunityChats(peer)
+			|| _descriptor.filterCallback(history)) {
+			_recentChatsIndexed->addToEnd(history);
+		}
+	}
+}
+
+void ShareBox::Inner::showRecentMenu(not_null<Chat*> chat) {
+	_recentMenu = base::make_unique_q<Ui::PopupMenu>(
+		this,
+		st::popupMenuWithIcons);
+	const auto addAction = Ui::Menu::CreateAddActionCallback(
+		_recentMenu.get());
+	addAction({
+		.text = tr::lng_recent_remove(tr::now),
+		.handler = [=] { removeRecent(chat->peer); },
+		.icon = &st::menuIconDeleteAttention,
+		.isAttention = true,
+	});
+	_recentMenu->popup(QCursor::pos());
 }
 
 void ShareBox::Inner::peopleReceived(

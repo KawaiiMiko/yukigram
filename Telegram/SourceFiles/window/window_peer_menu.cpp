@@ -56,6 +56,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/widgets/chat_filters_tabs_strip.h"
 #include "ui/widgets/labels.h"
 #include "ui/widgets/checkbox.h"
+#include "ui/widgets/menu/menu_add_action_callback.h"
 #include "ui/widgets/popup_menu.h"
 #include "ui/widgets/menu/menu_add_action_callback_factory.h"
 #include "ui/layers/generic_box.h"
@@ -3310,9 +3311,16 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		[[nodiscard]] bool recentFilter() const {
 			return _recentFilter;
 		}
+		void fireRecentChanged() {
+			_recentChanged.fire({});
+		}
+		[[nodiscard]] rpl::producer<> recentChanges() const {
+			return _recentChanged.events();
+		}
 
 	private:
 		rpl::event_stream<> _focusRequests;
+		rpl::event_stream<> _recentChanged;
 		Ui::ForwardOptions _forwardOptions;
 		Data::GroupingOptions _groupingOptions
 			= Data::GroupingOptions::GroupAsIs;
@@ -3343,6 +3351,13 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 
 		using PeerListController::setSearchNoResultsText;
 
+		void setRecentContextMenu(
+				Fn<bool()> isRecentFilter,
+				Fn<void(not_null<PeerData*>)> removeRecent) {
+			_isRecentFilter = std::move(isRecentFilter);
+			_removeRecent = std::move(removeRecent);
+		}
+
 		void rowClicked(not_null<PeerListRow*> row) override final {
 			const auto count = delegate()->peerListSelectedRowsCount();
 			const auto forum = row->peer()->isForum();
@@ -3362,20 +3377,36 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		base::unique_qptr<Ui::PopupMenu> rowContextMenu(
 				QWidget *parent,
 				not_null<PeerListRow*> row) override final {
+			const auto recent = _isRecentFilter && _isRecentFilter();
+			base::unique_qptr<Ui::PopupMenu> menu;
 			if (!row->checked()
 				&& !row->peer()->isForum()
 				&& !row->peer()->isMonoforum()
 				&& !JoinedCommunityChats(row->peer())) {
-				auto menu = base::make_unique_q<Ui::PopupMenu>(
+				menu = base::make_unique_q<Ui::PopupMenu>(
 					parent,
 					st::popupMenuWithIcons);
 				menu->addAction(tr::lng_bot_choose_chat(tr::now), [=] {
 					delegate()->peerListSetRowChecked(row, true);
 					_selectionChanges.fire({});
 				}, &st::menuIconSelect);
-				return menu;
 			}
-			return nullptr;
+			if (recent) {
+				if (!menu) {
+					menu = base::make_unique_q<Ui::PopupMenu>(
+						parent,
+						st::popupMenuWithIcons);
+				}
+				const auto addAction = Ui::Menu::CreateAddActionCallback(
+					menu.get());
+				addAction({
+					.text = tr::lng_recent_remove(tr::now),
+					.handler = [=] { _removeRecent(row->peer()); },
+					.icon = &st::menuIconDeleteAttention,
+					.isAttention = true,
+				});
+			}
+			return menu;
 		}
 
 		[[nodiscard]] rpl::producer<> selectionChanges() const {
@@ -3392,6 +3423,8 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 	private:
 		rpl::event_stream<Chosen> _singleChosen;
 		rpl::event_stream<> _selectionChanges;
+		Fn<bool()> _isRecentFilter;
+		Fn<void(not_null<PeerData*>)> _removeRecent;
 
 	};
 
@@ -3437,9 +3470,9 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		}
 		box->peerListContent()->restoreState(std::move(state));
 	};
-	const auto applyRecent = [=](not_null<ListBox*> box) {
+	const auto applyRecent = [=](not_null<ListBox*> box, bool force) {
 		box->scrollToY(0);
-		if (box->recentFilter()) {
+		if (box->recentFilter() && !force) {
 			return;
 		}
 		box->setRecentFilter();
@@ -3467,14 +3500,15 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 			};
 			const auto chooseRecent = [=] {
 				*lastRecent = true;
-				applyRecent(box);
+				applyRecent(box, false);
 			};
 			const auto chatsFilters = hasRecent
-				? Ui::AddForwardRecentTabsStrip(
+			? Ui::AddForwardRecentTabsStrip(
 					box,
 					session,
 					chooseFilter,
-					chooseRecent)
+					chooseRecent,
+					box->recentChanges())
 				: Ui::AddChatFiltersTabsStrip(
 					box,
 					session,
@@ -3483,6 +3517,13 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 					nullptr,
 					false,
 					true);
+			controllerRaw->setRecentContextMenu(
+				[=] { return box->recentFilter(); },
+				[=](not_null<PeerData*> peer) {
+					session->recentForwardTargets().remove(peer);
+					applyRecent(box, true);
+					box->fireRecentChanged();
+				});
 			chatsFilters->lower();
 			rpl::combine(
 				chatsFilters->heightValue(),
@@ -3496,7 +3537,7 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 								box,
 								hasQuery ? 0 : (*lastFilterId));
 						} else {
-							applyRecent(box);
+							applyRecent(box, false);
 						}
 						consumer.put_next_copy(hasQuery);
 					});

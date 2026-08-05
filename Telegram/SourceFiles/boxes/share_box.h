@@ -64,7 +64,8 @@ not_null<RpWidget*> AddForwardRecentTabsStrip(
 	not_null<RpWidget*> parent,
 	not_null<Main::Session*> session,
 	Fn<void(FilterId)> chooseFilter,
-	Fn<void()> chooseRecent);
+	Fn<void()> chooseRecent,
+	rpl::producer<> recentChanges);
 
 } // namespace Ui
 
