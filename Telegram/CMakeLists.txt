@@ -615,6 +615,8 @@ PRIVATE
     data/components/passkeys.h
     data/components/promo_suggestions.cpp
     data/components/promo_suggestions.h
+    data/components/recent_forward_targets.cpp
+    data/components/recent_forward_targets.h
     data/components/recent_inline_bots.cpp
     data/components/recent_inline_bots.h
     data/components/recent_peers.cpp
