@@ -3469,18 +3469,28 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 			const auto itemId = item->fullId();
 			const auto blockSender = item->history()->peer->isRepliesChat();
 			if (isUponSelected != -2) {
-				auto fwdSubmenu = std::make_unique<Ui::PopupMenu>(this, st::popupMenuWithIcons);
+				const auto moreForward = HasExtraContextMenuOption(
+					ExtraContextMenuOption::MoreForward);
+				auto fwdSubmenu = moreForward
+					? std::make_unique<Ui::PopupMenu>(this, st::popupMenuWithIcons)
+					: nullptr;
 				auto repeatSubmenu = std::make_unique<Ui::PopupMenu>(this, st::popupMenuWithIcons);
 				if (item->allowsForward()) {
-					fwdSubmenu->addAction(tr::lng_context_forward_msg_old(tr::now), [=] {
-						oldForwardItem(itemId);
-					}, &st::menuIconForward);
-					fwdSubmenu->addAction(tr::lng_context_forward_msg_multi(tr::now), [=] {
-						forwardItem(itemId);
-					}, &st::menuIconForward);
-					fwdSubmenu->addAction(tr::lng_context_forward_msg_no_quote(tr::now), [=] {
-						forwardItemNoQuote(itemId);
-					}, &st::menuIconForward);
+					if (moreForward) {
+						fwdSubmenu->addAction(tr::lng_context_forward_msg_old(tr::now), [=] {
+							oldForwardItem(itemId);
+						}, &st::menuIconForward);
+						fwdSubmenu->addAction(tr::lng_context_forward_msg_multi(tr::now), [=] {
+							forwardItem(itemId);
+						}, &st::menuIconForward);
+						fwdSubmenu->addAction(tr::lng_context_forward_msg_no_quote(tr::now), [=] {
+							forwardItemNoQuote(itemId);
+						}, &st::menuIconForward);
+					} else {
+						_menu->addAction(tr::lng_context_forward_msg(tr::now), [=] {
+							oldForwardItem(itemId);
+						}, &st::menuIconForward);
+					}
 				}
 				if ((item->history()->peer->isMegagroup() || item->history()->peer->isChat() || item->history()->peer->isUser())) {
 					if (HasExtraContextMenuOption(ExtraContextMenuOption::Repeater)) {
@@ -3570,7 +3580,7 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 						}
 					}
 				}
-				if (item->allowsForward()) {
+				if (moreForward && item->allowsForward()) {
 					fwdSubmenu->addAction(tr::lng_forward_to_saved_message(tr::now), [=] {
 						if (item->id <= 0) return;
 						const auto api = &item->history()->peer->session().api();
@@ -3586,7 +3596,7 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 						});
 					}, &st::menuIconFave);
 				}
-				if (!fwdSubmenu->empty()) {
+				if (fwdSubmenu && !fwdSubmenu->empty()) {
 					_menu->addAction(tr::lng_context_forward_msg(tr::now), std::move(fwdSubmenu), &st::menuIconForward);
 				}
 				if (HasExtraContextMenuOption(ExtraContextMenuOption::Repeater) && !repeatSubmenu->empty()) {
@@ -3915,18 +3925,28 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 				|| item->isRegular()
 				|| item->isEphemeral())) {
 			if (isUponSelected != -2) {
-				auto fwdSubmenu = std::make_unique<Ui::PopupMenu>(this, st::popupMenuWithIcons);
+				const auto moreForward = HasExtraContextMenuOption(
+					ExtraContextMenuOption::MoreForward);
+				auto fwdSubmenu = moreForward
+					? std::make_unique<Ui::PopupMenu>(this, st::popupMenuWithIcons)
+					: nullptr;
 				auto repeatSubmenu = std::make_unique<Ui::PopupMenu>(this, st::popupMenuWithIcons);
 				if (canForward) {
-					fwdSubmenu->addAction(tr::lng_context_forward_msg_old(tr::now), [=] {
-						oldForwardAsGroup(itemId);
-					}, &st::menuIconForward);
-					fwdSubmenu->addAction(tr::lng_context_forward_msg_multi(tr::now), [=] {
-						forwardAsGroup(itemId);
-					}, &st::menuIconForward);
-					fwdSubmenu->addAction(tr::lng_context_forward_msg_no_quote(tr::now), [=] {
-						forwardAsGroupNoQuote(itemId);
-					}, &st::menuIconForward);
+					if (moreForward) {
+						fwdSubmenu->addAction(tr::lng_context_forward_msg_old(tr::now), [=] {
+							oldForwardAsGroup(itemId);
+						}, &st::menuIconForward);
+						fwdSubmenu->addAction(tr::lng_context_forward_msg_multi(tr::now), [=] {
+							forwardAsGroup(itemId);
+						}, &st::menuIconForward);
+						fwdSubmenu->addAction(tr::lng_context_forward_msg_no_quote(tr::now), [=] {
+							forwardAsGroupNoQuote(itemId);
+						}, &st::menuIconForward);
+					} else {
+						_menu->addAction(tr::lng_context_forward_msg(tr::now), [=] {
+							oldForwardAsGroup(itemId);
+						}, &st::menuIconForward);
+					}
 				}
 				if ((item->history()->peer->isMegagroup() || item->history()->peer->isChat() || item->history()->peer->isUser())) {
 					if (HasExtraContextMenuOption(ExtraContextMenuOption::Repeater)) {
@@ -4010,7 +4030,7 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 						}
 					}
 				}
-				if (canForward) {
+				if (moreForward && canForward) {
 					fwdSubmenu->addAction(tr::lng_forward_to_saved_message(tr::now), [=] {
 						if (item->id <= 0) return;
 						const auto api = &item->history()->peer->session().api();
@@ -4026,7 +4046,7 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 						});
 					}, &st::menuIconFave);
 				}
-				if (!fwdSubmenu->empty()) {
+				if (fwdSubmenu && !fwdSubmenu->empty()) {
 					_menu->addAction(tr::lng_context_forward_msg(tr::now), std::move(fwdSubmenu), &st::menuIconForward);
 				}
 				if (HasExtraContextMenuOption(ExtraContextMenuOption::Repeater) && !repeatSubmenu->empty()) {

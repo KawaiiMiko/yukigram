@@ -152,6 +152,7 @@ enum class ExtraContextMenuOption : int {
 	Repeater = 1,
 	HideMessage = 2,
 	ViewAsJson = 3,
+	MoreForward = 4,
 };
 
 inline bool GetEnhancedBool(const QString& key) {

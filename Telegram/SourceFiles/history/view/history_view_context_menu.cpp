@@ -465,6 +465,18 @@ bool AddForwardMessageAction(
 		}
 	}
 	const auto itemId = item->fullId();
+	if (!HasExtraContextMenuOption(ExtraContextMenuOption::MoreForward)) {
+		menu->addAction(tr::lng_context_forward_msg(tr::now), [=] {
+			if (const auto item = owner->message(itemId)) {
+				Window::ShowForwardMessagesBox(
+					request.navigation,
+					(asGroup
+						? owner->itemOrItsGroup(item)
+						: MessageIdsList{ 1, itemId }));
+			}
+		}, &st::menuIconForward);
+		return true;
+	}
 	const auto controller = request.navigation->parentController();
 
 	auto fwdSubmenu = std::make_unique<Ui::PopupMenu>(list, st::popupMenuWithIcons);

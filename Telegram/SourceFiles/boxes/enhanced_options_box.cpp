@@ -78,6 +78,7 @@ void ExtraContextMenuBox::prepare() {
 	};
 	const auto options = std::vector<OptionEntry>{
 		{ ExtraContextMenuOption::Repeater, tr::lng_context_repeater(tr::now) },
+		{ ExtraContextMenuOption::MoreForward, tr::lng_context_more_forward(tr::now) },
 		{ ExtraContextMenuOption::HideMessage, tr::lng_context_hide_message(tr::now) },
 		{ ExtraContextMenuOption::ViewAsJson, tr::lng_context_view_as_json(tr::now) },
 	};
