@@ -1,4 +1,4 @@
-﻿/*
+/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -103,6 +103,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "info/profile/info_profile_values.h"
 #include "info/statistics/info_statistics_widget.h"
 #include "info/stories/info_stories_widget.h"
+#include "data/components/recent_forward_targets.h"
 #include "data/components/scheduled_messages.h"
 #include "data/notify/data_notify_settings.h"
 #include "data/stickers/data_custom_emoji.h"
@@ -3196,6 +3197,7 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 	const auto showForwardOptions = !hasOnlyForcedForwardedInfo
 		&& (!hasRichPage
 			|| HistoryView::Controls::CanHideForwardAuthor(session, itemsList));
+	const auto hasRecent = !session->recentForwardTargets().list().empty();
 	draft.options = HistoryView::Controls::NormalizeForwardOptions(
 		session,
 		itemsList,
@@ -3246,16 +3248,24 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		}
 
 		void setFilterId(FilterId filterId) {
+			_recentFilter = false;
 			_filterId = filterId;
 		}
 		[[nodiscard]] FilterId filterId() const {
 			return _filterId;
+		}
+		void setRecentFilter() {
+			_recentFilter = true;
+		}
+		[[nodiscard]] bool recentFilter() const {
+			return _recentFilter;
 		}
 
 	private:
 		rpl::event_stream<> _focusRequests;
 		Ui::ForwardOptions _forwardOptions;
 		FilterId _filterId = 0;
+		bool _recentFilter = false;
 
 	};
 
@@ -3345,12 +3355,7 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 
 	const auto applyFilter = [=](not_null<ListBox*> box, FilterId id) {
 		box->scrollToY(0);
-		auto &filters = session->data().chatsFilters();
-		const auto &list = filters.list();
-		if (list.size() <= 1) {
-			return;
-		}
-		if (box->filterId() == id) {
+		if (!box->recentFilter() && box->filterId() == id) {
 			return;
 		}
 		box->setFilterId(id);
@@ -3380,6 +3385,19 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		}
 		box->peerListContent()->restoreState(std::move(state));
 	};
+	const auto applyRecent = [=](not_null<ListBox*> box) {
+		box->scrollToY(0);
+		if (box->recentFilter()) {
+			return;
+		}
+		box->setRecentFilter();
+
+		using SavedState = PeerListController::SavedStateBase;
+		auto state = std::make_unique<PeerListState>();
+		state->controllerState = std::make_unique<SavedState>();
+		state->list = session->recentForwardTargets().list();
+		box->peerListContent()->restoreState(std::move(state));
+	};
 
 	const auto state = [&] {
 		auto controller = std::make_unique<Controller>(session);
@@ -3388,17 +3406,31 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 			controllerRaw->setSearchNoResultsText(
 				tr::lng_bot_chats_not_found(tr::now));
 			const auto lastFilterId = box->lifetime().make_state<FilterId>(0);
-			const auto chatsFilters = Ui::AddChatFiltersTabsStrip(
-				box,
-				session,
-				[=](FilterId id) {
-					*lastFilterId = id;
-					applyFilter(box, id);
-				},
-				Window::GifPauseReason::Layer,
-				nullptr,
-				false,
-				true);
+			const auto lastRecent = box->lifetime().make_state<bool>(
+				hasRecent);
+			const auto chooseFilter = [=](FilterId id) {
+				*lastRecent = false;
+				*lastFilterId = id;
+				applyFilter(box, id);
+			};
+			const auto chooseRecent = [=] {
+				*lastRecent = true;
+				applyRecent(box);
+			};
+			const auto chatsFilters = hasRecent
+				? Ui::AddForwardRecentTabsStrip(
+					box,
+					session,
+					chooseFilter,
+					chooseRecent)
+				: Ui::AddChatFiltersTabsStrip(
+					box,
+					session,
+					chooseFilter,
+					Window::GifPauseReason::Layer,
+					nullptr,
+					false,
+					true);
 			chatsFilters->lower();
 			rpl::combine(
 				chatsFilters->heightValue(),
@@ -3407,7 +3439,13 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 					consumer.put_next(false);
 					box->appendQueryChangedCallback([=](const QString &q) {
 						const auto hasQuery = !q.isEmpty();
-						applyFilter(box, hasQuery ? 0 : (*lastFilterId));
+						if (hasQuery || !*lastRecent) {
+							applyFilter(
+								box,
+								hasQuery ? 0 : (*lastFilterId));
+						} else {
+							applyRecent(box);
+						}
 						consumer.put_next_copy(hasQuery);
 					});
 					return lifetime;

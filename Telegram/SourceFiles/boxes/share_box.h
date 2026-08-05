@@ -1,4 +1,4 @@
-﻿/*
+/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -53,10 +53,18 @@ class Thread;
 namespace Ui {
 class MultiSelect;
 class InputField;
+class RpWidget;
 struct ScrollToRequest;
 template <typename Widget>
 class SlideWrap;
 class PopupMenu;
+
+not_null<RpWidget*> AddForwardRecentTabsStrip(
+	not_null<RpWidget*> parent,
+	not_null<Main::Session*> session,
+	Fn<void(FilterId)> chooseFilter,
+	Fn<void()> chooseRecent);
+
 } // namespace Ui
 
 class ShareBox;

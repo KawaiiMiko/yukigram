@@ -10,12 +10,18 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "api/api_premium.h"
 #include "base/call_delayed.h"
 #include "base/random.h"
+#include "boxes/premium_limits_box.h"
+#include "core/shortcuts.h"
+#include "core/ui_integration.h"
 #include "lang/lang_keys.h"
 #include "base/qthelp_url.h"
 #include "storage/storage_account.h"
 #include "ui/boxes/confirm_box.h"
 #include "apiwrap.h"
+#include "ui/filter_icons.h"
+#include "ui/power_saving.h"
 #include "ui/widgets/chat_filters_tabs_strip.h"
+#include "ui/widgets/chat_filters_tabs_slider.h"
 #include "ui/widgets/checkbox.h"
 #include "ui/widgets/multi_select.h"
 #include "ui/widgets/scroll_area.h"
@@ -37,16 +43,19 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/view/history_view_element.h"
 #include "history/view/history_view_context_menu.h" // CopyPostLink.
 #include "settings/sections/settings_premium.h"
+#include "window/window_controller.h"
 #include "window/window_session_controller.h"
 #include "boxes/peer_list_controllers.h"
 #include "chat_helpers/emoji_suggestions_widget.h"
 #include "chat_helpers/share_message_phrase_factory.h"
 #include "data/business/data_shortcut_messages.h"
+#include "data/components/recent_forward_targets.h"
 #include "data/data_channel.h"
 #include "data/data_chat_filters.h"
 #include "data/data_community.h"
 #include "data/data_game.h"
 #include "data/data_histories.h"
+#include "data/data_premium_limits.h"
 #include "data/data_user.h"
 #include "data/data_peer_values.h"
 #include "data/data_saved_messages.h"
@@ -61,11 +70,218 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "core/core_settings.h"
 #include "styles/style_calls.h"
 #include "styles/style_chat_helpers.h"
+#include "styles/style_dialogs.h"
+#include "styles/style_info.h"
 #include "styles/style_layers.h"
 #include "styles/style_share_box.h"
 
 #include <QtGui/QGuiApplication>
 #include <QtGui/QClipboard>
+#include <QScrollBar>
+
+namespace {
+
+struct ForwardRecentTabsState final {
+	Ui::Animations::Simple animation;
+	FilterId filterId = 0;
+	bool recent = true;
+	rpl::lifetime rebuildLifetime;
+};
+
+} // namespace
+
+not_null<Ui::RpWidget*> Ui::AddForwardRecentTabsStrip(
+		not_null<RpWidget*> parent,
+		not_null<Main::Session*> session,
+		Fn<void(FilterId)> chooseFilter,
+		Fn<void()> chooseRecent) {
+	const auto wrap = CreateChild<SlideWrap<RpWidget>>(
+		parent,
+		object_ptr<RpWidget>(parent));
+	const auto container = wrap->entity();
+	const auto scroll = CreateChild<ScrollArea>(
+		container,
+		st::dialogsTabsScroll,
+		true);
+	const auto slider = scroll->setOwnedWidget(
+		object_ptr<ChatsFiltersTabs>(parent, st::chatsFiltersTabs));
+	const auto state = wrap->lifetime().make_state<ForwardRecentTabsState>();
+	const auto window = Core::App().findWindow(parent);
+	const auto controller = window ? window->sessionController() : nullptr;
+	wrap->toggle(false, anim::type::instant);
+	scroll->setCustomWheelProcess([=](not_null<QWheelEvent*> e) {
+		const auto pixelDelta = e->pixelDelta();
+		const auto angleDelta = e->angleDelta();
+		if (std::abs(pixelDelta.x()) + std::abs(angleDelta.x())) {
+			return false;
+		}
+		const auto bar = scroll->horizontalScrollBar();
+		const auto y = pixelDelta.y() ? pixelDelta.y() : angleDelta.y();
+		bar->setValue(bar->value() - y);
+		return true;
+	});
+
+	const auto scrollToIndex = [=](int index, anim::type type) {
+		const auto to = index
+			? (slider->centerOfSection(index) - scroll->width() / 2)
+			: 0;
+		const auto bar = scroll->horizontalScrollBar();
+		state->animation.stop();
+		if (type == anim::type::instant) {
+			bar->setValue(to);
+		} else {
+			state->animation.start(
+				[=](float64 v) { bar->setValue(v); },
+				bar->value(),
+				std::min(to, bar->maximum()),
+				st::defaultTabsSlider.duration);
+		}
+	};
+
+	const auto rebuild = [=] {
+		const auto &list = session->data().chatsFilters().list();
+		auto sections = std::vector<TextWithEntities>{
+			tr::marked(tr::lng_recent_title(tr::now)),
+		};
+		auto icons = std::vector<const style::internal::Icon*>{
+			LookupFilterIcon(FilterIcon::Favorite).tabs.get(),
+		};
+		sections.reserve(list.size() + 1);
+		icons.reserve(list.size() + 1);
+		for (const auto &filter : list) {
+			auto title = filter.title();
+			sections.push_back(title.text.empty()
+				? tr::marked(tr::lng_filters_all_short(tr::now))
+				: title.isStatic
+				? Data::ForceCustomEmojiStatic(title.text)
+				: title.text);
+			icons.push_back(LookupFilterIcon(filter.id()
+				? ComputeFilterIcon(filter)
+				: FilterIcon::All).tabs.get());
+		}
+		const auto sectionsChanged = slider->setSectionsAndCheckChanged(
+			std::move(sections),
+			Core::TextContext({ .session = session }),
+			[=] {
+				return On(PowerSaving::kEmojiChat)
+					|| (controller
+						&& controller->isGifPausedAtLeastFor(
+							Window::GifPauseReason::Layer));
+			});
+		slider->setSectionIcons(std::move(icons));
+		if (!sectionsChanged) {
+			return;
+		}
+		state->rebuildLifetime.destroy();
+		slider->fitWidthToSections();
+
+		if (controller) {
+			const auto reorderAll = session->user()->isPremium();
+			const auto maxLimit = (reorderAll ? 1 : 0)
+				+ Data::PremiumLimits(session).dialogFiltersCurrent();
+			const auto premiumFrom = (reorderAll ? 0 : 1) + maxLimit;
+			slider->setLockedFrom((premiumFrom >= list.size())
+				? 0
+				: premiumFrom + 1);
+			slider->lockedClicked() | rpl::on_next([=] {
+				controller->show(Box(FiltersLimitBox, session, std::nullopt));
+			}, state->rebuildLifetime);
+		} else {
+			slider->setLockedFrom(0);
+		}
+
+		auto active = 0;
+		if (!state->recent) {
+			for (auto i = 0; i != list.size(); ++i) {
+				if (list[i].id() == state->filterId) {
+					active = i + 1;
+					break;
+				}
+			}
+			if (!active) {
+				state->recent = true;
+			}
+		}
+		slider->setActiveSectionFast(active);
+		scrollToIndex(active, anim::type::instant);
+		if (state->recent) {
+			chooseRecent();
+		} else {
+			chooseFilter(state->filterId);
+		}
+
+		rpl::single(-1) | rpl::then(
+			slider->sectionActivated()
+		) | rpl::combine_previous(
+		) | rpl::on_next([=](int was, int index) {
+			if (index) {
+				const auto &list = session->data().chatsFilters().list();
+				if (index > list.size()) {
+					return;
+				}
+				state->recent = false;
+				state->filterId = list[index - 1].id();
+				if (was != index) {
+					scrollToIndex(index, anim::type::normal);
+				}
+				chooseFilter(state->filterId);
+			} else {
+				state->recent = true;
+				if (was != index) {
+					scrollToIndex(index, anim::type::normal);
+				}
+				chooseRecent();
+			}
+		}, state->rebuildLifetime);
+		wrap->toggle(true, anim::type::instant);
+	};
+	rpl::combine(
+		session->data().chatsFilters().changed(),
+		Data::AmPremiumValue(session) | rpl::to_empty
+	) | rpl::on_next(rebuild, wrap->lifetime());
+	Core::App().settings().chatFiltersTabsModeValue(
+	) | rpl::on_next([=](ChatsFiltersTabsMode mode) {
+		slider->setTabsMode(HorizontalChatsFiltersTabsMode(mode));
+		scrollToIndex(slider->activeSection(), anim::type::instant);
+	}, wrap->lifetime());
+	rebuild();
+
+	session->data().chatsFilters().isChatlistChanged(
+	) | rpl::on_next([=](FilterId id) {
+		if (!state->recent && state->filterId == id) {
+			chooseFilter(id);
+		}
+	}, wrap->lifetime());
+
+	rpl::combine(
+		parent->widthValue() | rpl::filter(rpl::mappers::_1 > 0),
+		slider->heightValue() | rpl::filter(rpl::mappers::_1 > 0)
+	) | rpl::on_next([=](int w, int h) {
+		scroll->resize(w, h);
+		container->resize(w, h);
+		wrap->resize(w, h);
+	}, wrap->lifetime());
+
+	Shortcuts::ChatSwitchRequests(
+	) | rpl::filter([=](const Shortcuts::ChatSwitchRequest &request) {
+		return wrap->toggled()
+			&& ((request.action == Qt::Key_Tab)
+				|| (request.action == Qt::Key_Backtab));
+	}) | rpl::on_next([=](const Shortcuts::ChatSwitchRequest &request) {
+		const auto count = slider->sectionsCount();
+		const auto locked = slider->lockedFrom();
+		const auto limit = locked ? locked : count;
+		if (limit <= 1) {
+			return;
+		}
+		const auto back = (request.action == Qt::Key_Backtab);
+		const auto current = std::min(slider->activeSection(), limit - 1);
+		const auto next = (current + (back ? -1 : 1) + limit) % limit;
+		slider->setActiveSection(next);
+	}, wrap->lifetime());
+
+	return wrap;
+}
 
 class ShareBox::Inner final : public Ui::RpWidget {
 public:
@@ -97,6 +313,7 @@ public:
 	rpl::producer<> searchRequests() const;
 
 	void applyChatFilter(FilterId id);
+	void applyRecentFilter();
 
 protected:
 	void visibleTopBottomUpdated(
@@ -185,6 +402,7 @@ private:
 
 	std::unique_ptr<Dialogs::IndexedList> _defaultChatsIndexed;
 	std::unique_ptr<Dialogs::IndexedList> _customChatsIndexed;
+	std::unique_ptr<Dialogs::IndexedList> _recentChatsIndexed;
 	not_null<Dialogs::IndexedList*> _chatsIndexed;
 	QString _filter;
 	std::vector<not_null<Dialogs::Row*>> _filtered;
@@ -364,17 +582,31 @@ void ShareBox::prepare() {
 	_select->raise();
 
 	{
-		const auto chatsFilters = AddChatFiltersTabsStrip(
-			this,
-			_descriptor.session,
-			[this](FilterId id) {
-				_inner->applyChatFilter(id);
-				scrollToY(0);
-			},
-			Window::GifPauseReason::Layer,
-			nullptr,
-			false,
-			true);
+		const auto &recent = _descriptor.session
+			->recentForwardTargets().list();
+		const auto hasRecent = !recent.empty();
+		const auto chooseFilter = [this](FilterId id) {
+			_inner->applyChatFilter(id);
+			scrollToY(0);
+		};
+		const auto chooseRecent = [this] {
+			_inner->applyRecentFilter();
+			scrollToY(0);
+		};
+		const auto chatsFilters = hasRecent
+			? Ui::AddForwardRecentTabsStrip(
+				this,
+				_descriptor.session,
+				chooseFilter,
+				chooseRecent)
+			: AddChatFiltersTabsStrip(
+				this,
+				_descriptor.session,
+				chooseFilter,
+				Window::GifPauseReason::Layer,
+				nullptr,
+				false,
+				true);
 		chatsFilters->lower();
 		chatsFilters->heightValue() | rpl::on_next([this](int h) {
 			updateScrollSkips();
@@ -869,6 +1101,19 @@ ShareBox::Inner::Inner(
 		addList(folder->chatsList()->indexed());
 	}
 	addList(_descriptor.session->data().contactsNoChatsList());
+	const auto &recent = _descriptor.session->recentForwardTargets().list();
+	if (!recent.empty()) {
+		_recentChatsIndexed = std::make_unique<Dialogs::IndexedList>(
+			Dialogs::SortMode::Add);
+		for (const auto &peer : recent) {
+			const auto history = peer->owner().history(peer);
+			if (history->asForum()
+				|| JoinedCommunityChats(peer)
+				|| _descriptor.filterCallback(history)) {
+				_recentChatsIndexed->addToEnd(history);
+			}
+		}
+	}
 
 	_filter = u"a"_q;
 	updateFilter();
@@ -1659,7 +1904,14 @@ void ShareBox::Inner::applyChatFilter(FilterId id) {
 		const auto &data = _descriptor.session->data();
 		addList(data.chatsFilters().chatsList(id)->indexed());
 	}
-	update();
+	refresh();
+}
+
+void ShareBox::Inner::applyRecentFilter() {
+	Expects(_recentChatsIndexed != nullptr);
+
+	_chatsIndexed = _recentChatsIndexed.get();
+	refresh();
 }
 
 void ShareBox::Inner::peopleReceived(
@@ -1952,6 +2204,7 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 			const auto requestDone = [=](
 					const MTPUpdates &updates,
 					mtpRequestId requestKey) {
+				threadHistory->session().recentForwardTargets().bump(peer);
 				if (showRecentForwardsToSelf) {
 					ApiWrap::ProcessRecentSelfForwards(
 						&threadHistory->session(),
