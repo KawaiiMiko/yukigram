@@ -43,6 +43,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/business/data_shortcut_messages.h"
 #include "data/components/credits.h"
 #include "data/components/ephemeral_messages.h"
+#include "data/components/recent_forward_targets.h"
 #include "data/components/scheduled_messages.h"
 #include "data/notify/data_notify_settings.h"
 #include "data/data_changes.h"
@@ -3975,6 +3976,7 @@ void ApiWrap::forwardMessages(
 					_session->api().updates().checkForSentToScheduled(
 						result);
 				}
+				_session->recentForwardTargets().bump(peer);
 				if (shared && !--shared->requestsLeft) {
 					shared->callback();
 				}

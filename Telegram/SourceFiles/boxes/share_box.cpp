@@ -42,6 +42,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "chat_helpers/emoji_suggestions_widget.h"
 #include "chat_helpers/share_message_phrase_factory.h"
 #include "data/business/data_shortcut_messages.h"
+#include "data/components/recent_forward_targets.h"
 #include "data/data_channel.h"
 #include "data/data_chat_filters.h"
 #include "data/data_community.h"
@@ -1952,6 +1953,7 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 			const auto requestDone = [=](
 					const MTPUpdates &updates,
 					mtpRequestId requestKey) {
+				threadHistory->session().recentForwardTargets().bump(peer);
 				if (showRecentForwardsToSelf) {
 					ApiWrap::ProcessRecentSelfForwards(
 						&threadHistory->session(),
