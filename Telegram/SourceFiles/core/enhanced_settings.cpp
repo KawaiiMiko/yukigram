@@ -28,6 +28,7 @@ namespace EnhancedSettings {
 		constexpr auto kWriteJsonTimeout = crl::time(5000);
 		constexpr auto kRichMessagePreviewBlocksLimitKey
 			= "rich_message_preview_max_blocks";
+		constexpr auto kStickerHeightKey = "sticker_height";
 
 		[[nodiscard]] int NormalizeRichMessagePreviewBlocksLimit(int limit) {
 			if (limit <= 0) {
@@ -37,6 +38,13 @@ namespace EnhancedSettings {
 				limit,
 				kRichMessagePreviewBlocksLimitMin,
 				kRichMessagePreviewBlocksLimitMax);
+		}
+
+		[[nodiscard]] int NormalizeStickerHeight(int height) {
+			if (height <= 0) {
+				return 0;
+			}
+			return std::clamp(height, kStickerHeightMin, kStickerHeightMax);
 		}
 
 		QString DefaultFilePath() {
@@ -154,6 +162,14 @@ namespace EnhancedSettings {
 			NormalizeRichMessagePreviewBlocksLimit(limit));
 	}
 
+	int StickerHeight() {
+		return NormalizeStickerHeight(GetEnhancedInt(kStickerHeightKey));
+	}
+
+	void SetStickerHeight(int height) {
+		SetEnhancedValue(kStickerHeightKey, NormalizeStickerHeight(height));
+	}
+
 	Manager::Manager() {
 		_jsonWriteTimer.setSingleShot(true);
 		connect(&_jsonWriteTimer, SIGNAL(timeout()), this, SLOT(writeTimeout()));
@@ -223,6 +239,7 @@ namespace EnhancedSettings {
 			settings,
 			kRichMessagePreviewBlocksLimitKey,
 			SetRichMessagePreviewBlocksLimit);
+		ReadIntOption(settings, kStickerHeightKey, SetStickerHeight);
 
 		ReadStringOption(settings, "radio_controller", [&](auto v) {
 			if (v.isEmpty()) {
@@ -328,6 +345,7 @@ namespace EnhancedSettings {
 		settings.insert(qsl("show_group_sender_avatar"), false);
 		settings.insert(qsl("show_seconds"), false);
 		settings.insert(qsl("rich_message_preview_max_blocks"), 0);
+		settings.insert(qsl("sticker_height"), 0);
 		settings.insert(qsl("hide_counter"), false);
 		settings.insert(qsl("use_gt_api"), false);
 		settings.insert(qsl("translate_to_tc"), false);
@@ -395,6 +413,7 @@ namespace EnhancedSettings {
 		settings.insert(
 			qsl("rich_message_preview_max_blocks"),
 			RichMessagePreviewBlocksLimit());
+		settings.insert(qsl("sticker_height"), StickerHeight());
 		settings.insert(qsl("hide_counter"), GetEnhancedBool("hide_counter"));
 		settings.insert(qsl("use_gt_api"), GetEnhancedBool("use_gt_api"));
 		settings.insert(qsl("translate_to_tc"), GetEnhancedBool("translate_to_tc"));

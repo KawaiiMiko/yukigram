@@ -22,7 +22,7 @@ class SessionController;
 } // namespace Window
 
 namespace Ui {
-class SettingsButton;
+class RpWidget;
 } // namespace Ui
 
 namespace Settings {
@@ -47,7 +47,7 @@ namespace Settings {
 		void writeBlocklistFile();
 		void registerHighlight(
 			QString id,
-			not_null<Ui::SettingsButton*> button);
+			not_null<Ui::RpWidget*> widget);
 
 		rpl::event_stream<QString> _AlwaysDeleteChanged;
 		rpl::event_stream<QString> _BitrateChanged;

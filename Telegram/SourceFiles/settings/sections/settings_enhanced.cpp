@@ -52,6 +52,25 @@ namespace Settings {
 
 namespace {
 
+constexpr auto kStickerHeightMaxIndex
+	= EnhancedSettings::kStickerHeightMax - EnhancedSettings::kStickerHeightMin;
+constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
+
+[[nodiscard]] int StickerHeightForIndex(int index) {
+	return EnhancedSettings::kStickerHeightMin + index;
+}
+
+[[nodiscard]] int StickerHeightIndexForHeight(int height) {
+	return height - EnhancedSettings::kStickerHeightMin;
+}
+
+[[nodiscard]] QString StickerHeightLabel(int height) {
+	return tr::lng_settings_sticker_height_pixels(
+		tr::now,
+		lt_height,
+		QString::number(height));
+}
+
 [[maybe_unused]] const auto kEnhancedMeta = Builder::BuildHelper({
 	.id = Enhanced::Id(),
 	.parentId = MainId(),
@@ -79,6 +98,15 @@ namespace {
 			},
 			.deeplink
 				= u"tg://settings/enhanced/messages/rich-message-blocks-limit"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/sticker-height"_q,
+			.title = tr::lng_settings_sticker_height(tr::now),
+			.keywords = { u"sticker"_q, u"height"_q, u"size"_q },
+			.deeplink = u"tg://settings/enhanced/messages/sticker-height"_q,
 		};
 	});
 
@@ -760,6 +788,47 @@ namespace {
 		richMessagePreviewBlocks->addClickHandler([=] {
 			Ui::show(Box<RichMessagePreviewBlocksBox>());
 		});
+
+		const auto storedStickerHeight = EnhancedSettings::StickerHeight();
+		const auto currentStickerHeight = storedStickerHeight
+			? storedStickerHeight
+			: EnhancedSettings::kStickerHeightMax;
+		const auto stickerHeightLabel = inner->lifetime(
+		).make_state<rpl::event_stream<QString>>();
+		const auto stickerHeight = AddButtonWithLabel(
+			inner,
+			tr::lng_settings_sticker_height(),
+			stickerHeightLabel->events_starting_with(
+				StickerHeightLabel(currentStickerHeight)),
+			st::settingsButtonNoIcon);
+		registerHighlight(u"enhanced/messages/sticker-height"_q, stickerHeight);
+
+		const auto slider = inner->add(
+			object_ptr<Ui::MediaSliderWheelless>(inner, st::settingsScale),
+			st::settingsBigScalePadding);
+		slider->resize(slider->width(), st::settingsScale.seekSize.height());
+		slider->setAccessibleName(tr::lng_settings_sticker_height(tr::now));
+
+		const auto saveStickerHeight = [=](int height) {
+			if (height == EnhancedSettings::StickerHeight()) {
+				return;
+			}
+			EnhancedSettings::SetStickerHeight(height);
+			EnhancedSettings::Write();
+			App::wnd()->sessionController()->session().data().histories()
+				.refreshStickerViews();
+		};
+		slider->setPseudoDiscrete(
+			kStickerHeightValuesCount,
+			[](int index) { return index; },
+			StickerHeightIndexForHeight(currentStickerHeight),
+			[=](int index) {
+				stickerHeightLabel->fire(
+					StickerHeightLabel(StickerHeightForIndex(index)));
+			},
+			[=](int index) {
+				saveStickerHeight(StickerHeightForIndex(index));
+			});
 	}
 
 	void Enhanced::SetupEnhancedButton(not_null<Ui::VerticalLayout *> container) {
@@ -1125,18 +1194,18 @@ namespace {
 
 	void Enhanced::registerHighlight(
 			QString id,
-			not_null<Ui::SettingsButton*> button) {
-		_highlightControls.emplace_back(id, button.get());
+			not_null<Ui::RpWidget*> widget) {
+		_highlightControls.emplace_back(id, widget.get());
 
 		const auto link = u"tg://settings/"_q + id;
-		const auto menu = button->lifetime(
+		const auto menu = widget->lifetime(
 		).make_state<base::unique_qptr<Ui::PopupMenu>>();
-		button->events(
+		widget->events(
 		) | rpl::filter([](not_null<QEvent*> e) {
 			return e->type() == QEvent::ContextMenu;
 		}) | rpl::on_next([=](not_null<QEvent*> e) {
 			*menu = base::make_unique_q<Ui::PopupMenu>(
-				button,
+				widget,
 				st::popupMenuWithIcons);
 			(*menu)->addAction(tr::lng_auction_menu_copy_link(tr::now), [=] {
 				TextUtilities::SetClipboardText({ link });
@@ -1148,7 +1217,7 @@ namespace {
 			}, &st::menuIconCopy);
 			(*menu)->popup(QCursor::pos());
 			e->accept();
-		}, button->lifetime());
+		}, widget->lifetime());
 	}
 
 	void Enhanced::showFinished() {

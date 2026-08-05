@@ -836,6 +836,21 @@ void History::refreshRichMessageViews() {
 	}
 }
 
+void History::refreshStickerViews() {
+	auto items = std::vector<not_null<HistoryItem*>>();
+	items.reserve(_items.size());
+	for (const auto &message : _items) {
+		const auto media = message->media();
+		const auto document = media ? media->document() : nullptr;
+		if (document && document->sticker()) {
+			items.push_back(message.get());
+		}
+	}
+	for (const auto &item : items) {
+		owner().requestItemViewRefresh(item);
+	}
+}
+
 void History::refreshHiddenReplyData(const std::vector<MsgId> &ids) {
 	if (ids.empty()) {
 		return;

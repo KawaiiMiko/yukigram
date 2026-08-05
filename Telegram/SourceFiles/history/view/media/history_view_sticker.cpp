@@ -9,6 +9,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "base/options.h"
 #include "boxes/sticker_set_box.h"
+#include "core/enhanced_settings.h"
 #include "history/history.h"
 #include "history/history_item_components.h"
 #include "history/history_item.h"
@@ -200,6 +201,13 @@ bool Sticker::readyToDrawAnimationFrame() {
 
 QSize Sticker::Size() {
 	const auto side = std::min(st::maxStickerSize, kMaxSizeFixed);
+	if (const auto height = EnhancedSettings::StickerHeight()) [[unlikely]] {
+		const auto scaled = std::clamp(
+			style::ConvertScale(height),
+			style::ConvertScale(EnhancedSettings::kStickerHeightMin),
+			side);
+		return { scaled, scaled };
+	}
 	if (OptionStickerSize.value() > 0) [[unlikely]] {
 		const auto scaled = std::clamp(
 			style::ConvertScale(OptionStickerSize.value()),

@@ -12,9 +12,13 @@ namespace EnhancedSettings {
 
 	inline constexpr auto kRichMessagePreviewBlocksLimitMin = 5;
 	inline constexpr auto kRichMessagePreviewBlocksLimitMax = 50;
+	inline constexpr auto kStickerHeightMin = 64;
+	inline constexpr auto kStickerHeightMax = 256;
 
 	[[nodiscard]] int RichMessagePreviewBlocksLimit();
 	void SetRichMessagePreviewBlocksLimit(int limit);
+	[[nodiscard]] int StickerHeight();
+	void SetStickerHeight(int height);
 
 	class Manager : public QObject {
 	Q_OBJECT

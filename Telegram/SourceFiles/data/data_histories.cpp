@@ -194,6 +194,12 @@ void Histories::refreshRichMessageViews() {
 	}
 }
 
+void Histories::refreshStickerViews() {
+	for (const auto &[peerId, history] : _map) {
+		history->refreshStickerViews();
+	}
+}
+
 void Histories::readInbox(not_null<History*> history) {
 	DEBUG_LOG(("Reading: readInbox called."));
 	if (history->lastServerMessageKnown()) {

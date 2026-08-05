@@ -8637,6 +8637,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_settings_rich_message_preview_blocks_desc" = "Limit the number of blocks shown for rich messages in chats. Use Show more to open the full message.";
 "lng_settings_rich_message_preview_blocks_count#one" = "{count} block";
 "lng_settings_rich_message_preview_blocks_count#other" = "{count} blocks";
+"lng_settings_sticker_height" = "Sticker height";
+"lng_settings_sticker_height_pixels" = "{height} px";
 "lng_settings_button" = "Button";
 "lng_settings_show_emoji_button_as_text" = "Show emoji button as text";
 "lng_settings_extra_context_menu_options" = "Extra context menu options";

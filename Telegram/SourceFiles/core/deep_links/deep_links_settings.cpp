@@ -1784,6 +1784,14 @@ void RegisterSettingsHandlers(Router &router) {
 	});
 
 	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/sticker-height"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/sticker-height"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
 		.path = u"enhanced/messages/no-animoji"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
