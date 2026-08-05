@@ -3810,6 +3810,18 @@ void ApiWrap::forwardMessages(
 		SendAction action,
 		FnMut<void()> &&successCallback) {
 	Expects(!draft.items.empty());
+	draft.options = HistoryView::Controls::NormalizeForwardOptions(
+		_session,
+		draft.items,
+		draft.options);
+	if (draft.options != Data::ForwardOptions::PreserveInfo
+		&& draft.groupOptions == Data::GroupingOptions::RegroupAll) {
+		forwardMessagesUnquoted(
+			std::move(draft),
+			action,
+			std::move(successCallback));
+		return;
+	}
 
 	auto &histories = _session->data().histories();
 
@@ -3828,10 +3840,11 @@ void ApiWrap::forwardMessages(
 		}
 		return;
 	}
-	draft.options = HistoryView::Controls::NormalizeForwardOptions(
-		_session,
-		draft.items,
-		draft.options);
+	const auto groupOptions = (draft.groupOptions
+			== Data::GroupingOptions::RegroupAll
+		&& draft.options == Data::ForwardOptions::PreserveInfo)
+		? Data::GroupingOptions::GroupAsIs
+		: draft.groupOptions;
 
 	struct SharedCallback {
 		int requestsLeft = 0;
@@ -3907,6 +3920,7 @@ void ApiWrap::forwardMessages(
 	}
 
 	auto forwardFrom = draft.items.front()->history()->peer;
+	auto forwardGroupId = draft.items.front()->groupId();
 	auto ids = QVector<MTPint>();
 	auto randomIds = QVector<MTPlong>();
 	auto localIds = std::shared_ptr<base::flat_map<uint64, FullMsgId>>();
@@ -4036,14 +4050,240 @@ void ApiWrap::forwardMessages(
 			localIds->emplace(randomId, newId);
 		}
 		const auto newFrom = item->history()->peer;
-		if (forwardFrom != newFrom) {
+		const auto newGroupId = item->groupId();
+		if (!ids.isEmpty()
+			&& (forwardFrom != newFrom
+				|| groupOptions == Data::GroupingOptions::Separate
+				|| (groupOptions == Data::GroupingOptions::GroupAsIs
+					&& forwardGroupId != newGroupId))) {
 			sendAccumulated();
 			forwardFrom = newFrom;
+			forwardGroupId = newGroupId;
 		}
 		ids.push_back(MTP_int(item->id));
 		randomIds.push_back(MTP_long(randomId));
 	}
 	sendAccumulated();
+	_session->data().sendHistoryChangeNotifications();
+}
+
+void ApiWrap::forwardMessagesUnquoted(
+		Data::ResolvedForwardDraft &&draft,
+		const SendAction &action,
+		FnMut<void()> &&successCallback) {
+	Expects(!draft.items.empty());
+
+	struct SharedCallback {
+		int requestsLeft = 0;
+		FnMut<void()> callback;
+	};
+	enum class AlbumType {
+		Media,
+		Music,
+		Document,
+	};
+	struct Album {
+		AlbumType type;
+		std::vector<not_null<HistoryItem*>> items;
+	};
+
+	const auto albumType = [](not_null<HistoryItem*> item) {
+		const auto media = item->media();
+		Expects(media != nullptr);
+		if (media->photo()
+			|| (media->document() && media->document()->isVideoFile())) {
+			return AlbumType::Media;
+		} else if (media->document()
+			&& media->document()->isSharedMediaMusic()) {
+			return AlbumType::Music;
+		}
+		return AlbumType::Document;
+	};
+	const auto shared = successCallback
+		? std::make_shared<SharedCallback>()
+		: std::shared_ptr<SharedCallback>();
+	if (shared) {
+		shared->callback = std::move(successCallback);
+	}
+
+	auto albums = std::vector<Album>();
+	auto fallback = Data::ResolvedForwardDraft{
+		.options = draft.options,
+		.groupOptions = Data::GroupingOptions::GroupAsIs,
+	};
+	auto previousWasEligible = false;
+	for (const auto &item : draft.items) {
+		const auto media = item->media();
+		const auto eligible = media
+			&& media->canBeGrouped()
+			&& (media->photo() || media->document());
+		if (!eligible) {
+			fallback.items.push_back(item);
+			previousWasEligible = false;
+			continue;
+		}
+		const auto type = albumType(item);
+		if (!previousWasEligible
+			|| albums.back().type != type
+			|| albums.back().items.size() == 10) {
+			albums.push_back({ .type = type });
+		}
+		albums.back().items.push_back(item);
+		previousWasEligible = true;
+	}
+	if (shared) {
+		shared->requestsLeft = int(albums.size())
+			+ (!fallback.items.empty() ? 1 : 0);
+	}
+
+	auto &histories = _session->data().histories();
+	const auto history = action.history;
+	const auto peer = history->peer;
+	const auto sendAs = action.options.sendAs;
+	const auto scheduled = action.options.scheduled;
+	auto starsApproved = action.options.starsApproved;
+	if (!scheduled && !action.options.shortcutId) {
+		histories.readInbox(history);
+	}
+
+	for (const auto &album : albums) {
+		const auto starsPaid = std::min(
+			starsApproved,
+			int(album.items.size() * peer->starsPerMessageChecked()));
+		starsApproved -= starsPaid;
+		const auto groupedId = (album.items.size() > 1)
+			? base::RandomValue<uint64>()
+			: uint64(0);
+		auto mediaInputs = QVector<MTPInputSingleMedia>();
+		auto localIds = std::vector<std::pair<uint64, FullMsgId>>();
+		mediaInputs.reserve(album.items.size());
+		localIds.reserve(album.items.size());
+		for (const auto &item : album.items) {
+			const auto media = item->media();
+			const auto inputMedia = media->photo()
+				? MTP_inputMediaPhoto(
+					MTP_flags(0),
+					media->photo()->mtpInput(),
+					MTPint(),
+					MTPInputDocument())
+				: MTP_inputMediaDocument(
+					MTP_flags(0),
+					media->document()->mtpInput(),
+					MTPInputPhoto(),
+					MTPint(),
+					MTPint(),
+					MTPstring());
+			auto caption = (draft.options
+					!= Data::ForwardOptions::NoNamesAndCaptions)
+				? item->originalText()
+				: TextWithEntities();
+			const auto sentEntities = Api::EntitiesToMTP(
+				_session,
+				caption.entities,
+				Api::ConvertOption::SkipLocal);
+			const auto mediaFlags = !sentEntities.v.isEmpty()
+				? MTPDinputSingleMedia::Flag::f_entities
+				: MTPDinputSingleMedia::Flag(0);
+			const auto randomId = base::RandomValue<uint64>();
+			const auto newId = FullMsgId(
+				peer->id,
+				_session->data().nextLocalMessageId());
+			mediaInputs.push_back(MTP_inputSingleMedia(
+				MTP_flags(mediaFlags),
+				inputMedia,
+				MTP_long(randomId),
+				MTP_string(caption.text),
+				sentEntities));
+			_session->data().registerMessageRandomId(randomId, newId);
+			localIds.emplace_back(randomId, newId);
+
+			auto localFlags = NewMessageFlags(peer);
+			FillMessagePostFlags(action, peer, localFlags);
+			if (scheduled) {
+				localFlags |= MessageFlag::IsOrWasScheduled;
+			}
+			auto fields = HistoryItemCommonFields{
+				.id = newId.msg,
+				.flags = localFlags,
+				.from = NewMessageFromId(action),
+				.replyTo = action.replyTo,
+				.date = NewMessageDate(action.options),
+				.shortcutId = action.options.shortcutId,
+				.starsPaid = starsPaid,
+				.postAuthor = NewMessagePostAuthor(action),
+				.groupedId = groupedId,
+				.suggest = HistoryMessageSuggestInfo(action.options),
+			};
+			if (const auto photo = media->photo()) {
+				history->addNewLocalMessage(
+					std::move(fields),
+					photo,
+					caption);
+			} else {
+				history->addNewLocalMessage(
+					std::move(fields),
+					media->document(),
+					caption);
+			}
+		}
+
+		using Flag = MTPmessages_SendMultiMedia::Flag;
+		const auto flags = Flag(0)
+			| (action.replyTo ? Flag::f_reply_to : Flag(0))
+			| (ShouldSendSilent(peer, action.options)
+				? Flag::f_silent
+				: Flag(0))
+			| (scheduled ? Flag::f_schedule_date : Flag(0))
+			| (sendAs ? Flag::f_send_as : Flag(0))
+			| (action.options.shortcutId
+				? Flag::f_quick_reply_shortcut
+				: Flag(0))
+			| (action.options.effectId ? Flag::f_effect : Flag(0))
+			| (starsPaid ? Flag::f_allow_paid_stars : Flag(0));
+		histories.sendPreparedMessage(
+			history,
+			action.replyTo,
+			uint64(0),
+			Data::Histories::PrepareMessage<MTPmessages_SendMultiMedia>(
+				MTP_flags(flags),
+				peer->input(),
+				Data::Histories::ReplyToPlaceholder(),
+				MTP_vector<MTPInputSingleMedia>(std::move(mediaInputs)),
+				MTP_int(scheduled),
+				(sendAs ? sendAs->input() : MTP_inputPeerEmpty()),
+				Data::ShortcutIdToMTP(
+					_session,
+					action.options.shortcutId),
+				MTP_long(action.options.effectId),
+				MTP_long(starsPaid)),
+			[=](const MTPUpdates &result, const MTP::Response &) {
+				if (!scheduled) {
+					_session->api().updates().checkForSentToScheduled(result);
+				}
+				if (shared && !--shared->requestsLeft) {
+					shared->callback();
+				}
+			},
+			[=](const MTP::Error &error, const MTP::Response &) {
+				for (const auto &[randomId, itemId] : localIds) {
+					_session->api().sendMessageFail(
+						error,
+						peer,
+						randomId,
+						itemId);
+				}
+			});
+	}
+	if (!fallback.items.empty()) {
+		forwardMessages(
+			std::move(fallback),
+			action,
+			[=] {
+				if (shared && !--shared->requestsLeft) {
+					shared->callback();
+				}
+			});
+	}
 	_session->data().sendHistoryChangeNotifications();
 }
 

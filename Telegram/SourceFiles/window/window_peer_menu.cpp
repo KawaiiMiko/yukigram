@@ -133,6 +133,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "styles/style_chat.h"
 #include "styles/style_chat_helpers.h"
 #include "styles/style_credits.h"
+#include "styles/style_info.h"
 #include "styles/style_layers.h"
 #include "styles/style_boxes.h"
 #include "styles/style_share_box.h"
@@ -3137,6 +3138,23 @@ void ShowNewForwardMessagesBox(
 		&& (item->media()->game() != nullptr);
 
 	const auto items = owner->idsToItems(msgIds);
+	const auto hasMediaForGrouping = [&] {
+		if (msgIds.size() < 2) {
+			return false;
+		}
+		auto grouppableMediaCount = 0;
+		for (const auto &item : items) {
+			if (item->media() && item->media()->canBeGrouped()) {
+				++grouppableMediaCount;
+				if (grouppableMediaCount > 1) {
+					return true;
+				}
+			} else {
+				grouppableMediaCount = 0;
+			}
+		}
+		return false;
+	}();
 	const auto hasCaptions = ranges::any_of(items, [](auto item) {
 		return item->media()
 			&& !item->originalText().text.isEmpty()
@@ -3175,6 +3193,7 @@ void ShowNewForwardMessagesBox(
 							.sendersCount = ItemsForwardSendersCount(items),
 							.captionsCount = ItemsForwardCaptionsCount(items),
 							.show = !hasOnlyForcedForwardedInfo,
+							.hasMediaForGrouping = hasMediaForGrouping,
 						},
 						.moneyRestrictionError = WriteMoneyRestrictionError,
 					}), Ui::LayerOption::CloseOther);
@@ -3191,6 +3210,23 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 	const auto sendersCount = ItemsForwardSendersCount(itemsList);
 	const auto captionsCount = ItemsForwardCaptionsCount(itemsList);
 	const auto hasRichPage = HistoryView::Controls::HasRichPage(itemsList);
+	const auto hasMediaForGrouping = [&] {
+		if (itemsList.size() < 2) {
+			return false;
+		}
+		auto grouppableMediaCount = 0;
+		for (const auto &item : itemsList) {
+			if (item->media() && item->media()->canBeGrouped()) {
+				++grouppableMediaCount;
+				if (grouppableMediaCount > 1) {
+					return true;
+				}
+			} else {
+				grouppableMediaCount = 0;
+			}
+		}
+		return false;
+	}();
 	const auto hasOnlyForcedForwardedInfo = !captionsCount
 		&& HistoryView::Controls::HasOnlyForcedForwardedInfo(itemsList);
 	const auto showForwardOptions = !hasOnlyForcedForwardedInfo
@@ -3200,6 +3236,7 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		session,
 		itemsList,
 		draft.options);
+	draft.groupOptions = Data::GroupingOptions::GroupAsIs;
 	if (msgIds.empty()) {
 		return nullptr;
 	}
@@ -3240,6 +3277,12 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		void setForwardOptions(Ui::ForwardOptions forwardOptions) {
 			_forwardOptions = forwardOptions;
 		}
+		[[nodiscard]] Data::GroupingOptions groupingOptions() const {
+			return _groupingOptions;
+		}
+		void setGroupingOptions(Data::GroupingOptions groupingOptions) {
+			_groupingOptions = groupingOptions;
+		}
 
 		not_null<PeerListContent*> peerListContent() const {
 			return PeerListBox::content();
@@ -3255,6 +3298,8 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 	private:
 		rpl::event_stream<> _focusRequests;
 		Ui::ForwardOptions _forwardOptions;
+		Data::GroupingOptions _groupingOptions
+			= Data::GroupingOptions::GroupAsIs;
 		FilterId _filterId = 0;
 
 	};
@@ -3433,9 +3478,81 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		return boxRaw->lifetime().make_state<State>(std::move(state));
 	}();
 
+	if (hasMediaForGrouping) {
+		const auto top = state->box->addTopButton(st::infoTopBarMenu);
+		const auto menu = top->lifetime().make_state<
+			base::unique_qptr<Ui::PopupMenu>>();
+		top->setClickedCallback([=] {
+			*menu = base::make_unique_q<Ui::PopupMenu>(
+				top,
+				st::popupMenuWithIcons);
+			const auto createView = [&](
+					rpl::producer<QString> &&text,
+					bool checked) {
+				auto item = base::make_unique_q<Menu::ItemWithCheck>(
+					(*menu)->menu(),
+					st::popupMenuWithIcons.menu,
+					Ui::CreateChild<QAction>((*menu)->menu().get()),
+					nullptr,
+					nullptr);
+				std::move(text) | rpl::on_next([action = item->action()](
+						QString text) {
+					action->setText(text);
+				}, item->lifetime());
+				item->init(checked);
+				const auto view = item->checkView();
+				(*menu)->addAction(std::move(item));
+				return view;
+			};
+			const auto regroup = createView(
+				tr::lng_forward_regroup_media(),
+				state->box->groupingOptions()
+					== Data::GroupingOptions::RegroupAll);
+			const auto separate = createView(
+				tr::lng_forward_separate_messages(),
+				state->box->groupingOptions()
+					== Data::GroupingOptions::Separate);
+			const auto update = [=](Data::GroupingOptions option, bool checked) {
+				if (checked) {
+					state->box->setGroupingOptions(option);
+					regroup->setChecked(
+						option == Data::GroupingOptions::RegroupAll,
+						anim::type::normal);
+					separate->setChecked(
+						option == Data::GroupingOptions::Separate,
+						anim::type::normal);
+				} else if (state->box->groupingOptions() == option) {
+					state->box->setGroupingOptions(
+						Data::GroupingOptions::GroupAsIs);
+				}
+			};
+			regroup->checkedChanges(
+			) | rpl::on_next([=](bool checked) {
+				update(Data::GroupingOptions::RegroupAll, checked);
+			}, (*menu)->lifetime());
+			separate->checkedChanges(
+			) | rpl::on_next([=](bool checked) {
+				update(Data::GroupingOptions::Separate, checked);
+			}, (*menu)->lifetime());
+
+			const auto raw = menu->get();
+			raw->setForcedOrigin(Ui::PanelAnimation::Origin::TopRight);
+			top->setForceRippled(true);
+			raw->setDestroyedCallback([=] {
+				if (const auto strong = top.data()) {
+					strong->setForceRippled(false);
+				}
+			});
+			raw->popup(top->mapToGlobal(
+				QPoint(top->width(), top->height() - st::lineWidth * 3)));
+			return true;
+		});
+	}
+
 	{ // Chosen a single.
-		auto chosen = [show, draft = std::move(draft)](
+		auto chosen = [show, draft = std::move(draft), state](
 				not_null<Data::Thread*> thread) mutable {
+			draft.groupOptions = state->box->groupingOptions();
 			const auto peer = thread->peer();
 			if (peer->isSelf()
 				&& !draft.ids.empty()
@@ -3568,7 +3685,8 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 			checkPaid,
 			std::move(comment),
 			options,
-			forwardOptions);
+			forwardOptions,
+			state->box->groupingOptions());
 		if (!state->submit && successCallback) {
 			successCallback();
 		}

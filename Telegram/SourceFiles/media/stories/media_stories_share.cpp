@@ -90,7 +90,8 @@ namespace Media::Stories {
 			Fn<bool()> checkPaid,
 			TextWithTags &&comment,
 			Api::SendOptions options,
-			Data::ForwardOptions forwardOptions) {
+			Data::ForwardOptions forwardOptions,
+			Data::GroupingOptions) {
 		if (state->requests) {
 			return; // Share clicked already.
 		}

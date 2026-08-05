@@ -58,7 +58,8 @@ void ForwardPanel::update(
 		Data::ResolvedForwardDraft draft) {
 	if (_to == to
 		&& _data.items == draft.items
-		&& _data.options == draft.options) {
+		&& _data.options == draft.options
+		&& _data.groupOptions == draft.groupOptions) {
 		return;
 	}
 	_dataLifetime.destroy();
@@ -247,6 +248,7 @@ void ForwardPanel::applyOptions(Data::ForwardOptions options) {
 		_to->owningHistory()->setForwardDraft(topicRootId, monoforumPeerId, {
 			.ids = _to->owner().itemsToIds(_data.items),
 			.options = options,
+			.groupOptions = _data.groupOptions,
 		});
 		_repaint();
 	}
