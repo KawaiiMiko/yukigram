@@ -503,9 +503,8 @@ object_ptr<Ui::BoxContent> PrepareShortInfoBox(
 		return show->paused(Window::GifPauseReason::Layer);
 	};
 	auto menuFiller = [=](Ui::Menu::MenuCallback addAction) {
-		const auto peerSeparateId = Window::SeparateId(peer);
 		const auto window = show->resolveWindow();
-		if (window && window->windowId() != peerSeparateId) {
+		if (window) {
 			addAction(tr::lng_context_new_window(tr::now), [=] {
 				Ui::PreventDelayedActivation();
 				window->showInNewWindow(peer);

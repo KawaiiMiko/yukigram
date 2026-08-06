@@ -1430,7 +1430,11 @@ Window::Controller *Application::separateWindowFor(
 
 Window::Controller *Application::ensureSeparateWindowFor(
 		Window::SeparateId id,
-		MsgId showAtMsgId) {
+		MsgId showAtMsgId,
+		bool forceNewChatWindow) {
+	if (forceNewChatWindow && id.type == Window::SeparateType::Chat) {
+		id.instance = ++_nextChatWindowInstance;
+	}
 	const auto activate = [&](not_null<Window::Controller*> window) {
 		window->activate();
 		return window;
@@ -1471,21 +1475,7 @@ Window::Controller *Application::windowFor(Window::SeparateId id) const {
 
 Window::Controller *Application::windowForShowingHistory(
 		not_null<PeerData*> peer) const {
-	if (const auto separate = separateWindowFor(peer)) {
-		return separate;
-	}
-	auto result = (Window::Controller*)nullptr;
-	enumerateWindows([&](not_null<Window::Controller*> window) {
-		if (const auto controller = window->sessionController()) {
-			const auto current = controller->activeChatCurrent();
-			if (const auto history = current.history()) {
-				if (history->peer == peer) {
-					result = window;
-				}
-			}
-		}
-	});
-	return result;
+	return separateWindowFor(not_null(&peer->session().account()));
 }
 
 Window::Controller *Application::windowForShowingForum(
@@ -1501,7 +1491,7 @@ Window::Controller *Application::windowForShowingForum(
 	enumerateWindows([&](not_null<Window::Controller*> window) {
 		if (const auto controller = window->sessionController()) {
 			if (tabs) {
-				if (controller->windowId() == id) {
+				if (controller->windowId().thread == id.thread) {
 					result = window;
 				}
 			} else {

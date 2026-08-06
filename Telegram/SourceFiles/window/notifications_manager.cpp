@@ -1389,15 +1389,15 @@ Window::SessionController *Manager::openNotificationMessage(
 			return shown;
 		}
 	}
-	const auto window = separate
-		? separate->sessionController()
-		: openSeparated
-		? [&] {
-			const auto window = Core::App().ensureSeparateWindowFor(
-				separateId,
-				itemId);
-			return window ? window->sessionController() : nullptr;
-		}()
+	const auto window = openSeparated
+		? separate
+			? separate->sessionController()
+			: [&] {
+				const auto window = Core::App().ensureSeparateWindowFor(
+					separateId,
+					itemId);
+				return window ? window->sessionController() : nullptr;
+			}()
 		: history->session().tryResolveWindow();
 	if (window) {
 		window->widget()->showFromTray();

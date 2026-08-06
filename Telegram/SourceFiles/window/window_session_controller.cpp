@@ -3119,10 +3119,14 @@ void SessionController::showInNewWindow(
 	const auto fromActive = active.thread()
 		? (active.thread() == id.thread && id.type == SeparateType::Chat)
 		: false;
+	const auto forceNewChatWindow = (id.type == SeparateType::Chat);
 	const auto toSeparate = [=] {
-		Core::App().ensureSeparateWindowFor(id, msgId);
+		Core::App().ensureSeparateWindowFor(
+			id,
+			msgId,
+			forceNewChatWindow);
 	};
-	if (fromActive) {
+	if (fromActive && !forceNewChatWindow) {
 		window().preventOrInvoke([=] {
 			clearSectionStack();
 			toSeparate();

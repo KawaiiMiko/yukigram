@@ -35,6 +35,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "main/main_domain.h"
 #include "main/main_session.h"
 #include "main/main_session_settings.h"
+#include "mainwidget.h"
 #include "menu/menu_sponsored.h"
 #include "platform/platform_notifications_manager.h"
 #include "window/window_controller.h"
@@ -806,10 +807,7 @@ ClickHandlerPtr JumpToMessageClickHandler(
 		FullMsgId returnToId,
 		MessageHighlightId highlight) {
 	return std::make_shared<LambdaClickHandler>([=] {
-		const auto separate = Core::App().separateWindowFor(peer);
-		const auto controller = separate
-			? separate->sessionController()
-			: peer->session().tryResolveWindow(peer);
+		const auto controller = peer->session().tryResolveWindow();
 		if (controller) {
 			auto params = Window::SectionShow{
 				Window::SectionShow::Way::Forward,
@@ -820,10 +818,11 @@ ClickHandlerPtr JumpToMessageClickHandler(
 				returnToId
 			};
 			if (const auto item = peer->owner().message(peer, msgId)) {
-				controller->showMessage(item, params);
+				controller->content()->showMessage(item, params);
 			} else {
 				controller->showPeerHistory(peer, params, msgId);
 			}
+			controller->window().activate();
 		}
 	});
 }
@@ -836,15 +835,13 @@ ClickHandlerPtr JumpToStoryClickHandler(
 		not_null<PeerData*> peer,
 		StoryId storyId) {
 	return std::make_shared<LambdaClickHandler>([=] {
-		const auto separate = Core::App().separateWindowFor(peer);
-		const auto controller = separate
-			? separate->sessionController()
-			: peer->session().tryResolveWindow();
+		const auto controller = peer->session().tryResolveWindow();
 		if (controller) {
 			controller->openPeerStory(
 				peer,
 				storyId,
 				{ Data::StoriesContextSingle() });
+			controller->window().activate();
 		}
 	});
 }

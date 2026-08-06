@@ -6854,10 +6854,12 @@ bool HistoryWidget::searchInChatEmbedded(
 		Dialogs::Key chat,
 		PeerData *searchFrom) {
 	const auto peer = chat.peer(); // windows todo
+	const auto windowChat = controller()->windowId().chat();
+	const auto inSeparateChat = windowChat && windowChat->peer() == peer;
 	const auto archiveWindow = (controller()->windowId().type
 		== Window::SeparateType::Archive);
 	if (!peer
-		|| ((Window::SeparateId(peer) != controller()->windowId())
+		|| (!inSeparateChat
 			&& !controller()->isPrimary()
 			&& !archiveWindow)) {
 		return false;

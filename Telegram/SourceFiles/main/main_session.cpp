@@ -592,17 +592,17 @@ auto Session::windows() const
 Window::SessionController *Session::tryResolveWindow(
 		PeerData *forPeer) const {
 	if (forPeer) {
-		auto primary = (Window::SessionController*)nullptr;
+		auto separate = (Window::SessionController*)nullptr;
 		for (const auto &window : _windows) {
 			const auto thread = window->windowId().thread;
-			if (thread && thread->peer() == forPeer) {
+			if (window->isPrimary()) {
 				return window;
-			} else if (window->isPrimary()) {
-				primary = window;
+			} else if (thread && thread->peer() == forPeer) {
+				separate = window;
 			}
 		}
-		if (primary) {
-			return primary;
+		if (separate) {
+			return separate;
 		}
 	}
 	if (_windows.empty() || forPeer) {
