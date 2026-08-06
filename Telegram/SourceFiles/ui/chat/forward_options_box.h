@@ -13,19 +13,34 @@ namespace Ui {
 
 class AbstractCheckView;
 
+enum class ForwardGroupingOption {
+	GroupAsIs,
+	RegroupAll,
+	Separate,
+};
+
 struct ForwardOptions {
 	int sendersCount = 0;
 	int captionsCount = 0;
 	bool dropNames = false;
 	bool dropCaptions = false;
+	bool show = true;
 };
 
-void FillForwardOptions(
+struct ForwardGroupingOptions {
+	bool show = false;
+	ForwardGroupingOption option = ForwardGroupingOption::GroupAsIs;
+	Fn<void(ForwardGroupingOption)> optionChanged;
+};
+
+[[nodiscard]] bool FillForwardOptions(
 	Fn<not_null<AbstractCheckView*>(
 		rpl::producer<QString> &&,
 		bool)> createView,
 	ForwardOptions options,
 	Fn<void(ForwardOptions)> optionsChanged,
+	ForwardGroupingOptions grouping,
+	Fn<void()> addSeparator,
 	rpl::lifetime &lifetime);
 
 } // namespace Ui

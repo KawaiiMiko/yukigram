@@ -135,7 +135,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "styles/style_chat.h"
 #include "styles/style_chat_helpers.h"
 #include "styles/style_credits.h"
-#include "styles/style_info.h"
 #include "styles/style_layers.h"
 #include "styles/style_boxes.h"
 #include "styles/style_share_box.h"
@@ -3279,19 +3278,12 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		}
 		void setForwardOptions(Ui::ForwardOptions forwardOptions) {
 			_forwardOptions = forwardOptions;
-			if (!_forwardOptions.dropNames
-				&& _groupingOptions == Data::GroupingOptions::RegroupAll) {
-				_groupingOptions = Data::GroupingOptions::GroupAsIs;
-			}
 		}
 		[[nodiscard]] Data::GroupingOptions groupingOptions() const {
 			return _groupingOptions;
 		}
 		void setGroupingOptions(Data::GroupingOptions groupingOptions) {
 			_groupingOptions = groupingOptions;
-			if (_groupingOptions == Data::GroupingOptions::RegroupAll) {
-				_forwardOptions.dropNames = true;
-			}
 		}
 
 		not_null<PeerListContent*> peerListContent() const {
@@ -3564,76 +3556,6 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		return boxRaw->lifetime().make_state<State>(std::move(state));
 	}();
 
-	const auto addGroupingMenu = [=] {
-		const auto top = state->box->addTopButton(st::infoTopBarMenu);
-		const auto menu = top->lifetime().make_state<
-			base::unique_qptr<Ui::PopupMenu>>();
-		top->setClickedCallback([=] {
-			*menu = base::make_unique_q<Ui::PopupMenu>(
-				top,
-				st::popupMenuWithIcons);
-			const auto createView = [&](
-					rpl::producer<QString> &&text,
-					bool checked) {
-				auto item = base::make_unique_q<Menu::ItemWithCheck>(
-					(*menu)->menu(),
-					st::popupMenuWithIcons.menu,
-					Ui::CreateChild<QAction>((*menu)->menu().get()),
-					nullptr,
-					nullptr);
-				std::move(text) | rpl::on_next([action = item->action()](
-						QString text) {
-					action->setText(text);
-				}, item->lifetime());
-				item->init(checked);
-				const auto view = item->checkView();
-				(*menu)->addAction(std::move(item));
-				return view;
-			};
-			const auto regroup = createView(
-				tr::lng_forward_regroup_media(),
-				state->box->groupingOptions()
-					== Data::GroupingOptions::RegroupAll);
-			const auto separate = createView(
-				tr::lng_forward_separate_messages(),
-				state->box->groupingOptions()
-					== Data::GroupingOptions::Separate);
-			const auto update = [=](Data::GroupingOptions option, bool checked) {
-				if (checked) {
-					state->box->setGroupingOptions(option);
-					regroup->setChecked(
-						option == Data::GroupingOptions::RegroupAll,
-						anim::type::normal);
-					separate->setChecked(
-						option == Data::GroupingOptions::Separate,
-						anim::type::normal);
-				} else if (state->box->groupingOptions() == option) {
-					state->box->setGroupingOptions(
-						Data::GroupingOptions::GroupAsIs);
-				}
-			};
-			regroup->checkedChanges(
-			) | rpl::on_next([=](bool checked) {
-				update(Data::GroupingOptions::RegroupAll, checked);
-			}, (*menu)->lifetime());
-			separate->checkedChanges(
-			) | rpl::on_next([=](bool checked) {
-				update(Data::GroupingOptions::Separate, checked);
-			}, (*menu)->lifetime());
-
-			const auto raw = menu->get();
-			raw->setForcedOrigin(Ui::PanelAnimation::Origin::TopRight);
-			top->setForceRippled(true);
-			raw->setDestroyedCallback([=] {
-				if (const auto strong = top.data()) {
-					strong->setForceRippled(false);
-				}
-			});
-			raw->popup(top->mapToGlobal(
-				QPoint(top->width(), top->height() - st::lineWidth * 3)));
-			return true;
-		});
-	};
 	{ // Chosen a single.
 		auto chosen = [show, draft = std::move(draft), state](
 				not_null<Data::Thread*> thread) mutable {
@@ -3807,10 +3729,10 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		}
 		state->menu.emplace(parent, st::popupMenuWithIcons);
 
-		if (showForwardOptions) {
-			auto createView = [&](
-					rpl::producer<QString> &&text,
-					bool checked) {
+		auto forwardOptions = state->box->forwardOptions();
+		forwardOptions.show = showForwardOptions;
+		const auto hasForwardOptions = Ui::FillForwardOptions(
+			[=](rpl::producer<QString> &&text, bool checked) {
 				auto item = base::make_unique_q<Menu::ItemWithCheck>(
 					state->menu->menu(),
 					st::popupMenuWithIcons.menu,
@@ -3819,23 +3741,32 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 					nullptr);
 				std::move(
 					text
-				) | rpl::on_next([action = item->action()](
-						QString text) {
+				) | rpl::on_next([action = item->action()](QString text) {
 					action->setText(text);
 				}, item->lifetime());
 				item->init(checked);
 				const auto view = item->checkView();
 				state->menu->addAction(std::move(item));
 				return view;
-			};
-			Ui::FillForwardOptions(
-				std::move(createView),
-				state->box->forwardOptions(),
-				[=](Ui::ForwardOptions o) {
-					state->box->setForwardOptions(o);
+			},
+			forwardOptions,
+			[=](Ui::ForwardOptions options) {
+				state->box->setForwardOptions(options);
+			},
+			{
+				.show = hasMediaForGrouping,
+				.option = static_cast<Ui::ForwardGroupingOption>(
+					state->box->groupingOptions()),
+				.optionChanged = [=](Ui::ForwardGroupingOption option) {
+					state->box->setGroupingOptions(
+						static_cast<Data::GroupingOptions>(option));
 				},
-				state->menu->lifetime());
-
+			},
+			[=] {
+				state->menu->addSeparator();
+			},
+			state->menu->lifetime());
+		if (hasForwardOptions) {
 			state->menu->addSeparator();
 		}
 		state->menu->setForcedVerticalOrigin(
@@ -3850,7 +3781,7 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 					onstack(options);
 				}
 			})));
-		if (showForwardOptions || !state->menu->empty()) {
+		if (hasForwardOptions || !state->menu->empty()) {
 			state->menu->popup(QCursor::pos());
 		}
 	};
@@ -3913,9 +3844,6 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		const auto shown = state->controller->hasSelected();
 
 		state->box->clearButtons();
-		if (hasMediaForGrouping) {
-			addGroupingMenu();
-		}
 		state->refreshStarsToSend();
 		if (shown) {
 			const auto send = state->box->addButton(

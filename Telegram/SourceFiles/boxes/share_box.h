@@ -175,7 +175,6 @@ private:
 	void selectedChanged();
 	void computeStarsCount();
 	void createButtons();
-	void setupGroupingMenu();
 	void setForwardOptions(Ui::ForwardOptions forwardOptions);
 	void setGroupingOptions(Data::GroupingOptions groupingOptions);
 	int getTopScrollSkip() const;

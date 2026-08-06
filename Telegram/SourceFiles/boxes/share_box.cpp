@@ -72,9 +72,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "core/application.h"
 #include "core/core_settings.h"
 #include "styles/style_calls.h"
+#include "styles/style_chat.h"
 #include "styles/style_chat_helpers.h"
 #include "styles/style_dialogs.h"
-#include "styles/style_info.h"
 #include "styles/style_layers.h"
 #include "styles/style_menu_icons.h"
 #include "styles/style_share_box.h"
@@ -813,8 +813,10 @@ void ShareBox::showMenu(not_null<Ui::RpWidget*> parent) {
 	}
 	_menu.emplace(parent, st::popupMenuWithIcons);
 
-	if (_descriptor.forwardOptions.show) {
-		auto createView = [&](rpl::producer<QString> &&text, bool checked) {
+	auto forwardOptions = _forwardOptions;
+	forwardOptions.show = _descriptor.forwardOptions.show;
+	const auto hasForwardOptions = Ui::FillForwardOptions(
+		[=](rpl::producer<QString> &&text, bool checked) {
 			auto item = base::make_unique_q<Menu::ItemWithCheck>(
 				_menu->menu(),
 				st::popupMenuWithIcons.menu,
@@ -830,13 +832,21 @@ void ShareBox::showMenu(not_null<Ui::RpWidget*> parent) {
 			const auto view = item->checkView();
 			_menu->addAction(std::move(item));
 			return view;
-		};
-		Ui::FillForwardOptions(
-			std::move(createView),
-			_forwardOptions,
-			[=](Ui::ForwardOptions value) { setForwardOptions(value); },
-			_menu->lifetime());
-
+		},
+		forwardOptions,
+		[=](Ui::ForwardOptions value) { setForwardOptions(value); },
+		{
+			.show = _descriptor.forwardOptions.hasMediaForGrouping,
+			.option = static_cast<Ui::ForwardGroupingOption>(
+				_groupingOptions),
+			.optionChanged = [=, this](Ui::ForwardGroupingOption option) {
+				setGroupingOptions(
+					static_cast<Data::GroupingOptions>(option));
+			},
+		},
+		[=] { _menu->addSeparator(); },
+		_menu->lifetime());
+	if (hasForwardOptions) {
 		_menu->addSeparator();
 	}
 
@@ -867,7 +877,7 @@ void ShareBox::showMenu(not_null<Ui::RpWidget*> parent) {
 		sendAction);
 	if (result == SendMenu::FillMenuResult::Prepared) {
 		_menu->popupPrepared();
-	} else if (_descriptor.forwardOptions.show
+	} else if (hasForwardOptions
 		&& result != SendMenu::FillMenuResult::Failed) {
 		_menu->popup(QCursor::pos());
 	}
@@ -898,94 +908,15 @@ void ShareBox::createButtons() {
 		addButton(_copyLinkText.value(), [=] { copyLink(); });
 	}
 	addButton(tr::lng_cancel(), [=] { closeBox(); });
-	setupGroupingMenu();
-}
-
-void ShareBox::setupGroupingMenu() {
-	if (!_descriptor.forwardOptions.hasMediaForGrouping) {
-		return;
-	}
-	const auto top = addTopButton(st::infoTopBarMenu);
-	const auto menu = top->lifetime().make_state<
-		base::unique_qptr<Ui::PopupMenu>>();
-	top->setClickedCallback([=] {
-		*menu = base::make_unique_q<Ui::PopupMenu>(
-			top,
-			st::popupMenuWithIcons);
-		const auto createView = [&](rpl::producer<QString> &&text, bool checked) {
-			auto item = base::make_unique_q<Menu::ItemWithCheck>(
-				(*menu)->menu(),
-				st::popupMenuWithIcons.menu,
-				Ui::CreateChild<QAction>((*menu)->menu().get()),
-				nullptr,
-				nullptr);
-			std::move(text) | rpl::on_next([action = item->action()](
-					QString text) {
-				action->setText(text);
-			}, item->lifetime());
-			item->init(checked);
-			const auto view = item->checkView();
-			(*menu)->addAction(std::move(item));
-			return view;
-		};
-		const auto regroup = createView(
-			tr::lng_forward_regroup_media(),
-			_groupingOptions == Data::GroupingOptions::RegroupAll);
-		const auto separate = createView(
-			tr::lng_forward_separate_messages(),
-			_groupingOptions == Data::GroupingOptions::Separate);
-		const auto update = [=, this](
-				Data::GroupingOptions option,
-				bool checked) {
-			if (checked) {
-				setGroupingOptions(option);
-				regroup->setChecked(
-					option == Data::GroupingOptions::RegroupAll,
-					anim::type::normal);
-				separate->setChecked(
-					option == Data::GroupingOptions::Separate,
-					anim::type::normal);
-			} else if (_groupingOptions == option) {
-				_groupingOptions = Data::GroupingOptions::GroupAsIs;
-			}
-		};
-		regroup->checkedChanges(
-		) | rpl::on_next([=](bool checked) {
-			update(Data::GroupingOptions::RegroupAll, checked);
-		}, (*menu)->lifetime());
-		separate->checkedChanges(
-		) | rpl::on_next([=](bool checked) {
-			update(Data::GroupingOptions::Separate, checked);
-		}, (*menu)->lifetime());
-
-		const auto raw = menu->get();
-		raw->setForcedOrigin(Ui::PanelAnimation::Origin::TopRight);
-		top->setForceRippled(true);
-		raw->setDestroyedCallback([=] {
-			if (const auto strong = top.data()) {
-				strong->setForceRippled(false);
-			}
-		});
-		raw->popup(top->mapToGlobal(
-			QPoint(top->width(), top->height() - st::lineWidth * 3)));
-		return true;
-	});
 }
 
 void ShareBox::setForwardOptions(Ui::ForwardOptions forwardOptions) {
 	_forwardOptions = forwardOptions;
-	if (!_forwardOptions.dropNames
-		&& _groupingOptions == Data::GroupingOptions::RegroupAll) {
-		_groupingOptions = Data::GroupingOptions::GroupAsIs;
-	}
 }
 
 void ShareBox::setGroupingOptions(
 		Data::GroupingOptions groupingOptions) {
 	_groupingOptions = groupingOptions;
-	if (_groupingOptions == Data::GroupingOptions::RegroupAll) {
-		_forwardOptions.dropNames = true;
-	}
 }
 
 void ShareBox::applyFilterUpdate(const QString &query) {
