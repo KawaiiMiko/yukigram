@@ -1637,7 +1637,7 @@ void Element::refreshMedia(Element *replacing) {
 		const auto emoji = isolatedEmoji();
 		const auto emojiStickers = &history()->session().emojiStickersPack();
 		const auto skipPremiumEffect = false;
-		if (const auto sticker = emojiStickers->stickerForEmoji(emoji); sticker && !GetEnhancedBool("no_animoji")) {
+		if (const auto sticker = emojiStickers->stickerForEmoji(emoji); sticker) {
 			auto content = std::make_unique<Sticker>(
 				this,
 				sticker.document,

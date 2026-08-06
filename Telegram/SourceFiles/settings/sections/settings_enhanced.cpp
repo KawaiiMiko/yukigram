@@ -112,15 +112,6 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/no-animoji"_q,
-			.title = tr::lng_settings_no_animoji(tr::now),
-			.keywords = { u"animated"_q, u"emoji"_q, u"animoji"_q, u"disable"_q },
-			.deeplink = u"tg://settings/enhanced/messages/no-animoji"_q,
-		};
-	});
-
-	builder.add(nullptr, [] {
-		return Builder::SearchEntry{
 			.id = u"enhanced/messages/show-similar-on-joined"_q,
 			.title = tr::lng_settings_show_similar_on_joined(tr::now),
 			.keywords = { u"similar"_q, u"recommendations"_q, u"joined"_q },
@@ -478,25 +469,6 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			return (toggled != GetEnhancedBool("show_messages_id"));
 		}) | rpl::on_next([=](bool toggled) {
 			SetEnhancedValue("show_messages_id", toggled);
-			EnhancedSettings::Write();
-			Core::Restart();
-		}, container->lifetime());
-
-		const auto noAnimoji = AddButtonWithIcon(
-				inner,
-				tr::lng_settings_no_animoji(),
-				st::settingsAttentionButton
-		);
-		registerHighlight(
-			u"enhanced/messages/no-animoji"_q,
-			noAnimoji);
-		noAnimoji->toggleOn(
-				rpl::single(GetEnhancedBool("no_animoji"))
-		)->toggledChanges(
-		) | rpl::filter([=](bool toggled) {
-			return (toggled != GetEnhancedBool("no_animoji"));
-		}) | rpl::on_next([=](bool toggled) {
-			SetEnhancedValue("no_animoji", toggled);
 			EnhancedSettings::Write();
 			Core::Restart();
 		}, container->lifetime());
