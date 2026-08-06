@@ -164,13 +164,11 @@ void ShowChannelsLimitBox(not_null<PeerData*> peer) {
 
 [[nodiscard]] FileLoadTo FileLoadTaskOptions(const Api::SendAction &action) {
 	const auto peer = action.history->peer;
-	auto result = FileLoadTo(
+	return FileLoadTo(
 		peer->id,
 		action.options,
 		action.replyTo,
 		action.replaceMediaOf);
-	result.keepScrollPosition = action.keepScrollPosition;
-	return result;
 }
 
 [[nodiscard]] QString FormatVideoTimestamp(TimeId seconds) {
@@ -3772,8 +3770,7 @@ mtpRequestId ApiWrap::requestGlobalMedia(
 void ApiWrap::sendAction(const SendAction &action) {
 	if (!action.options.scheduled
 		&& !action.options.shortcutId
-		&& !action.replaceMediaOf
-		&& !action.keepScrollPosition) {
+		&& !action.replaceMediaOf) {
 		const auto topicRootId = action.replyTo.topicRootId;
 		const auto topic = topicRootId
 			? action.history->peer->forumTopicFor(topicRootId)
@@ -3885,9 +3882,7 @@ void ApiWrap::forwardMessages(
 	const auto history = action.history;
 	const auto peer = history->peer;
 
-	if (!action.options.scheduled
-		&& !action.options.shortcutId
-		&& !action.keepScrollPosition) {
+	if (!action.options.scheduled && !action.options.shortcutId) {
 		histories.readInbox(history);
 	}
 	const auto sendAs = action.options.sendAs;
@@ -4166,9 +4161,7 @@ void ApiWrap::forwardMessagesUnquoted(
 	const auto sendAs = action.options.sendAs;
 	const auto scheduled = action.options.scheduled;
 	auto starsApproved = action.options.starsApproved;
-	if (!scheduled
-		&& !action.options.shortcutId
-		&& !action.keepScrollPosition) {
+	if (!scheduled && !action.options.shortcutId) {
 		histories.readInbox(history);
 	}
 

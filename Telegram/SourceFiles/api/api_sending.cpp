@@ -611,7 +611,6 @@ void SendConfirmedFile(
 	action.replyTo = file->to.replyTo;
 	action.generateLocal = true;
 	action.replaceMediaOf = file->to.replaceMediaOf;
-	action.keepScrollPosition = file->to.keepScrollPosition;
 	session->api().sendAction(action);
 
 	auto caption = TextWithEntities{

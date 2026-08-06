@@ -80,7 +80,6 @@ struct SetHistoryArgs {
 	Fn<bool()> showSlowmodeError;
 	Fn<Api::SendAction()> sendActionFactory;
 	Fn<void(TextWithEntities, Api::SendOptions, Fn<void()>)> sendWithText;
-	Fn<void(bool)> setKeepScrollPositionOnSend;
 	rpl::producer<int> slowmodeSecondsLeft;
 	rpl::producer<bool> sendDisabledBySlowmode;
 	rpl::producer<bool> liked;

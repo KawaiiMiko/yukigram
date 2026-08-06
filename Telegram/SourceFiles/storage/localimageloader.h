@@ -146,7 +146,6 @@ struct FileLoadTo {
 	Api::SendOptions options;
 	FullReplyTo replyTo;
 	MsgId replaceMediaOf;
-	bool keepScrollPosition = false;
 };
 
 using UploadFileParts = std::vector<QByteArray>;

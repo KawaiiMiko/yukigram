@@ -479,7 +479,6 @@ private:
 	Fn<bool()> _showSlowmodeError;
 	Fn<Api::SendAction()> _sendActionFactory;
 	Fn<void(TextWithEntities, Api::SendOptions, Fn<void()>)> _sendWithText;
-	Fn<void(bool)> _setKeepScrollPositionOnSend;
 	rpl::variable<int> _slowmodeSecondsLeft;
 	rpl::variable<bool> _sendDisabledBySlowmode;
 	rpl::variable<bool> _liked;

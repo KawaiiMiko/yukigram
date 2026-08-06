@@ -1216,7 +1216,6 @@ void ComposeControls::setHistory(SetHistoryArgs &&args) {
 	_showSlowmodeError = std::move(args.showSlowmodeError);
 	_sendActionFactory = std::move(args.sendActionFactory);
 	_sendWithText = std::move(args.sendWithText);
-	_setKeepScrollPositionOnSend = std::move(args.setKeepScrollPositionOnSend);
 	_slowmodeSecondsLeft = rpl::single(0)
 		| rpl::then(std::move(args.slowmodeSecondsLeft));
 	_sendDisabledBySlowmode = rpl::single(false)
@@ -1848,30 +1847,15 @@ auto ComposeControls::sendContentRequests(SendRequestType requestType) const {
 			: SendRequestType::Text;
 		return (_send->type() == type) && (sendRequestType == requestType);
 	});
-	auto mapClick = rpl::map([=] {
-		if (_setKeepScrollPositionOnSend) {
-			_setKeepScrollPositionOnSend(false);
-		}
-		return Api::SendOptions();
-	});
-	auto mapSubmit = rpl::map([=](Qt::KeyboardModifiers modifiers) {
-		if (_setKeepScrollPositionOnSend) {
-			_setKeepScrollPositionOnSend(
-				modifiers.testFlag(Qt::AltModifier));
-		}
-		return Api::SendOptions();
-	});
+	auto map = rpl::map_to(Api::SendOptions());
 	return rpl::merge(
-		_send->clicks() | filter | mapClick,
-		_field->submits() | filter | mapSubmit,
+		_send->clicks() | filter | map,
+		_field->submits() | filter | map,
 		_sendCustomRequests.events());
 }
 
 rpl::producer<> ComposeControls::scrollToMaxRequests() const {
-	return _field->submits() | rpl::filter([=](Qt::KeyboardModifiers modifiers) {
-		if (modifiers.testFlag(Qt::AltModifier)) {
-			return false;
-		}
+	return _field->submits() | rpl::filter([=]{
 		if (_mode == Mode::Normal
 			&& !_voiceRecordBar->isListenState()
 			&& getTextWithAppliedMarkdown().text.isEmpty()) {
@@ -3347,9 +3331,6 @@ void ComposeControls::initSendButton() {
 	}, _send->lifetime());
 
 	const auto send = crl::guard(_send.get(), [=](Api::SendOptions options) {
-		if (_setKeepScrollPositionOnSend) {
-			_setKeepScrollPositionOnSend(false);
-		}
 		_sendCustomRequests.fire(std::move(options));
 	});
 	setupSendMenu(_send.get(), send);
@@ -3963,7 +3944,6 @@ void ComposeControls::fireSendTextAsFile(
 		.sendMenuDetails = _sendMenuDetails,
 		.stOverride = &_st,
 		.confirmed = std::move(confirmed),
-		.keepScrollPositionCallback = _setKeepScrollPositionOnSend,
 		.cancelled = std::move(restoreText),
 		.replyTo = replyingToMessage(),
 	}));
