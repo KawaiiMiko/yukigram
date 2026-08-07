@@ -1250,10 +1250,11 @@ Element::Element(
 		? Flag::ScheduledUntilOnline
 		: Flag())
 	| (countIsTopicRootReply() ? Flag::TopicRootReply : Flag()))
-, _context(delegate->elementContext()) {
+, _context(delegate->elementContext())
+, _isMainViewElement(delegate->elementIsMainView()) {
 	history()->owner().registerItemView(this);
 	refreshMedia(replacing);
-	if (_context == Context::History) {
+	if (_context == Context::History && _isMainViewElement) {
 		history()->setHasPendingResizedItems();
 	}
 	if (data->isFakeAboutView()) {
@@ -1462,7 +1463,7 @@ void Element::addVerticalMargins(int top, int bottom) {
 
 void Element::setPendingResize() {
 	_flags |= Flag::NeedsResize;
-	if (_context == Context::History) {
+	if (_context == Context::History && _isMainViewElement) {
 		data()->_history->setHasPendingResizedItems();
 	}
 }
@@ -3315,7 +3316,7 @@ Element::~Element() {
 	if (_data->mainView() == this) {
 		_data->clearMainView();
 	}
-	if (_context == Context::History) {
+	if (_context == Context::History && _isMainViewElement) {
 		history()->owner().notifyViewRemoved(this);
 	}
 	history()->owner().unregisterItemView(this);

@@ -187,6 +187,9 @@ public:
 	HistoryView::Context elementContext() override {
 		return HistoryView::Context::History;
 	}
+	bool elementIsMainView() override {
+		return true;
+	}
 	bool elementUnderCursor(
 			not_null<const Element*> view) override {
 		return (Element::Moused() == view);

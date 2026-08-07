@@ -806,8 +806,12 @@ ClickHandlerPtr JumpToMessageClickHandler(
 		MsgId msgId,
 		FullMsgId returnToId,
 		MessageHighlightId highlight) {
-	return std::make_shared<LambdaClickHandler>([=] {
-		const auto controller = peer->session().tryResolveWindow();
+	return std::make_shared<LambdaClickHandler>([=](ClickContext context) {
+		const auto my = context.other.value<ClickHandlerContext>();
+		const auto contextController = my.sessionWindow.get();
+		const auto controller = contextController
+			? contextController
+			: peer->session().tryResolveWindow();
 		if (controller) {
 			auto params = Window::SectionShow{
 				Window::SectionShow::Way::Forward,
@@ -834,8 +838,12 @@ ClickHandlerPtr JumpToStoryClickHandler(not_null<Data::Story*> story) {
 ClickHandlerPtr JumpToStoryClickHandler(
 		not_null<PeerData*> peer,
 		StoryId storyId) {
-	return std::make_shared<LambdaClickHandler>([=] {
-		const auto controller = peer->session().tryResolveWindow();
+	return std::make_shared<LambdaClickHandler>([=](ClickContext context) {
+		const auto my = context.other.value<ClickHandlerContext>();
+		const auto contextController = my.sessionWindow.get();
+		const auto controller = contextController
+			? contextController
+			: peer->session().tryResolveWindow();
 		if (controller) {
 			controller->openPeerStory(
 				peer,

@@ -531,6 +531,7 @@ public:
 	}
 
 	void setFromTopic(not_null<Data::ForumTopic*> topic);
+	void discardTopicListState();
 
 	void setReplyReturns(const QVector<FullMsgId> &list) {
 		_replyReturns = list;
@@ -561,6 +562,7 @@ private:
 	ListMemento _list;
 	std::shared_ptr<Data::RepliesList> _replies;
 	QVector<FullMsgId> _replyReturns;
+	bool _listFromTopic = false;
 
 	rpl::lifetime _lifetime;
 

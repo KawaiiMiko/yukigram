@@ -100,6 +100,9 @@ class Element;
 class ElementDelegate {
 public:
 	virtual Context elementContext() = 0;
+	virtual bool elementIsMainView() {
+		return false;
+	}
 	virtual bool elementUnderCursor(not_null<const Element*> view) = 0;
 	virtual SelectionModeResult elementInSelectionMode(
 		const Element *view) = 0;
@@ -847,6 +850,7 @@ private:
 
 	mutable Flags _flags = Flag(0);
 	Context _context = Context();
+	const bool _isMainViewElement = false;
 
 };
 

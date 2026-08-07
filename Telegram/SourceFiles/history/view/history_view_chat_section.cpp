@@ -72,6 +72,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/components/recent_inline_bots.h"
 #include "data/components/scheduled_messages.h"
 #include "data/data_histories.h"
+#include "data/data_history_messages.h"
 #include "data/data_saved_messages.h"
 #include "data/data_saved_sublist.h"
 #include "data/data_session.h"
@@ -159,9 +160,16 @@ void ChatMemento::setFromTopic(not_null<Data::ForumTopic*> topic) {
 	_replies = topic->replies();
 	if (!_list.aroundPosition()) {
 		_list = *topic->listMemento();
+		_listFromTopic = true;
 	}
 }
 
+void ChatMemento::discardTopicListState() {
+	if (_listFromTopic) {
+		_list = ListMemento();
+		_listFromTopic = false;
+	}
+}
 
 Data::ForumTopic *ChatMemento::topicForRemoveRequests() const {
 	return _id.repliesRootId
@@ -202,6 +210,10 @@ object_ptr<Window::SectionWidget> ChatMemento::createWidget(
 		const QRect &geometry) {
 	if (column == Window::Column::Third) {
 		return nullptr;
+	}
+	if (_listFromTopic
+		&& controller->windowId().type == Window::SeparateType::Chat) {
+		discardTopicListState();
 	}
 	if (!_list.aroundPosition().fullId
 		&& _replies
@@ -271,13 +283,15 @@ ChatWidget::ChatWidget(
 		.sendMenuDetails = [=] { return sendMenuDetails(); },
 		.regularWindow = controller,
 		.stickerOrEmojiChosen = controller->stickerOrEmojiChosen(),
-		.scheduledToggleValue = _topic
-			? rpl::single(rpl::empty_value()) | rpl::then(
-				session().scheduledMessages().updates(_topic->owningHistory())
+		.scheduledToggleValue = (_sublist || (_repliesRootId && !_topic))
+			? (rpl::single(false) | rpl::type_erased)
+			: (rpl::single(rpl::empty_value()) | rpl::then(
+				session().scheduledMessages().updates(_history)
 			) | rpl::map([=] {
-				return session().scheduledMessages().hasFor(_topic);
-			}) | rpl::type_erased
-			: rpl::single(false),
+				return _topic
+					? session().scheduledMessages().hasFor(_topic)
+					: (session().scheduledMessages().count(_history) > 0);
+			}) | rpl::type_erased),
 	}))
 , _translateBar(
 	std::make_unique<TranslateBar>(_topBars.get(), controller, _history))
@@ -439,6 +453,12 @@ ChatWidget::ChatWidget(
 	_composeControls->sendActionUpdates(
 	) | rpl::on_next([=](ComposeControls::SendActionUpdate &&data) {
 		if (!_repliesRootId) {
+			if (!_sublist) {
+				session().sendProgressManager().update(
+					_history,
+					data.type,
+					data.cancel ? -1 : data.progress);
+			}
 			return;
 		} else if (!data.cancel) {
 			session().sendProgressManager().update(
@@ -475,10 +495,28 @@ ChatWidget::ChatWidget(
 		) | rpl::on_next([=] {
 			_inner->update();
 		}, lifetime());
+		if (!_repliesRootId) {
+			subscribeToPinnedMessages();
+			session().api().sendActions(
+			) | rpl::filter([=](const Api::SendAction &action) {
+				return (Core::App().activeWindow() == &controller->window())
+					&& (action.history == _history)
+					&& !action.replyTo.topicRootId;
+			}) | rpl::on_next([=](const Api::SendAction &action) {
+				if (action.options.scheduled) {
+					crl::on_main(this, [=] {
+						controller->showSection(
+							std::make_shared<HistoryView::ScheduledMemento>(
+								_history));
+					});
+				}
+			}, lifetime());
+		}
 	} else {
 		session().api().sendActions(
 		) | rpl::filter([=](const Api::SendAction &action) {
-			return (action.history == _history)
+			return (Core::App().activeWindow() == &controller->window())
+				&& (action.history == _history)
 				&& (action.replyTo.topicRootId == _topic->topicRootId());
 		}) | rpl::on_next([=](const Api::SendAction &action) {
 			if (action.options.scheduled) {
@@ -525,7 +563,8 @@ ChatWidget::~ChatWidget() {
 			_emptyPainter = nullptr;
 			_topic->discard();
 			_topic = nullptr;
-		} else {
+		} else if (controller()->windowId().type
+				!= Window::SeparateType::Chat) {
 			_inner->saveState(_topic->listMemento());
 		}
 	}
@@ -727,7 +766,8 @@ void ChatWidget::subscribeToPinnedMessages() {
 		if (_pinnedTracker
 			&& (update.flags & EntryUpdateFlag::HasPinnedMessages)
 			&& (_topic == update.entry.get()
-				|| _sublist == update.entry.get())) {
+				|| _sublist == update.entry.get()
+				|| _history == update.entry.get())) {
 			checkPinnedBarState();
 		}
 	}, lifetime());
@@ -955,7 +995,13 @@ void ChatWidget::setupComposeControls() {
 	_composeControls->jumpToItemRequests(
 	) | rpl::on_next([=](FullReplyTo to) {
 		if (const auto item = session().data().message(to.messageId)) {
-			JumpToMessageClickHandler(item, {}, to.highlight())->onClick({});
+			JumpToMessageClickHandler(
+				item,
+				{},
+				to.highlight()
+			)->onClick(_inner->prepareClickContext(
+				Qt::LeftButton,
+				to.messageId));
 		}
 	}, lifetime());
 
@@ -1893,7 +1939,7 @@ void ChatWidget::validateSubsectionTabs() {
 }
 
 void ChatWidget::refreshJoinGroupButton() {
-	if (!_repliesRootId || !_peer->isChannel()) {
+	if (_sublist || !_peer->isChannel()) {
 		return;
 	}
 	const auto set = [&](std::unique_ptr<Ui::FlatButton> button) {
@@ -2092,17 +2138,27 @@ SendMenu::Details ChatWidget::sendMenuDetails() const {
 	using Type = SendMenu::Type;
 	const auto ephemeralReply = session().ephemeralMessages()
 		.isEphemeralBotReply(replyTo().messageId);
+	const auto isHistory = !_repliesRootId && !_sublist;
 	const auto type = ephemeralReply
 		? Type::Disabled
-		: (_topic && !_peer->starsPerMessageChecked())
-		? Type::Scheduled
-		: Type::SilentOnly;
+		: !isHistory
+		? ((_topic && !_peer->starsPerMessageChecked())
+			? Type::Scheduled
+			: Type::SilentOnly)
+		: _peer->starsPerMessageChecked()
+		? Type::SilentOnly
+		: _peer->isSelf()
+		? Type::Reminder
+		: HistoryView::CanScheduleUntilOnline(_peer)
+		? Type::ScheduledToUser
+		: Type::Scheduled;
 	return SendMenu::Details{
 		.type = type,
 		.barePeerId = (_sublist
 			? _sublist->owningHistory()
 			: _history)->peer->id.value,
 		.bareTopicRootId = _topic ? _topic->rootId().bare : 0,
+		.effectAllowed = isHistory && _peer->isUser(),
 	};
 }
 
@@ -2146,7 +2202,9 @@ void ChatWidget::refreshTopBarActiveChat() {
 			: Key{ _history }),
 		.section = _sublist
 			? EntryState::Section::SavedSublist
-			: EntryState::Section::Replies,
+			: _repliesRootId
+			? EntryState::Section::Replies
+			: EntryState::Section::History,
 		.currentReplyTo = replyTo(),
 		.currentSuggest = SuggestOptions(),
 	};
@@ -2162,7 +2220,7 @@ void ChatWidget::refreshUnreadCountBadge(std::optional<int> count) {
 }
 
 void ChatWidget::updatePinnedViewer() {
-	if (_scroll->isHidden() || (!_topic && !_sublist) || !_pinnedTracker) {
+	if (_scroll->isHidden() || !_pinnedTracker) {
 		return;
 	}
 	const auto visibleBottom = _scroll->scrollTop() + _scroll->height();
@@ -2195,7 +2253,7 @@ void ChatWidget::updatePinnedViewer() {
 void ChatWidget::checkLastPinnedClickedIdReset(
 		int wasScrollTop,
 		int nowScrollTop) {
-	if (_scroll->isHidden() || (!_topic && !_sublist)) {
+	if (_scroll->isHidden()) {
 		return;
 	}
 	if (wasScrollTop < nowScrollTop && _pinnedClickedId) {
@@ -2277,9 +2335,11 @@ void ChatWidget::setupTranslateBar() {
 }
 
 void ChatWidget::setupPinnedTracker() {
-	Expects(_topic || _sublist);
-
-	const auto thread = _topic ? (Data::Thread*)_topic : _sublist;
+	const auto thread = _topic
+		? static_cast<Data::Thread*>(_topic)
+		: _sublist
+		? static_cast<Data::Thread*>(_sublist)
+		: static_cast<Data::Thread*>(_history.get());
 	_pinnedTracker = std::make_unique<HistoryView::PinnedTracker>(thread);
 	_pinnedBar = nullptr;
 
@@ -2508,7 +2568,11 @@ void ChatWidget::refreshPinnedBarButton(bool many, HistoryItem *item) {
 		if (!id.message) {
 			return;
 		}
-		const auto thread = _topic ? (Data::Thread*)_topic : _sublist;
+		const auto thread = _topic
+			? static_cast<Data::Thread*>(_topic)
+			: _sublist
+			? static_cast<Data::Thread*>(_sublist)
+			: static_cast<Data::Thread*>(_history.get());
 		controller()->showSection(
 			std::make_shared<PinnedMemento>(thread, id.message.msg));
 	};
@@ -2829,10 +2893,14 @@ bool ChatWidget::showMessage(
 		PeerId peerId,
 		const Window::SectionShow &params,
 		MsgId messageId) {
-	if (peerId != _peer->id) {
+	const auto migrated = (!_repliesRootId && !_sublist)
+		? _history->migrateFrom()
+		: nullptr;
+	if (peerId != _peer->id
+		&& (!migrated || migrated->peer->id != peerId)) {
 		return false;
 	}
-	const auto id = FullMsgId(_peer->id, messageId);
+	const auto id = FullMsgId(peerId, messageId);
 	const auto message = _history->owner().message(id);
 	if (!message) {
 		return false;
@@ -2847,13 +2915,16 @@ bool ChatWidget::showMessage(
 		using OriginMessage = Window::SectionShow::OriginMessage;
 		if (const auto origin = std::get_if<OriginMessage>(&params.origin)) {
 			if (const auto returnTo = session().data().message(origin->id)) {
-				if (returnTo->history() != _history) {
+				if (returnTo->history() != _history
+					&& returnTo->history() != migrated) {
 					return nullptr;
 				} else if (_repliesRootId
 					&& returnTo->inThread(_repliesRootId)) {
 					return returnTo;
 				} else if (_sublist
 					&& returnTo->savedSublist() == _sublist) {
+					return returnTo;
+				} else if (!_repliesRootId && !_sublist) {
 					return returnTo;
 				}
 			}
@@ -2872,7 +2943,7 @@ bool ChatWidget::showMessage(
 
 Window::SectionActionResult ChatWidget::sendBotCommand(
 		Bot::SendCommandRequest request) {
-	if (!_repliesRootId) {
+	if (!_repliesRootId && _sublist) {
 		return Window::SectionActionResult::Fallback;
 	} else if (request.peer != _peer) {
 		return Window::SectionActionResult::Ignore;
@@ -3055,6 +3126,9 @@ void ChatWidget::unreadCountUpdated() {
 }
 
 void ChatWidget::restoreState(not_null<ChatMemento*> memento) {
+	if (controller()->windowId().type == Window::SeparateType::Chat) {
+		memento->discardTopicListState();
+	}
 	if (auto replies = memento->getReplies()) {
 		setReplies(std::move(replies));
 	} else if (!_replies && _repliesRootId) {
@@ -3262,7 +3336,10 @@ void ChatWidget::updatePinnedVisibility() {
 	if (_sublist) {
 		setPinnedVisibility(true);
 		return;
-	} else if (!_loaded || !_repliesRootId) {
+	} else if (!_loaded) {
+		return;
+	} else if (!_repliesRootId) {
+		setPinnedVisibility(true);
 		return;
 	} else if (!_topic && (!_repliesRoot || _repliesRoot->isEmpty())) {
 		setPinnedVisibility(!_repliesRoot);
@@ -3287,7 +3364,7 @@ void ChatWidget::setPinnedVisibility(bool shown) {
 	} else if (_sublist) {
 		_repliesRootVisible = shown;
 	} else if (!_repliesRootId) {
-		return;
+		_repliesRootVisible = shown;
 	} else if (!_topic) {
 		if (!_repliesRootViewInitScheduled) {
 			const auto height = shown ? st::historyReplyHeight : 0;
@@ -3363,11 +3440,13 @@ QRect ChatWidget::floatPlayerAvailableRect() {
 }
 
 Context ChatWidget::listContext() {
-	return !_sublist
+	return _sublist
+		? (_sublist->parentChat()
+			? Context::Monoforum
+			: Context::SavedSublist)
+		: _repliesRootId
 		? Context::Replies
-		: _sublist->parentChat()
-		? Context::Monoforum
-		: Context::SavedSublist;
+		: Context::History;
 }
 
 std::optional<MessageExtraState::HiddenScope>
@@ -3435,7 +3514,14 @@ rpl::producer<Data::MessagesSlice> ChatWidget::listSource(
 	} else if (_sublist) {
 		return sublistSource(aroundId, limitBefore, limitAfter);
 	}
-	Unexpected("ChatWidget::listSource in unknown mode");
+	return Data::HistoryMessagesViewer(
+		_history,
+		aroundId,
+		limitBefore,
+		limitAfter
+	) | rpl::before_next([=] {
+		markLoaded();
+	});
 }
 
 rpl::producer<Data::MessagesSlice> ChatWidget::repliesSource(
@@ -3515,6 +3601,8 @@ void ChatWidget::listMarkReadTill(not_null<HistoryItem*> item) {
 		_replies->readTill(item);
 	} else if (_sublist) {
 		_sublist->readTill(item);
+	} else {
+		session().data().histories().readInboxTill(item);
 	}
 }
 
@@ -3526,7 +3614,49 @@ void ChatWidget::listMarkContentsRead(
 MessagesBarData ChatWidget::listMessagesBar(
 		const std::vector<not_null<Element*>> &elements,
 		bool markLastAsRead) {
-	if ((!_sublist && !_replies) || elements.empty()) {
+	if (elements.empty()) {
+		return {};
+	} else if (!_sublist && !_replies) {
+		const auto migrated = _history->migrateFrom();
+		const auto migratedTill = (migrated && migrated->unreadCount() > 0)
+			? migrated->inboxReadTillId()
+			: 0;
+		const auto historyTill = (!_history->unreadCount()
+			|| _history->amMonoforumAdmin())
+			? 0
+			: _history->inboxReadTillId();
+		if (!migratedTill && !historyTill) {
+			return {};
+		}
+		auto skipped = false;
+		for (const auto &element : elements) {
+			const auto item = element->data();
+			if (!item->isRegular()) {
+				continue;
+			}
+			const auto inHistory = (item->history() == _history);
+			const auto unread = (migratedTill
+					&& (inHistory || item->id > migratedTill))
+				|| (historyTill && inHistory && item->id > historyTill);
+			if (!unread) {
+				skipped = true;
+				continue;
+			} else if (item->out()) {
+				continue;
+			} else if (markLastAsRead) {
+				session().data().histories().readInboxTill(item);
+			} else if (!skipped) {
+				return {};
+			} else {
+				return {
+					.bar = {
+						.element = element,
+						.focus = true,
+					},
+					.text = tr::lng_unread_bar_some(),
+				};
+			}
+		}
 		return {};
 	} else if (_sublist && !_sublist->parentChat()) {
 		return {};
@@ -3677,7 +3807,10 @@ void ChatWidget::listSearch(
 }
 
 void ChatWidget::listHandleViaClick(not_null<UserData*> bot) {
-	if (_canSendTexts) {
+	if (_canSendTexts
+		|| (!_sublist
+			&& !_repliesRootId
+			&& Data::CanSendAnything(_peer))) {
 		_composeControls->setText({ '@' + bot->username() + ' ' });
 	}
 }
@@ -3786,7 +3919,7 @@ QString ChatWidget::listElementAuthorRank(not_null<const Element*> view) {
 
 bool ChatWidget::listElementHideTopicButton(
 		not_null<const Element*> view) {
-	return true;
+	return _repliesRootId || _sublist;
 }
 
 History *ChatWidget::listTranslateHistory() {

@@ -1,4 +1,4 @@
-﻿/*
+/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -830,7 +830,8 @@ HistoryWidget::HistoryWidget(
 		return (_history == update.history.get());
 	}) | rpl::on_next([=](const Data::HistoryUpdate &update) {
 		const auto flags = update.flags;
-		if (flags & HistoryUpdateFlag::MessageSent) {
+		if ((flags & HistoryUpdateFlag::MessageSent)
+			&& Core::App().activeWindow() == &controller->window()) {
 			synteticScrollToY(_scroll->scrollTopMax());
 		}
 		if (flags & HistoryUpdateFlag::BotKeyboard) {
@@ -1132,6 +1133,9 @@ HistoryWidget::HistoryWidget(
 
 	session().api().sendActions(
 	) | rpl::filter([=](const Api::SendAction &action) {
+		if (Core::App().activeWindow() != &controller->window()) {
+			return false;
+		}
 		if (_creatingBotTopic
 			&& action.history == _creatingBotTopic->owningHistory()
 			&& action.replyTo.topicRootId == _creatingBotTopic->rootId()) {
@@ -4430,7 +4434,8 @@ void HistoryWidget::newItemAdded(not_null<HistoryItem*> item) {
 	// - on second we get wrong markingMessagesRead() and read both.
 	session().data().sendHistoryChangeNotifications();
 
-	if (item->isSending()) {
+	if (item->isSending()
+		&& Core::App().activeWindow() == &controller()->window()) {
 		synteticScrollToY(_scroll->scrollTopMax());
 	} else if (_scroll->scrollTop() < _scroll->scrollTopMax()) {
 		return;

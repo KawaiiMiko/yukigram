@@ -3173,6 +3173,17 @@ void SessionController::showPeerHistory(
 			}
 		}
 	}
+	if (peerId && windowId().type == SeparateType::Chat) {
+		using namespace HistoryView;
+		showSection(
+			std::make_shared<ChatMemento>(
+				ChatViewId{
+					.history = session().data().history(peerId),
+				},
+				msgId),
+			params);
+		return;
+	}
 	content()->showHistory(peerId, params, msgId);
 }
 
