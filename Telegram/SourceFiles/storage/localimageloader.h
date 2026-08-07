@@ -146,6 +146,7 @@ struct FileLoadTo {
 	Api::SendOptions options;
 	FullReplyTo replyTo;
 	MsgId replaceMediaOf;
+	Window::SeparateId originWindow = nullptr;
 };
 
 using UploadFileParts = std::vector<QByteArray>;

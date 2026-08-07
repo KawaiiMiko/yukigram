@@ -499,7 +499,10 @@ ChatWidget::ChatWidget(
 			subscribeToPinnedMessages();
 			session().api().sendActions(
 			) | rpl::filter([=](const Api::SendAction &action) {
-				return (Core::App().activeWindow() == &controller->window())
+				const auto fromThisWindow = action.originWindow
+					? (action.originWindow == controller->windowId())
+					: (Core::App().activeWindow() == &controller->window());
+				return fromThisWindow
 					&& (action.history == _history)
 					&& !action.replyTo.topicRootId;
 			}) | rpl::on_next([=](const Api::SendAction &action) {
@@ -515,7 +518,10 @@ ChatWidget::ChatWidget(
 	} else {
 		session().api().sendActions(
 		) | rpl::filter([=](const Api::SendAction &action) {
-			return (Core::App().activeWindow() == &controller->window())
+			const auto fromThisWindow = action.originWindow
+				? (action.originWindow == controller->windowId())
+				: (Core::App().activeWindow() == &controller->window());
+			return fromThisWindow
 				&& (action.history == _history)
 				&& (action.replyTo.topicRootId == _topic->topicRootId());
 		}) | rpl::on_next([=](const Api::SendAction &action) {
@@ -1493,6 +1499,7 @@ Api::SendAction ChatWidget::prepareSendAction(
 		_peer->id,
 		_repliesRootId,
 		_monoforumPeerId);
+	result.originWindow = controller()->windowId();
 	return result;
 }
 

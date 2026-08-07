@@ -817,8 +817,7 @@ HistoryWidget::HistoryWidget(
 
 	using HistoryUpdateFlag = Data::HistoryUpdate::Flag;
 	session().changes().historyUpdates(
-		HistoryUpdateFlag::MessageSent
-		| HistoryUpdateFlag::BotKeyboard
+		HistoryUpdateFlag::BotKeyboard
 		| HistoryUpdateFlag::CloudDraft
 		| HistoryUpdateFlag::UnreadMentions
 		| HistoryUpdateFlag::UnreadReactions
@@ -830,10 +829,6 @@ HistoryWidget::HistoryWidget(
 		return (_history == update.history.get());
 	}) | rpl::on_next([=](const Data::HistoryUpdate &update) {
 		const auto flags = update.flags;
-		if ((flags & HistoryUpdateFlag::MessageSent)
-			&& Core::App().activeWindow() == &controller->window()) {
-			synteticScrollToY(_scroll->scrollTopMax());
-		}
 		if (flags & HistoryUpdateFlag::BotKeyboard) {
 			updateBotKeyboard(update.history);
 		}
@@ -1133,7 +1128,13 @@ HistoryWidget::HistoryWidget(
 
 	session().api().sendActions(
 	) | rpl::filter([=](const Api::SendAction &action) {
-		if (Core::App().activeWindow() != &controller->window()) {
+		const auto fromThisWindow = action.originWindow
+			? (action.originWindow == controller->windowId())
+			: (Core::App().activeWindow() == &controller->window());
+		if (action.history == _history) {
+			_lastSendActionFromThisWindow = fromThisWindow;
+		}
+		if (!fromThisWindow) {
 			return false;
 		}
 		if (_creatingBotTopic
@@ -4434,8 +4435,7 @@ void HistoryWidget::newItemAdded(not_null<HistoryItem*> item) {
 	// - on second we get wrong markingMessagesRead() and read both.
 	session().data().sendHistoryChangeNotifications();
 
-	if (item->isSending()
-		&& Core::App().activeWindow() == &controller()->window()) {
+	if (item->isSending() && _lastSendActionFromThisWindow) {
 		synteticScrollToY(_scroll->scrollTopMax());
 	} else if (_scroll->scrollTop() < _scroll->scrollTopMax()) {
 		return;
@@ -5562,6 +5562,7 @@ Api::SendAction HistoryWidget::prepareSendAction(
 			_history->peer).get()
 		: nullptr;
 	result.clearDraft = !isComposeBoxOpen();
+	result.originWindow = controller()->windowId();
 	return result;
 }
 

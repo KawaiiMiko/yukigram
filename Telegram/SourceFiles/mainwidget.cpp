@@ -346,10 +346,19 @@ MainWidget::MainWidget(
 		updateControlsGeometry();
 	}, lifetime());
 
-	session().changes().historyUpdates(
-		Data::HistoryUpdate::Flag::MessageSent
-	) | rpl::on_next([=](const Data::HistoryUpdate &update) {
-		const auto history = update.history;
+	session().api().sendActions(
+	) | rpl::filter([=](const Api::SendAction &action) {
+		const auto id = windowId();
+		const auto fromThisWindow = action.originWindow
+			? (action.originWindow == id)
+			: (Core::App().activeWindow() == &_controller->window());
+		return fromThisWindow
+			&& (id.type != Window::SeparateType::Chat)
+			&& !action.options.scheduled
+			&& !action.options.shortcutId
+			&& !action.replaceMediaOf;
+	}) | rpl::on_next([=](const Api::SendAction &action) {
+		const auto history = action.history;
 		history->forgetScrollState();
 		if (const auto from = history->peer->migrateFrom()) {
 			auto &owner = history->owner();

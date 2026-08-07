@@ -164,11 +164,13 @@ void ShowChannelsLimitBox(not_null<PeerData*> peer) {
 
 [[nodiscard]] FileLoadTo FileLoadTaskOptions(const Api::SendAction &action) {
 	const auto peer = action.history->peer;
-	return FileLoadTo(
+	auto result = FileLoadTo(
 		peer->id,
 		action.options,
 		action.replyTo,
 		action.replaceMediaOf);
+	result.originWindow = action.originWindow;
+	return result;
 }
 
 [[nodiscard]] QString FormatVideoTimestamp(TimeId seconds) {
@@ -3786,7 +3788,9 @@ void ApiWrap::sendAction(const SendAction &action) {
 		} else {
 			_session->data().histories().readInbox(action.history);
 		}
-		action.history->getReadyFor(ShowAtTheEndMsgId);
+		if (action.originWindow.type != Window::SeparateType::Chat) {
+			action.history->getReadyFor(ShowAtTheEndMsgId);
+		}
 	}
 	_sendActions.fire_copy(action);
 }

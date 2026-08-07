@@ -8,6 +8,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #pragma once
 
 #include "data/data_drafts.h"
+#include "window/window_separate_id.h"
 
 class History;
 
@@ -61,6 +62,7 @@ struct SendAction {
 	FullReplyTo replyTo;
 	bool clearDraft = true;
 	bool generateLocal = true;
+	Window::SeparateId originWindow = nullptr;
 	MsgId replaceMediaOf = 0;
 
 	[[nodiscard]] MTPInputReplyTo mtpReplyTo() const;

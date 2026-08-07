@@ -474,20 +474,29 @@ Widget::Widget(
 		refreshLoadMoreButton(mayBlock, isBlocked);
 	}, lifetime());
 
-	session().changes().historyUpdates(
-		Data::HistoryUpdate::Flag::MessageSent
-	) | rpl::filter([=](const Data::HistoryUpdate &update) {
+	session().api().sendActions(
+	) | rpl::filter([=](const Api::SendAction &action) {
+		const auto fromThisWindow = action.originWindow
+			? (action.originWindow == controller->windowId())
+			: (Core::App().activeWindow() == &controller->window());
+		if (!fromThisWindow
+			|| action.options.scheduled
+			|| action.options.shortcutId
+			|| action.replaceMediaOf) {
+			return false;
+		}
+		const auto history = action.history;
 		if (_openedForum) {
-			return (update.history == _openedForum->history());
+			return (history == _openedForum->history());
 		} else if (_openedFolder) {
-			return (update.history->folder() == _openedFolder)
-				&& !update.history->isPinnedDialog(FilterId());
+			return (history->folder() == _openedFolder)
+				&& !history->isPinnedDialog(FilterId());
 		} else {
-			return !update.history->folder()
-				&& !update.history->isPinnedDialog(
+			return !history->folder()
+				&& !history->isPinnedDialog(
 					controller->activeChatsFilterCurrent());
 		}
-	}) | rpl::on_next([=](const Data::HistoryUpdate &update) {
+	}) | rpl::on_next([=](const Api::SendAction &) {
 		jumpToTop(true);
 	}, lifetime());
 
