@@ -17,9 +17,13 @@ In addition, Yurigram includes the following features, listed in the order they 
  5. Ability to hide user stars rating
  6. Additional Fluent Emoji Packs
  7. Ability to temporarily hide messages and restore them easily
- 8. Ability to add or edit webpage previews with custom URLs
- 9. Quickly create or edit inline user mentions with shortcuts
+ 8. Ability to add or edit webpage previews with custom URLs (with shortcut Ctrl+Shift+K)
+ 9. Quickly create or edit inline user mentions with shortcuts (click with Ctrl/Ctrl+Shift)
  10. Ability to set a custom render limit for rich message blocks
+ 11. Remember message forwarding targets in forward dialog
+ 12. Add options to force regrouping or separating photos on media group forwarding
+ 13. Add option to adjust sticker size in chat
+ 14. Allow to open the same chat in multiple new windows
 
 And more new features will ~~(may)~~ be added in the future.
 
@@ -58,6 +62,10 @@ Then your language translation filename is `de.json` or something like that.
 ## Links
 
 * [Yurigram Dev Channel (Simplified Chinese)](https://t.me/ruadevs)
+
+## Feedback
+
+The project doesn't accept new feature requests for now. But if you have something else to report, please send a message to me on Telegram with this link: https://t.me/ruadevs?direct
 
 [//]: # (LINKS)
 [license]: LICENSE
