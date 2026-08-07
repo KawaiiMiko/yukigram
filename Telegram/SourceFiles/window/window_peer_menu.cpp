@@ -1671,11 +1671,11 @@ void Filler::addPinnedMessages() {
 		if (hasHidden) {
 			_addAction(
 					tr::lng_pinned_message_show(tr::now),
-					[=] { PeerMenuUnhidePinnedMessage(channel); }, &st::menuIconEdit);
+					[=] { PeerMenuUnhidePinnedMessage(channel); }, &st::menuIconShowInChat);
 		} else {
 			_addAction(
 					tr::lng_pinned_message_hide(tr::now),
-					[=] { PeerMenuHidePinnedMessage(channel); }, &st::menuIconEdit);
+					[=] { PeerMenuHidePinnedMessage(channel); }, &st::menuIconClear);
 		}
 	}
 }
@@ -1690,7 +1690,7 @@ void Filler::addFirstMessage() {
 				peer,
 				Window::SectionShow::Way::Forward,
 				1);
-	}, &st::menuIconShowInChat);
+	}, &st::menuIconAbove);
 }
 
 void Filler::addViewChannel() {
