@@ -3492,6 +3492,14 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 					applyRecent(box, true);
 					box->fireRecentChanged();
 				});
+			rpl::merge(
+				session->data().chatsListChanges() | rpl::to_empty,
+				session->data().contactsLoaded().value() | rpl::to_empty
+			) | rpl::filter([=] {
+				return box->recentFilter();
+			}) | rpl::on_next([=] {
+				applyRecent(box, true);
+			}, box->lifetime());
 			chatsFilters->lower();
 			rpl::combine(
 				chatsFilters->heightValue(),
