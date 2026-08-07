@@ -1685,8 +1685,9 @@ void Filler::addFirstMessage() {
 	if (!peer) {
 		return;
 	}
+	const auto navigation = _controller;
 	_addAction(tr::lng_go_to_first_message(tr::now), [=] {
-		App::wnd()->sessionController()->showPeerHistory(
+		navigation->showPeerHistory(
 				peer,
 				Window::SectionShow::Way::Forward,
 				1);
@@ -1702,8 +1703,9 @@ void Filler::addViewChannel() {
 		return;
 	}
 	if (const auto chat = peer->discussionLink()) {
+		const auto navigation = _controller;
 		_addAction(tr::lng_profile_view_channel(tr::now), [=] {
-			App::wnd()->sessionController()->showPeerHistory(
+			navigation->showPeerHistory(
 					chat,
 					Window::SectionShow::Way::Forward);
 		}, &st::menuIconChannel);
