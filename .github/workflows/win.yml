@@ -70,10 +70,19 @@ jobs:
     steps:
       - name: Prepare directories.
         run: |
-          mkdir %userprofile%\TBuild\Libraries
-          mklink /d %GITHUB_WORKSPACE%\TBuild %userprofile%\TBuild
+          if "${{ matrix.arch }}"=="x64" (
+            set "TBUILD_TARGET=D:\TBuild"
+          ) else (
+            set "TBUILD_TARGET=%userprofile%\TBuild"
+          )
+          if not exist "%TBUILD_TARGET%\Libraries" mkdir "%TBUILD_TARGET%\Libraries"
+          if not exist "%TBUILD_TARGET%\tmp" mkdir "%TBUILD_TARGET%\tmp"
+          mklink /d "%GITHUB_WORKSPACE%\TBuild" "%TBUILD_TARGET%"
           echo TBUILD=%GITHUB_WORKSPACE%\TBuild>>%GITHUB_ENV%
           echo LibrariesPath=%GITHUB_WORKSPACE%\TBuild\Libraries${{ matrix.arch == 'x64' && '\win64' || '' }}>>%GITHUB_ENV%
+          echo TEMP=%TBUILD_TARGET%\tmp>>%GITHUB_ENV%
+          echo TMP=%TBUILD_TARGET%\tmp>>%GITHUB_ENV%
+          echo TMPDIR=%TBUILD_TARGET%\tmp>>%GITHUB_ENV%
 
       - name: Get repository name.
         shell: bash
