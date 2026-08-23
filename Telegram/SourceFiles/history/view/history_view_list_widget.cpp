@@ -6630,7 +6630,12 @@ void ConfirmForwardSelectedItems(not_null<ListWidget*> widget) {
 		}
 	}
 	auto ids = widget->getSelectedIds();
-	Window::ShowNewForwardMessagesBox(widget->controller(), std::move(ids), false);
+	const auto weak = base::make_weak(widget);
+	Window::ShowForwardMessagesBox(widget->controller(), std::move(ids), [=] {
+		if (const auto strong = weak.get()) {
+			strong->cancelSelection();
+		}
+	});
 }
 
 void ConfirmForwardNoQuoteSelectedItems(not_null<ListWidget*> widget) {

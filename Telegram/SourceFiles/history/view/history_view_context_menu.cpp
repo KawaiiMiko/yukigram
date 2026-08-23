@@ -584,10 +584,16 @@ bool AddForwardSelectedAction(
 	}
 
 	menu->addAction(tr::lng_context_forward_selected(tr::now), [=] {
-		Window::ShowNewForwardMessagesBox(
+		const auto weak = base::make_weak(list);
+		const auto callback = [=] {
+			if (const auto strong = weak.get()) {
+				strong->cancelSelection();
+			}
+		};
+		Window::ShowForwardMessagesBox(
 			request.navigation,
 			ExtractIdsList(request.selectedItems),
-			false);
+			callback);
 	}, &st::menuIconForward);
 	menu->addAction(tr::lng_context_forward_selected_no_quote(tr::now), [=] {
 		Window::ShowNewForwardMessagesBox(

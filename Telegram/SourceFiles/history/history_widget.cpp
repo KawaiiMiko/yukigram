@@ -10961,7 +10961,15 @@ void HistoryWidget::forwardSelected() {
 	if (!_list) {
 		return;
 	}
-	Window::ShowNewForwardMessagesBox(controller(), getSelectedItems(), false);
+	const auto weak = base::make_weak(this);
+	Window::ShowForwardMessagesBox(
+		controller(),
+		_list->getSelectedForwardItems(),
+		[=] {
+			if (const auto strong = weak.get()) {
+				strong->clearSelected();
+			}
+		});
 }
 
 void HistoryWidget::forwardNoQuoteSelected() {
