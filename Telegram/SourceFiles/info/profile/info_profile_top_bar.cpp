@@ -2956,13 +2956,9 @@ void TopBar::setupButtons(
 		}
 
 		const auto &tabMenuStyle = isLayer
-			? (shouldUseColored
-				? st::infoLayerTopBarColoredMenu
-				: st::infoLayerTopBarBlackMenu)
-			: (shouldUseColored
-				? st::infoTopBarColoredMenu
-				: st::infoTopBarBlackMenu);
-		_tabMenuToggle = base::make_unique_q<Ui::FadeWrap<BackdropIconButton>>(
+			? st::infoLayerTopBarBlackMenu
+			: st::infoTopBarBlackMenu;
+		_tabMenuToggle = base::make_unique_q<Ui::FadeWrap<Ui::IconButton>>(
 			this,
 			object_ptr<BackdropIconButton>(this, tabMenuStyle),
 			st::infoTopBarScale);
@@ -2975,9 +2971,7 @@ void TopBar::setupButtons(
 			showTopBarMenu(controller, false);
 		});
 
-		const auto &tabSearchStyle = shouldUseColored
-			? st::infoTopBarColoredSearch
-			: st::infoTopBarBlackSearch;
+		const auto &tabSearchStyle = st::infoTopBarBlackSearch;
 		auto tabSearchButton = object_ptr<BackdropIconButton>(
 			this,
 			isLayer ? st::infoLayerTopBarSearch : tabSearchStyle);
@@ -2988,7 +2982,7 @@ void TopBar::setupButtons(
 			tabSearchButton->setRippleColorOverride(
 				&tabSearchStyle.ripple.color);
 		}
-		_tabSearchToggle = base::make_unique_q<Ui::FadeWrap<BackdropIconButton>>(
+		_tabSearchToggle = base::make_unique_q<Ui::FadeWrap<Ui::IconButton>>(
 			this,
 			std::move(tabSearchButton),
 			st::infoTopBarScale);
@@ -3001,22 +2995,18 @@ void TopBar::setupButtons(
 			showTabSearch();
 		});
 
-		const auto &tabGroupStyle = shouldUseColored
-			? st::infoTopBarColoredGroup
-			: st::infoTopBarBlackGroup;
+		const auto &tabGroupStyle = st::infoTopBarBlackGroup;
 		auto tabGroupButton = object_ptr<BackdropIconButton>(
 			this,
 			isLayer
-				? (shouldUseColored
-					? st::infoLayerTopBarColoredEdit
-					: st::infoLayerTopBarBlackEdit)
+				? st::infoLayerTopBarBlackEdit
 				: tabGroupStyle);
 		if (isLayer) {
 			tabGroupButton->setIconOverride(
 				&tabGroupStyle.icon,
 				&tabGroupStyle.iconOver);
 		}
-		_tabGroupToggle = base::make_unique_q<Ui::FadeWrap<BackdropIconButton>>(
+		_tabGroupToggle = base::make_unique_q<Ui::FadeWrap<Ui::IconButton>>(
 			this,
 			std::move(tabGroupButton),
 			st::infoTopBarScale);
@@ -3045,9 +3035,9 @@ void TopBar::setupButtons(
 		updateRightButtonsPosition();
 
 		if (source == Source::Profile) {
-			addTopBarMenuButton(controller, wrap, shouldUseColored);
+			addTopBarMenuButton(controller, wrap);
 		} else if (source == Source::Stories && wrap != Wrap::Side) {
-			addTopBarEditButton(controller, wrap, shouldUseColored);
+			addTopBarEditButton(controller, wrap);
 		}
 		updateButtonsColorOverride();
 		raiseTabSearchOverlay();
@@ -3057,8 +3047,7 @@ void TopBar::setupButtons(
 
 void TopBar::addTopBarMenuButton(
 		not_null<Window::SessionController*> controller,
-		Wrap wrap,
-		bool shouldUseColored) {
+		Wrap wrap) {
 	{
 		const auto guard = gsl::finally([&] { _topBarMenu = nullptr; });
 		showTopBarMenu(controller, true);
@@ -3066,17 +3055,13 @@ void TopBar::addTopBarMenuButton(
 			return;
 		}
 	}
-	_topBarMenuToggle = base::make_unique_q<Ui::FadeWrap<BackdropIconButton>>(
+	_topBarMenuToggle = base::make_unique_q<Ui::FadeWrap<Ui::IconButton>>(
 		this,
 		object_ptr<BackdropIconButton>(
 			this,
 			((wrap == Wrap::Layer)
-				? (shouldUseColored
-					? st::infoLayerTopBarColoredMenu
-					: st::infoLayerTopBarBlackMenu)
-				: (shouldUseColored
-					? st::infoTopBarColoredMenu
-					: st::infoTopBarBlackMenu))),
+				? st::infoLayerTopBarBlackMenu
+				: st::infoTopBarBlackMenu)),
 		st::infoTopBarScale);
 	_topBarMenuToggle->QWidget::show();
 	_topBarMenuToggle->setDuration(st::infoTopBarDuration);

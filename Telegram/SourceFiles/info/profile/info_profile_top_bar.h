@@ -145,8 +145,7 @@ public:
 	void setLocalEmojiStatusId(EmojiStatusId emojiStatusId);
 	void addTopBarMenuButton(
 		not_null<Window::SessionController*> controller,
-		Wrap wrap,
-		bool shouldUseColored);
+		Wrap wrap);
 	void addTopBarEditButton(
 		not_null<Window::SessionController*> controller,
 		Wrap wrap);
