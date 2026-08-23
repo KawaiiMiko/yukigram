@@ -878,6 +878,7 @@ window.TL_SCHEMA_FULL = {
     result.canSetUsername = !!(t & 128);
     result.hasScheduled = !!(t & 256);
     result.translationsDisabled = !!(t & 524288);
+    result.hasWelcomeMessages = !!(t & 2097152);
     result.id = e.long();
     result.about = e.string();
     result.participants = e.object();
@@ -950,6 +951,7 @@ window.TL_SCHEMA_FULL = {
     result.paidReactionsAvailable = !!(n & 65536);
     result.stargiftsAvailable = !!(n & 524288);
     result.paidMessagesAvailable = !!(n & 1048576);
+    result.hasWelcomeMessages = !!(n & 16777216);
     result.id = e.long();
     result.about = e.string();
     if (t & 1) {
@@ -1984,7 +1986,7 @@ window.TL_SCHEMA_FULL = {
     }
     return result;
   },
-  3871544610: function (e) {
+  2115768711: function (e) {
     var result = { _: `messageActionStarGiftUnique` };
     var t = e.uint();
     result.flags = t;
@@ -1996,6 +1998,7 @@ window.TL_SCHEMA_FULL = {
     result.assigned = !!(t & 8192);
     result.fromOffer = !!(t & 16384);
     result.craft = !!(t & 65536);
+    result.nameHidden = !!(t & 131072);
     result.gift = e.object();
     if (t & 8) {
       result.canExportAt = e.int();
@@ -2026,6 +2029,9 @@ window.TL_SCHEMA_FULL = {
     }
     if (t & 32768) {
       result.canCraftAt = e.int();
+    }
+    if (t & 262144) {
+      result.message = e.object();
     }
     return result;
   },
@@ -2184,6 +2190,11 @@ window.TL_SCHEMA_FULL = {
     if (t & 1) {
       result.communityId = e.long();
     }
+    return result;
+  },
+  1250688640: function (e) {
+    var result = { _: `messageActionChatJoinedViaCommunity` };
+    result.communityId = e.long();
     return result;
   },
   4236900339: function (e) {
@@ -4248,6 +4259,23 @@ window.TL_SCHEMA_FULL = {
     result.message = e.object();
     return result;
   },
+  2081454550: function (e) {
+    var result = { _: `updateEphemeralBotCallbackQuery` };
+    var t = e.uint();
+    result.flags = t;
+    result.queryId = e.long();
+    result.userId = e.long();
+    if (t & 1) {
+      result.peer = e.object();
+    }
+    result.msgId = e.int();
+    result.data = e.bytes();
+    if (t & 2) {
+      result.chatInstance = e.long();
+    }
+    result.message = e.object();
+    return result;
+  },
   1812827683: function (e) {
     var result = { _: `updateBotStarsSubscription` };
     var t = e.uint();
@@ -4861,22 +4889,39 @@ window.TL_SCHEMA_FULL = {
     result.emoticon = e.string();
     return result;
   },
-  929929052: function (e) {
+  909162586: function (e) {
     var result = { _: `sendMessageTextDraftAction` };
+    var t = e.uint();
+    result.flags = t;
+    result.canStop = !!(t & 1);
+    result.keepOnStop = !!(t & 2);
     result.randomId = e.long();
     result.text = e.object();
     return result;
   },
-  3803331409: function (e) {
+  2839005118: function (e) {
     var result = { _: `inputSendMessageRichMessageDraftAction` };
+    var t = e.uint();
+    result.flags = t;
+    result.canStop = !!(t & 1);
+    result.keepOnStop = !!(t & 2);
     result.randomId = e.long();
     result.richMessage = e.object();
     return result;
   },
-  2731222265: function (e) {
+  1381386387: function (e) {
     var result = { _: `sendMessageRichMessageDraftAction` };
+    var t = e.uint();
+    result.flags = t;
+    result.canStop = !!(t & 1);
+    result.keepOnStop = !!(t & 2);
     result.randomId = e.long();
     result.richMessage = e.object();
+    return result;
+  },
+  4227400368: function (e) {
+    var result = { _: `sendMessageStopDraftAction` };
+    result.randomId = e.long();
     return result;
   },
   3004386717: function (e) {
@@ -5643,7 +5688,7 @@ window.TL_SCHEMA_FULL = {
     }
     return result;
   },
-  2098662655: function (e) {
+  795322159: function (e) {
     var result = { _: `keyboardButton` };
     var t = e.uint();
     result.flags = t;
@@ -5651,212 +5696,7 @@ window.TL_SCHEMA_FULL = {
       result.style = e.object();
     }
     result.text = e.string();
-    return result;
-  },
-  3624674796: function (e) {
-    var result = { _: `keyboardButtonUrl` };
-    var t = e.uint();
-    result.flags = t;
-    if (t & 1024) {
-      result.style = e.object();
-    }
-    result.text = e.string();
-    result.url = e.string();
-    return result;
-  },
-  3861629280: function (e) {
-    var result = { _: `keyboardButtonCallback` };
-    var t = e.uint();
-    result.flags = t;
-    result.requiresPassword = !!(t & 1);
-    if (t & 1024) {
-      result.style = e.object();
-    }
-    result.text = e.string();
-    result.data = e.bytes();
-    return result;
-  },
-  1098841487: function (e) {
-    var result = { _: `keyboardButtonRequestPhone` };
-    var t = e.uint();
-    result.flags = t;
-    if (t & 1024) {
-      result.style = e.object();
-    }
-    result.text = e.string();
-    return result;
-  },
-  2856384845: function (e) {
-    var result = { _: `keyboardButtonRequestGeoLocation` };
-    var t = e.uint();
-    result.flags = t;
-    if (t & 1024) {
-      result.style = e.object();
-    }
-    result.text = e.string();
-    return result;
-  },
-  2568198652: function (e) {
-    var result = { _: `keyboardButtonSwitchInline` };
-    var t = e.uint();
-    result.flags = t;
-    result.samePeer = !!(t & 1);
-    if (t & 1024) {
-      result.style = e.object();
-    }
-    result.text = e.string();
-    result.query = e.string();
-    if (t & 2) {
-      result.peerTypes = e.vector(e.object);
-    }
-    return result;
-  },
-  2311426297: function (e) {
-    var result = { _: `keyboardButtonGame` };
-    var t = e.uint();
-    result.flags = t;
-    if (t & 1024) {
-      result.style = e.object();
-    }
-    result.text = e.string();
-    return result;
-  },
-  1067792645: function (e) {
-    var result = { _: `keyboardButtonBuy` };
-    var t = e.uint();
-    result.flags = t;
-    if (t & 1024) {
-      result.style = e.object();
-    }
-    result.text = e.string();
-    return result;
-  },
-  4111468281: function (e) {
-    var result = { _: `keyboardButtonUrlAuth` };
-    var t = e.uint();
-    result.flags = t;
-    if (t & 1024) {
-      result.style = e.object();
-    }
-    result.text = e.string();
-    if (t & 1) {
-      result.fwdText = e.string();
-    }
-    result.url = e.string();
-    result.buttonId = e.int();
-    return result;
-  },
-  1744911986: function (e) {
-    var result = { _: `inputKeyboardButtonUrlAuth` };
-    var t = e.uint();
-    result.flags = t;
-    result.requestWriteAccess = !!(t & 1);
-    if (t & 1024) {
-      result.style = e.object();
-    }
-    result.text = e.string();
-    if (t & 2) {
-      result.fwdText = e.string();
-    }
-    result.url = e.string();
-    result.bot = e.object();
-    return result;
-  },
-  2047989634: function (e) {
-    var result = { _: `keyboardButtonRequestPoll` };
-    var t = e.uint();
-    result.flags = t;
-    if (t & 1024) {
-      result.style = e.object();
-    }
-    if (t & 1) {
-      result.quiz = e.object();
-    }
-    result.text = e.string();
-    return result;
-  },
-  2103314375: function (e) {
-    var result = { _: `inputKeyboardButtonUserProfile` };
-    var t = e.uint();
-    result.flags = t;
-    if (t & 1024) {
-      result.style = e.object();
-    }
-    result.text = e.string();
-    result.userId = e.object();
-    return result;
-  },
-  3237829897: function (e) {
-    var result = { _: `keyboardButtonUserProfile` };
-    var t = e.uint();
-    result.flags = t;
-    if (t & 1024) {
-      result.style = e.object();
-    }
-    result.text = e.string();
-    result.userId = e.long();
-    return result;
-  },
-  3896947104: function (e) {
-    var result = { _: `keyboardButtonWebView` };
-    var t = e.uint();
-    result.flags = t;
-    if (t & 1024) {
-      result.style = e.object();
-    }
-    result.text = e.string();
-    result.url = e.string();
-    return result;
-  },
-  3780920176: function (e) {
-    var result = { _: `keyboardButtonSimpleWebView` };
-    var t = e.uint();
-    result.flags = t;
-    if (t & 1024) {
-      result.style = e.object();
-    }
-    result.text = e.string();
-    result.url = e.string();
-    return result;
-  },
-  1527715317: function (e) {
-    var result = { _: `keyboardButtonRequestPeer` };
-    var t = e.uint();
-    result.flags = t;
-    if (t & 1024) {
-      result.style = e.object();
-    }
-    result.text = e.string();
-    result.buttonId = e.int();
-    result.peerType = e.object();
-    result.maxQuantity = e.int();
-    return result;
-  },
-  45580630: function (e) {
-    var result = { _: `inputKeyboardButtonRequestPeer` };
-    var t = e.uint();
-    result.flags = t;
-    result.nameRequested = !!(t & 1);
-    result.usernameRequested = !!(t & 2);
-    result.photoRequested = !!(t & 4);
-    if (t & 1024) {
-      result.style = e.object();
-    }
-    result.text = e.string();
-    result.buttonId = e.int();
-    result.peerType = e.object();
-    result.maxQuantity = e.int();
-    return result;
-  },
-  3167006480: function (e) {
-    var result = { _: `keyboardButtonCopy` };
-    var t = e.uint();
-    result.flags = t;
-    if (t & 1024) {
-      result.style = e.object();
-    }
-    result.text = e.string();
-    result.copyText = e.string();
+    result.type = e.object();
     return result;
   },
   2002815875: function (e) {
@@ -5890,14 +5730,18 @@ window.TL_SCHEMA_FULL = {
     result.singleUse = !!(t & 2);
     result.selective = !!(t & 4);
     result.persistent = !!(t & 16);
+    result.forceReply = !!(t & 32);
     result.rows = e.vector(e.object);
     if (t & 8) {
       result.placeholder = e.string();
     }
     return result;
   },
-  1218642516: function (e) {
+  2997966704: function (e) {
     var result = { _: `replyInlineMarkup` };
+    var t = e.uint();
+    result.flags = t;
+    result.forceReply = !!(t & 32);
     result.rows = e.vector(e.object);
     return result;
   },
@@ -7302,6 +7146,17 @@ window.TL_SCHEMA_FULL = {
     result.oldText = e.object();
     return result;
   },
+  2949094614: function (e) {
+    var result = { _: `textButton` };
+    var t = e.uint();
+    result.flags = t;
+    result.text = e.object();
+    result.type = e.object();
+    if (t & 1) {
+      result.style = e.object();
+    }
+    return result;
+  },
   324435594: function (e) {
     var result = { _: `pageBlockUnsupported` };
     return result;
@@ -7362,8 +7217,11 @@ window.TL_SCHEMA_FULL = {
     result.items = e.vector(e.object);
     return result;
   },
-  641563686: function (e) {
+  1724999435: function (e) {
     var result = { _: `pageBlockBlockquote` };
+    var t = e.uint();
+    result.flags = t;
+    result.collapsed = !!(t & 1);
     result.text = e.object();
     result.caption = e.object();
     return result;
@@ -7474,6 +7332,7 @@ window.TL_SCHEMA_FULL = {
     result.flags = t;
     result.bordered = !!(t & 1);
     result.striped = !!(t & 2);
+    result.compact = !!(t & 4);
     result.title = e.object();
     result.rows = e.vector(e.object);
     return result;
@@ -7568,6 +7427,22 @@ window.TL_SCHEMA_FULL = {
   242108356: function (e) {
     var result = { _: `pageBlockBlockquoteBlocks` };
     result.blocks = e.vector(e.object);
+    result.caption = e.object();
+    return result;
+  },
+  1835270936: function (e) {
+    var result = { _: `pageBlockButtonRow` };
+    var t = e.uint();
+    result.flags = t;
+    result.alignLeft = !!(t & 1);
+    result.alignCenter = !!(t & 2);
+    result.alignRight = !!(t & 4);
+    result.buttons = e.vector(e.object);
+    return result;
+  },
+  955923363: function (e) {
+    var result = { _: `pageBlockDocument` };
+    result.documentId = e.long();
     result.caption = e.object();
     return result;
   },
@@ -9306,6 +9181,7 @@ window.TL_SCHEMA_FULL = {
     result.manageDirectMessages = !!(t & 131072);
     result.manageRanks = !!(t & 262144);
     result.manageLinkedPeers = !!(t & 524288);
+    result.manageWelcomeMessages = !!(t & 1048576);
     return result;
   },
   2668758040: function (e) {
@@ -10975,13 +10851,17 @@ window.TL_SCHEMA_FULL = {
     result.stars = e.long();
     return result;
   },
-  3281998628: function (e) {
+  3920676440: function (e) {
     var result = { _: `inputInvoiceStarGiftResale` };
     var t = e.uint();
     result.flags = t;
     result.ton = !!(t & 1);
+    result.showName = !!(t & 4);
     result.slug = e.string();
     result.toId = e.object();
+    if (t & 2) {
+      result.message = e.object();
+    }
     return result;
   },
   2584430776: function (e) {
@@ -14761,6 +14641,546 @@ window.TL_SCHEMA_FULL = {
     result.users = e.vector(e.object);
     return result;
   },
+  3710369513: function (e) {
+    var result = { _: `ephemeralMessage` };
+    var t = e.uint();
+    result.flags = t;
+    result.out = !!(t & 1);
+    result.welcomeTemplate = !!(t & 32);
+    result.invertMedia = !!(t & 128);
+    result.noforwards = !!(t & 4096);
+    result.id = e.int();
+    result.fromId = e.object();
+    if (t & 512) {
+      result.peerId = e.object();
+    }
+    result.receiverId = e.long();
+    if (t & 2) {
+      result.topMsgId = e.int();
+    }
+    result.date = e.int();
+    result.message = e.string();
+    if (t & 4) {
+      result.entities = e.vector(e.object);
+    }
+    if (t & 8) {
+      result.media = e.object();
+    }
+    if (t & 16) {
+      result.replyMarkup = e.object();
+    }
+    if (t & 64) {
+      result.replyTo = e.object();
+    }
+    if (t & 256) {
+      result.richMessage = e.object();
+    }
+    if (t & 1024) {
+      result.chatInstance = e.long();
+    }
+    if (t & 2048) {
+      result.anchorMsgId = e.int();
+    }
+    return result;
+  },
+  2373472554: function (e) {
+    var result = { _: `communities.participantJoinedChats` };
+    result.creatorChatIds = e.vector(e.long);
+    result.joinedChatIds = e.vector(e.long);
+    result.chats = e.vector(e.object);
+    result.users = e.vector(e.object);
+    return result;
+  },
+  1107532175: function (e) {
+    var result = { _: `messages.translatedRichMessage` };
+    result.result = e.vector(e.object);
+    return result;
+  },
+  1279604680: function (e) {
+    var result = { _: `messages.composedRichMessageWithAI` };
+    result.result = e.object();
+    return result;
+  },
+  3386740969: function (e) {
+    var result = { _: `buttonTypeDefault` };
+    return result;
+  },
+  3745330937: function (e) {
+    var result = { _: `buttonTypeRequestPhone` };
+    return result;
+  },
+  2616123712: function (e) {
+    var result = { _: `buttonTypeRequestGeoLocation` };
+    return result;
+  },
+  2865758084: function (e) {
+    var result = { _: `buttonTypeRequestPoll` };
+    var t = e.uint();
+    result.flags = t;
+    if (t & 1) {
+      result.quiz = e.object();
+    }
+    return result;
+  },
+  1331208759: function (e) {
+    var result = { _: `buttonTypeRequestPeer` };
+    var t = e.uint();
+    result.flags = t;
+    result.buttonId = e.int();
+    result.peerType = e.object();
+    result.maxQuantity = e.int();
+    return result;
+  },
+  1071802622: function (e) {
+    var result = { _: `inputButtonTypeRequestPeer` };
+    var t = e.uint();
+    result.flags = t;
+    result.nameRequested = !!(t & 1);
+    result.usernameRequested = !!(t & 2);
+    result.photoRequested = !!(t & 4);
+    result.buttonId = e.int();
+    result.peerType = e.object();
+    result.maxQuantity = e.int();
+    return result;
+  },
+  3222952314: function (e) {
+    var result = { _: `buttonTypeSimpleWebView` };
+    result.url = e.string();
+    return result;
+  },
+  3970234580: function (e) {
+    var result = { _: `inlineButtonTypeUrl` };
+    result.url = e.string();
+    return result;
+  },
+  3218091426: function (e) {
+    var result = { _: `inlineButtonTypeUrlAuth` };
+    var t = e.uint();
+    result.flags = t;
+    if (t & 1) {
+      result.fwdText = e.string();
+    }
+    result.url = e.string();
+    result.buttonId = e.int();
+    return result;
+  },
+  2573319348: function (e) {
+    var result = { _: `inputInlineButtonTypeUrlAuth` };
+    var t = e.uint();
+    result.flags = t;
+    result.requestWriteAccess = !!(t & 1);
+    if (t & 2) {
+      result.fwdText = e.string();
+    }
+    result.url = e.string();
+    if (t & 4) {
+      result.bot = e.object();
+    }
+    return result;
+  },
+  1003140532: function (e) {
+    var result = { _: `inlineButtonTypeWebView` };
+    result.url = e.string();
+    return result;
+  },
+  693484600: function (e) {
+    var result = { _: `inlineButtonTypeCallback` };
+    var t = e.uint();
+    result.flags = t;
+    result.requiresPassword = !!(t & 1);
+    result.data = e.bytes();
+    return result;
+  },
+  1557360797: function (e) {
+    var result = { _: `inlineButtonTypeGame` };
+    return result;
+  },
+  1220204453: function (e) {
+    var result = { _: `inlineButtonTypeBuy` };
+    return result;
+  },
+  2474065909: function (e) {
+    var result = { _: `inlineButtonTypeSwitchInline` };
+    var t = e.uint();
+    result.flags = t;
+    result.samePeer = !!(t & 1);
+    result.query = e.string();
+    if (t & 2) {
+      result.peerTypes = e.vector(e.object);
+    }
+    return result;
+  },
+  1067663311: function (e) {
+    var result = { _: `inlineButtonTypeUserProfile` };
+    result.userId = e.long();
+    return result;
+  },
+  1408487002: function (e) {
+    var result = { _: `inputInlineButtonTypeUserProfile` };
+    result.userId = e.object();
+    return result;
+  },
+  3021812338: function (e) {
+    var result = { _: `inlineButtonTypeCopy` };
+    result.copyText = e.string();
+    return result;
+  },
+  2755158429: function (e) {
+    var result = { _: `inlineButtonTypeDisabled` };
+    return result;
+  },
+  297902882: function (e) {
+    var result = { _: `keyboardInlineButton` };
+    var t = e.uint();
+    result.flags = t;
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    result.text = e.string();
+    result.type = e.object();
+    return result;
+  },
+  423758582: function (e) {
+    var result = { _: `keyboardInlineButtonRow` };
+    result.buttons = e.vector(e.object);
+    return result;
+  },
+  63312061: function (e) {
+    var result = { _: `richButtonStyle` };
+    var t = e.uint();
+    result.flags = t;
+    result.bgPrimary = !!(t & 1);
+    result.bgDanger = !!(t & 2);
+    result.bgSuccess = !!(t & 4);
+    result.link = !!(t & 8);
+    return result;
+  },
+  1764381832: function (e) {
+    var result = { _: `pageButton` };
+    var t = e.uint();
+    result.flags = t;
+    result.text = e.object();
+    result.type = e.object();
+    if (t & 1) {
+      result.style = e.object();
+    }
+    return result;
+  },
+  1509940017: function (e) {
+    var result = { _: `ephemeral.welcomeMessagesNotModified` };
+    return result;
+  },
+  273664114: function (e) {
+    var result = { _: `ephemeral.welcomeMessages` };
+    result.hash = e.long();
+    result.messages = e.vector(e.object);
+    return result;
+  },
+  3747266572: function (e) {
+    var result = { _: `auth.firebasePnvIntent` };
+    result.nonce = e.string();
+    result.digitalCredentialPayload = e.string();
+    return result;
+  },
+  3871544610: function (e) {
+    var result = { _: `messageActionStarGiftUnique` };
+    var t = e.uint();
+    result.flags = t;
+    result.upgrade = !!(t & 1);
+    result.transferred = !!(t & 2);
+    result.saved = !!(t & 4);
+    result.refunded = !!(t & 32);
+    result.prepaidUpgrade = !!(t & 2048);
+    result.assigned = !!(t & 8192);
+    result.fromOffer = !!(t & 16384);
+    result.craft = !!(t & 65536);
+    result.gift = e.object();
+    if (t & 8) {
+      result.canExportAt = e.int();
+    }
+    if (t & 16) {
+      result.transferStars = e.long();
+    }
+    if (t & 64) {
+      result.fromId = e.object();
+    }
+    if (t & 128) {
+      result.peer = e.object();
+    }
+    if (t & 128) {
+      result.savedId = e.long();
+    }
+    if (t & 256) {
+      result.resaleAmount = e.object();
+    }
+    if (t & 512) {
+      result.canTransferAt = e.int();
+    }
+    if (t & 1024) {
+      result.canResellAt = e.int();
+    }
+    if (t & 4096) {
+      result.dropOriginalDetailsStars = e.long();
+    }
+    if (t & 32768) {
+      result.canCraftAt = e.int();
+    }
+    return result;
+  },
+  929929052: function (e) {
+    var result = { _: `sendMessageTextDraftAction` };
+    result.randomId = e.long();
+    result.text = e.object();
+    return result;
+  },
+  3803331409: function (e) {
+    var result = { _: `inputSendMessageRichMessageDraftAction` };
+    result.randomId = e.long();
+    result.richMessage = e.object();
+    return result;
+  },
+  2731222265: function (e) {
+    var result = { _: `sendMessageRichMessageDraftAction` };
+    result.randomId = e.long();
+    result.richMessage = e.object();
+    return result;
+  },
+  2098662655: function (e) {
+    var result = { _: `keyboardButton` };
+    var t = e.uint();
+    result.flags = t;
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    result.text = e.string();
+    return result;
+  },
+  3624674796: function (e) {
+    var result = { _: `keyboardButtonUrl` };
+    var t = e.uint();
+    result.flags = t;
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    result.text = e.string();
+    result.url = e.string();
+    return result;
+  },
+  3861629280: function (e) {
+    var result = { _: `keyboardButtonCallback` };
+    var t = e.uint();
+    result.flags = t;
+    result.requiresPassword = !!(t & 1);
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    result.text = e.string();
+    result.data = e.bytes();
+    return result;
+  },
+  1098841487: function (e) {
+    var result = { _: `keyboardButtonRequestPhone` };
+    var t = e.uint();
+    result.flags = t;
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    result.text = e.string();
+    return result;
+  },
+  2856384845: function (e) {
+    var result = { _: `keyboardButtonRequestGeoLocation` };
+    var t = e.uint();
+    result.flags = t;
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    result.text = e.string();
+    return result;
+  },
+  2568198652: function (e) {
+    var result = { _: `keyboardButtonSwitchInline` };
+    var t = e.uint();
+    result.flags = t;
+    result.samePeer = !!(t & 1);
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    result.text = e.string();
+    result.query = e.string();
+    if (t & 2) {
+      result.peerTypes = e.vector(e.object);
+    }
+    return result;
+  },
+  2311426297: function (e) {
+    var result = { _: `keyboardButtonGame` };
+    var t = e.uint();
+    result.flags = t;
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    result.text = e.string();
+    return result;
+  },
+  1067792645: function (e) {
+    var result = { _: `keyboardButtonBuy` };
+    var t = e.uint();
+    result.flags = t;
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    result.text = e.string();
+    return result;
+  },
+  4111468281: function (e) {
+    var result = { _: `keyboardButtonUrlAuth` };
+    var t = e.uint();
+    result.flags = t;
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    result.text = e.string();
+    if (t & 1) {
+      result.fwdText = e.string();
+    }
+    result.url = e.string();
+    result.buttonId = e.int();
+    return result;
+  },
+  1744911986: function (e) {
+    var result = { _: `inputKeyboardButtonUrlAuth` };
+    var t = e.uint();
+    result.flags = t;
+    result.requestWriteAccess = !!(t & 1);
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    result.text = e.string();
+    if (t & 2) {
+      result.fwdText = e.string();
+    }
+    result.url = e.string();
+    result.bot = e.object();
+    return result;
+  },
+  2047989634: function (e) {
+    var result = { _: `keyboardButtonRequestPoll` };
+    var t = e.uint();
+    result.flags = t;
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    if (t & 1) {
+      result.quiz = e.object();
+    }
+    result.text = e.string();
+    return result;
+  },
+  2103314375: function (e) {
+    var result = { _: `inputKeyboardButtonUserProfile` };
+    var t = e.uint();
+    result.flags = t;
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    result.text = e.string();
+    result.userId = e.object();
+    return result;
+  },
+  3237829897: function (e) {
+    var result = { _: `keyboardButtonUserProfile` };
+    var t = e.uint();
+    result.flags = t;
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    result.text = e.string();
+    result.userId = e.long();
+    return result;
+  },
+  3896947104: function (e) {
+    var result = { _: `keyboardButtonWebView` };
+    var t = e.uint();
+    result.flags = t;
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    result.text = e.string();
+    result.url = e.string();
+    return result;
+  },
+  3780920176: function (e) {
+    var result = { _: `keyboardButtonSimpleWebView` };
+    var t = e.uint();
+    result.flags = t;
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    result.text = e.string();
+    result.url = e.string();
+    return result;
+  },
+  1527715317: function (e) {
+    var result = { _: `keyboardButtonRequestPeer` };
+    var t = e.uint();
+    result.flags = t;
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    result.text = e.string();
+    result.buttonId = e.int();
+    result.peerType = e.object();
+    result.maxQuantity = e.int();
+    return result;
+  },
+  45580630: function (e) {
+    var result = { _: `inputKeyboardButtonRequestPeer` };
+    var t = e.uint();
+    result.flags = t;
+    result.nameRequested = !!(t & 1);
+    result.usernameRequested = !!(t & 2);
+    result.photoRequested = !!(t & 4);
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    result.text = e.string();
+    result.buttonId = e.int();
+    result.peerType = e.object();
+    result.maxQuantity = e.int();
+    return result;
+  },
+  3167006480: function (e) {
+    var result = { _: `keyboardButtonCopy` };
+    var t = e.uint();
+    result.flags = t;
+    if (t & 1024) {
+      result.style = e.object();
+    }
+    result.text = e.string();
+    result.copyText = e.string();
+    return result;
+  },
+  1218642516: function (e) {
+    var result = { _: `replyInlineMarkup` };
+    result.rows = e.vector(e.object);
+    return result;
+  },
+  641563686: function (e) {
+    var result = { _: `pageBlockBlockquote` };
+    result.text = e.object();
+    result.caption = e.object();
+    return result;
+  },
+  3281998628: function (e) {
+    var result = { _: `inputInvoiceStarGiftResale` };
+    var t = e.uint();
+    result.flags = t;
+    result.ton = !!(t & 1);
+    result.slug = e.string();
+    result.toId = e.object();
+    return result;
+  },
   3653688346: function (e) {
     var result = { _: `ephemeralMessage` };
     var t = e.uint();
@@ -14787,24 +15207,6 @@ window.TL_SCHEMA_FULL = {
     if (t & 64) {
       result.replyTo = e.object();
     }
-    return result;
-  },
-  2373472554: function (e) {
-    var result = { _: `communities.participantJoinedChats` };
-    result.creatorChatIds = e.vector(e.long);
-    result.joinedChatIds = e.vector(e.long);
-    result.chats = e.vector(e.object);
-    result.users = e.vector(e.object);
-    return result;
-  },
-  1107532175: function (e) {
-    var result = { _: `messages.translatedRichMessage` };
-    result.result = e.vector(e.object);
-    return result;
-  },
-  1279604680: function (e) {
-    var result = { _: `messages.composedRichMessageWithAI` };
-    result.result = e.object();
     return result;
   },
   829899656: function (e) {
