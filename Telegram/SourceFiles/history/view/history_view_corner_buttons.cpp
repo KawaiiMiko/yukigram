@@ -60,26 +60,48 @@ CornerButtons::CornerButtons(
 : _parent(parent)
 , _scrollViewportEvent(std::move(scrollViewportEvent))
 , _delegate(delegate)
+, _column(parent)
 , _down(
-	parent,
+	&_column,
 	st->value(_stLifetime, st::historyToDown))
 , _mentions(
-	parent,
+	&_column,
 	st->value(_stLifetime, st::historyUnreadMentions))
 , _reactions(
-		parent,
+		&_column,
 		st->value(_stLifetime, st::historyUnreadReactions))
 , _pollVotes(
-		parent,
+		&_column,
 		st->value(_stLifetime, st::historyUnreadPollVotes))
 , _showHidden(
-		parent,
+		&_column,
 		st->value(_stLifetime, st::historyShowHidden)) {
+	// The buttons keep the positions they had as direct children, because the
+	// column has the parent's height and shares its edge. Only they take mouse
+	// input in it - the empty part of the strip is masked out in
+	// updatePositions, so that a click there reaches the list under it. Until
+	// the first button is shown there is nothing to mask, so the column stays
+	// out of the hit test entirely.
+	_column.setAttribute(Qt::WA_TransparentForMouseEvents);
+	_column.show();
+	_column.setVisualTabOrder(true);
+	_column.setVisualTabOrderOverlay(true);
+	if (const auto scroll = qobject_cast<Ui::RpWidget*>(_parent.get())) {
+		// Otherwise the column, created before the list, would come first.
+		scroll->setVisualTabOrder(true);
+	}
+
 	_down.widget->addClickHandler([=] { downClick(); });
 	_mentions.widget->addClickHandler([=] { mentionsClick(); });
 	_reactions.widget->addClickHandler([=] { reactionsClick(); });
 	_pollVotes.widget->addClickHandler([=] { pollVotesClick(); });
 	_showHidden.widget->addClickHandler([=] { showHiddenClick(); });
+
+	_down.widget->setAccessibleName(tr::lng_jump_to_bottom(tr::now));
+	_mentions.widget->setAccessibleName(tr::lng_jump_to_mention(tr::now));
+	_reactions.widget->setAccessibleName(tr::lng_jump_to_reaction(tr::now));
+	_pollVotes.widget->setAccessibleName(
+		tr::lng_jump_to_poll_votes(tr::now));
 
 	const auto filterScroll = [&](CornerButton &button) {
 		button.widget->installEventFilter(this);
@@ -107,6 +129,14 @@ CornerButtons::CornerButtons(
 			updateHiddenMessagesVisibility();
 		}
 	}, _down.widget->lifetime());
+}
+
+void CornerButtons::updateAccessibleDescription(CornerButton &button) {
+	const auto count = button.widget->unreadCount();
+	button.widget->setAccessibleDescription(count
+		? tr::lng_jump_unread_count(tr::now, lt_count, count)
+		: QString());
+	button.widget->accessibilityDescriptionChanged();
 }
 
 bool CornerButtons::eventFilter(QObject *o, QEvent *e) {
@@ -311,6 +341,7 @@ void CornerButtons::updateUnreadThingsVisibility() {
 		&& unreadThings.trackMentions(thread)) {
 		if (const auto count = thread->unreadMentions().count(0)) {
 			_mentions.widget->setUnreadCount(count);
+			updateAccessibleDescription(_mentions);
 		}
 		updateWithCount(
 			Type::Mentions,
@@ -323,6 +354,7 @@ void CornerButtons::updateUnreadThingsVisibility() {
 		&& unreadThings.trackReactions(thread)) {
 		if (const auto count = thread->unreadReactions().count(0)) {
 			_reactions.widget->setUnreadCount(count);
+			updateAccessibleDescription(_reactions);
 		}
 		updateWithCount(
 			Type::Reactions,
@@ -335,6 +367,7 @@ void CornerButtons::updateUnreadThingsVisibility() {
 		&& unreadThings.trackPollVotes(thread)) {
 		if (const auto count = thread->unreadPollVotes().count(0)) {
 			_pollVotes.widget->setUnreadCount(count);
+			updateAccessibleDescription(_pollVotes);
 		}
 		updateWithCount(
 			Type::PollVotes,
@@ -375,6 +408,7 @@ void CornerButtons::updateJumpDownVisibility(std::optional<int> counter) {
 	}
 	if (counter) {
 		_down.widget->setUnreadCount(*counter);
+		updateAccessibleDescription(_down);
 	}
 }
 
@@ -390,7 +424,12 @@ void CornerButtons::updatePositions() {
 		return button.animation.value(button.shown ? 1. : 0.);
 	};
 
-	// All corner buttons is a child widgets of _scroll, not me.
+	// All corner buttons is a child widgets of _column over _scroll, not me.
+
+	const auto columnWidth = st::historyToDown.width
+		+ 2 * st::historyToDownPosition.x();
+	_column.resize(columnWidth, _parent->height());
+	_column.moveToRight(0, 0, _parent->width());
 
 	const auto historyDownShown = shown(_down);
 	const auto unreadMentionsShown = shown(_mentions);
@@ -497,6 +536,29 @@ void CornerButtons::updatePositions() {
 	checkVisibility(_reactions);
 	checkVisibility(_pollVotes);
 	checkVisibility(_showHidden);
+
+	// Leave only the buttons in the column's hit test, so a click on the rest
+	// of the strip goes to the list under it. The attribute alone would not
+	// do - it drops the whole subtree out of the hit test, the buttons in it
+	// included - but an empty region means "no mask" to Qt, not "nothing to
+	// hit", so while there is no button to keep the column is made
+	// transparent instead.
+	auto mask = QRegion();
+	const auto addToMask = [&](CornerButton &button) {
+		if (!button.widget->isHidden()) {
+			mask += button.widget->geometry();
+		}
+	};
+	addToMask(_down);
+	addToMask(_mentions);
+	addToMask(_reactions);
+	addToMask(_pollVotes);
+	addToMask(_showHidden);
+	_column.setAttribute(Qt::WA_TransparentForMouseEvents, mask.isEmpty());
+	if (_columnMask != mask) {
+		_columnMask = mask;
+		_column.setMask(mask);
+	}
 }
 
 void CornerButtons::finishAnimations() {

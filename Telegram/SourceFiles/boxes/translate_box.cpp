@@ -37,6 +37,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/text/text_utilities.h"
 #include "ui/widgets/labels.h"
 #include "ui/widgets/multi_select.h"
+#include "ui/widgets/selecting_scroll.h"
 #include "ui/wrap/fade_wrap.h"
 #include "ui/wrap/slide_wrap.h"
 #include "ui/basic_click_handlers.h"
@@ -147,7 +148,10 @@ void ActivateRichTranslateLink(
 		UrlClickHandler::Open(target, context);
 	} break;
 	case Kind::ToggleDetails:
-		static_cast<void>(body->toggleDetails(link.target));
+		body->toggleDetails(link.target);
+		break;
+	case Kind::ToggleBlockquote:
+		body->toggleBlockquote(link.target);
 		break;
 	default:
 		break;
@@ -224,6 +228,9 @@ void SetupRichArticleBody(
 	style::PaletteChanged() | rpl::on_next([=] {
 		body->refreshPalette();
 	}, body->lifetime());
+	SetupSelectingScroll(body, [=](int pixels) {
+		box->scrollToY(box->scrollTop() + pixels);
+	});
 }
 
 [[nodiscard]] bool ShowRichArticlePage(
@@ -363,16 +370,17 @@ void SetupRichArticleBody(
 	Ui::AddDivider(container);
 	Ui::AddSkip(container);
 
-	{
+	const auto setCopyText = [&] {
 		const auto padding = st::defaultSubsectionTitlePadding;
-		const auto subtitle = Ui::AddSubsectionTitle(container, std::move(toTitle));
+		const auto subtitle = Ui::AddSubsectionTitle(container, toTitle);
 
 		rpl::duplicate(to) | rpl::on_next([=] {
 			subtitle->resizeToWidth(container->width()
 				- padding.left()
 				- padding.right());
 		}, subtitle->lifetime());
-	}
+		return AddTranslateCopyButton(container, subtitle, hasCopyRestriction);
+	}();
 
 	const auto translated = box->addRow(
 		object_ptr<SlideWrap<Iv::Markdown::MarkdownDocumentWidget>>(
@@ -402,6 +410,7 @@ void SetupRichArticleBody(
 			textContext);
 		error->show(anim::type::instant);
 		loading->hide(anim::type::instant);
+		setCopyText({});
 	};
 	const auto showResult = [=](std::shared_ptr<const Iv::RichPage> result) {
 		if (result
@@ -413,6 +422,7 @@ void SetupRichArticleBody(
 				result)) {
 			translated->show(anim::type::instant);
 			loading->hide(anim::type::instant);
+			setCopyText(Iv::FlattenRichPageToSimpleText(*result));
 		} else {
 			showError();
 		}
@@ -422,6 +432,7 @@ void SetupRichArticleBody(
 		loading->show(anim::type::instant);
 		translated->hide(anim::type::instant);
 		error->hide(anim::type::instant);
+		setCopyText({});
 		using Flag = MTPmessages_TranslateRichMessage::Flag;
 		state->requestId = state->api.request(
 			MTPmessages_TranslateRichMessage(
@@ -622,7 +633,7 @@ object_ptr<BoxContent> EditSkipTranslationLanguages() {
 object_ptr<BoxContent> ChooseTranslateToBox(
 		LanguageId bringUp,
 		Fn<void(LanguageId)> callback) {
-	auto &settings = Core::App().settings();
+	const auto &settings = Core::App().settings();
 	auto selected = std::vector<LanguageId>{
 		settings.translateTo(),
 	};
@@ -650,7 +661,7 @@ LanguageId ChooseTranslateTo(not_null<History*> history) {
 }
 
 LanguageId ChooseTranslateTo(LanguageId offeredFrom) {
-	auto &settings = Core::App().settings();
+	const auto &settings = Core::App().settings();
 	return ChooseTranslateTo(
 		offeredFrom,
 		settings.translateTo(),
