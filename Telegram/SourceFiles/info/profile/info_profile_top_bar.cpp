@@ -3134,6 +3134,7 @@ void TopBar::updateButtonsColorOverride() {
 	apply(_tabMenuToggle ? _tabMenuToggle->entity() : nullptr);
 	apply(_tabSearchToggle ? _tabSearchToggle->entity() : nullptr);
 	apply(_tabGroupToggle ? _tabGroupToggle->entity() : nullptr);
+	apply(_topBarMenuToggle ? _topBarMenuToggle->entity() : nullptr);
 	apply(_topBarButton.get());
 }
 
