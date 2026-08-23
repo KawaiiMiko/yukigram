@@ -47,6 +47,7 @@ class ElementOverlayHost;
 class EmptyPainter;
 class Element;
 class TranslateTracker;
+class WebPagePreviewTracker;
 class ReadMetricsTracker;
 struct PinnedId;
 struct SelectedQuote;
@@ -618,6 +619,8 @@ private:
 	std::unique_ptr<HistoryView::AboutView> _aboutView;
 	std::unique_ptr<HistoryView::EmptyPainter> _emptyPainter;
 	std::unique_ptr<HistoryView::TranslateTracker> _translateTracker;
+	std::unique_ptr<HistoryView::WebPagePreviewTracker>
+		_webPagePreviewTracker;
 	std::unique_ptr<HistoryView::ReadMetricsTracker> _readMetricsTracker;
 	bool _readMetricsStale = false;
 	rpl::event_stream<not_null<DocumentData*>> _sendIntroSticker;

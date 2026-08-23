@@ -39,6 +39,7 @@ https://github.com/TDesktop-x64/tdesktop/blob/dev/LEGAL
 #include "storage/localstorage.h"
 #include "data/data_session.h"
 #include "data/data_histories.h"
+#include "history/history.h"
 #include "main/main_session.h"
 #include "layout/layout_item_base.h"
 #include "facades.h"
@@ -158,6 +159,24 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			.title = tr::lng_settings_disable_cloud_draft_sync(tr::now),
 			.keywords = { u"draft"_q, u"cloud"_q, u"sync"_q },
 			.deeplink = u"tg://settings/enhanced/messages/disable-cloud-draft-sync"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/messages/force-show-webpage-preview"_q,
+			.title = tr::lng_settings_force_show_webpage_preview(tr::now),
+			.keywords = {
+				u"force"_q,
+				u"link"_q,
+				u"preview"_q,
+				u"show"_q,
+				u"url"_q,
+				u"web page"_q,
+				u"webpage"_q,
+			},
+			.deeplink
+				= u"tg://settings/enhanced/messages/force-show-webpage-preview"_q,
 		};
 	});
 
@@ -530,6 +549,34 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}, container->lifetime());
 
 		AddSkip(container);
+
+		const auto forceShowWebPagePreview = AddButtonWithIcon(
+				inner,
+				tr::lng_settings_force_show_webpage_preview(),
+				st::settingsButtonNoIcon);
+		registerHighlight(
+			u"enhanced/messages/force-show-webpage-preview"_q,
+			forceShowWebPagePreview);
+		forceShowWebPagePreview->toggleOn(
+				rpl::single(GetEnhancedBool("force_show_webpage_preview"))
+		)->toggledChanges(
+		) | rpl::filter([=](bool toggled) {
+			return (toggled
+				!= GetEnhancedBool("force_show_webpage_preview"));
+		}) | rpl::on_next([=](bool toggled) {
+			SetEnhancedValue("force_show_webpage_preview", toggled);
+			EnhancedSettings::Write();
+			if (toggled) {
+				const auto history
+					= controller()->activeChatCurrent().owningHistory();
+				if (history) {
+					history->refreshForceShowWebPagePreviewViews();
+					if (const auto migrated = history->migrateFrom()) {
+						migrated->refreshForceShowWebPagePreviewViews();
+					}
+				}
+			}
+		}, container->lifetime());
 
 		const auto disableLinkWarning = AddButtonWithIcon(
 				inner,

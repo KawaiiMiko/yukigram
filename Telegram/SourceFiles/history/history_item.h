@@ -414,6 +414,8 @@ public:
 		bool wasAlready);
 	void updateReactions(const MTPMessageReactions *reactions);
 	void overrideMedia(std::unique_ptr<Data::Media> media);
+	[[nodiscard]] bool needsForceShowWebPagePreview() const;
+	bool markForceShowWebPagePreviewRequested();
 
 	void applyEditionToHistoryCleared();
 	void updateReplyMarkup(
@@ -825,6 +827,7 @@ private:
 	MessageGroupId _groupId = MessageGroupId();
 	EffectId _effectId = 0;
 	HistoryView::Element *_mainView = nullptr;
+	bool _forceShowWebPagePreviewRequested = false;
 
 	friend class HistoryView::Element;
 	friend class HistoryView::Message;

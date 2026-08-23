@@ -8757,6 +8757,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_settings_mpris_call_hangup" = "Use media controls to accept or hangup";
 "lng_settings_enhanced" = "Enhanced Settings";
 "lng_settings_show_message_id" = "Show message ID";
+"lng_settings_force_show_webpage_preview" = "Force show webpage preview";
 "lng_settings_rich_message_preview_blocks" = "Custom rich message blocks limit";
 "lng_settings_rich_message_preview_blocks_desc" = "Limit the number of blocks shown for rich messages in chats. Use Show more to open the full message.";
 "lng_settings_rich_message_preview_blocks_count#one" = "{count} block";

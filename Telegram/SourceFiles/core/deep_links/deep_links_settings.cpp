@@ -1832,6 +1832,14 @@ void RegisterSettingsHandlers(Router &router) {
 	});
 
 	router.add(u"settings"_q, {
+		.path = u"enhanced/messages/force-show-webpage-preview"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/messages/force-show-webpage-preview"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
 		.path = u"enhanced/messages/disable-link-warning"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),

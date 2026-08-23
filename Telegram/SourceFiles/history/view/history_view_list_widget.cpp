@@ -33,6 +33,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/view/history_view_service_message.h"
 #include "history/view/history_view_cursor_state.h"
 #include "history/view/history_view_translate_tracker.h"
+#include "history/view/history_view_webpage_preview_tracker.h"
 #include "history/view/history_view_read_metrics_tracker.h"
 #include "history/view/history_view_add_poll_option.h"
 #include "history/view/history_view_element_overlay.h"
@@ -119,6 +120,13 @@ constexpr auto kScrollDateHideOnDayCrossingTimeout = crl::time(3000);
 [[nodiscard]] std::unique_ptr<TranslateTracker> MaybeTranslateTracker(
 		History *history) {
 	return history ? std::make_unique<TranslateTracker>(history) : nullptr;
+}
+
+[[nodiscard]] std::unique_ptr<WebPagePreviewTracker>
+MaybeWebPagePreviewTracker(History *history) {
+	return history
+		? std::make_unique<WebPagePreviewTracker>(history)
+		: nullptr;
 }
 
 [[nodiscard]] std::unique_ptr<ReadMetricsTracker> MaybeReadMetricsTracker(
@@ -543,6 +551,8 @@ ListWidget::ListWidget(
 , _replyButtonManager(std::make_unique<ReplyButton::Manager>(
 	[=](QRect updated) { update(updated); }))
 , _translateTracker(MaybeTranslateTracker(_delegate->listTranslateHistory()))
+, _webPagePreviewTracker(MaybeWebPagePreviewTracker(
+	_delegate->listTranslateHistory()))
 , _readMetricsTracker(MaybeReadMetricsTracker(
 	_delegate->listContext(),
 	_delegate->listTranslateHistory()))
@@ -2953,8 +2963,12 @@ void ListWidget::paintEvent(QPaintEvent *e) {
 	}
 	if (overlapped) {
 		return;
-	} else if (_translateTracker) {
+	}
+	if (_translateTracker) {
 		_translateTracker->startBunch();
+	}
+	if (_webPagePreviewTracker) {
+		_webPagePreviewTracker->startBunch();
 	}
 	const auto metricsStale = _readMetricsTracker
 		&& base::take(_readMetricsStale);
@@ -2972,6 +2986,9 @@ void ListWidget::paintEvent(QPaintEvent *e) {
 		if (_translateTracker) {
 			_delegate->listAddTranslatedItems(_translateTracker.get());
 			_translateTracker->finishBunch();
+		}
+		if (_webPagePreviewTracker) {
+			_webPagePreviewTracker->finishBunch();
 		}
 		if (metricsStale) {
 			_readMetricsTracker->endBatch();
@@ -3099,6 +3116,9 @@ void ListWidget::paintEvent(QPaintEvent *e) {
 		}
 		if (_translateTracker) {
 			_translateTracker->add(view);
+		}
+		if (_webPagePreviewTracker) {
+			_webPagePreviewTracker->add(view);
 		}
 		if (metricsStale && height > 0) {
 			_readMetricsTracker->push(item, top, height);

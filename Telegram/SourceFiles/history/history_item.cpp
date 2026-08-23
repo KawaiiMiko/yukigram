@@ -38,6 +38,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "apiwrap.h"
 #include "media/audio/media_audio.h"
 #include "core/application.h"
+#include "core/enhanced_settings.h"
 #include "window/window_controller.h"
 #include "window/window_session_controller.h"
 #include "core/click_handler_types.h"
@@ -89,6 +90,24 @@ constexpr auto kPinnedMessageTextLimit = 16;
 constexpr auto kMinLoginCode = 5;
 
 using ItemPreview = HistoryView::ItemPreview;
+
+[[nodiscard]] bool HasWebPagePreviewLink(
+		const TextWithEntities &text) {
+	for (const auto &entity : text.entities) {
+		if (entity.type() == EntityType::Url) {
+			return true;
+		} else if (entity.type() == EntityType::CustomUrl) {
+			const auto external = UrlClickHandler::ExternalUrlFromInternalUrl(
+				entity.data());
+			const auto url = external.isEmpty() ? entity.data() : external;
+			if (!url.isEmpty()
+				&& !url.startsWith(u"internal:"_q, Qt::CaseInsensitive)) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
 
 template <typename T>
 [[nodiscard]] PreparedServiceText PrepareEmptyText(const T &) {
@@ -4455,10 +4474,45 @@ void HistoryItem::detectTextLinks(
 }
 
 void HistoryItem::setText(TextWithEntities textWithEntities) {
+	if (_text != textWithEntities) {
+		_forceShowWebPagePreviewRequested = false;
+	}
 	detectTextLinks(textWithEntities);
 	setTextValue((_media && _media->consumeMessageText(textWithEntities))
 		? TextWithEntities()
 		: std::move(textWithEntities));
+}
+
+bool HistoryItem::needsForceShowWebPagePreview() const {
+	if (!GetEnhancedBool("force_show_webpage_preview")
+		|| !isRegular()
+		|| isService()
+		|| richPage()
+		|| originalText().empty()) {
+		return false;
+	}
+	const auto peer = history()->peer;
+	if (peer->isSelf()
+		|| (!peer->isUser() && !peer->isChat() && !peer->isChannel())
+		|| (!peer->isBroadcast() && out())) {
+		return false;
+	}
+	const auto media = this->media();
+	if (media && media->webpage()) {
+		return false;
+	} else if (media) {
+		return false;
+	}
+	return HasWebPagePreviewLink(originalText());
+}
+
+bool HistoryItem::markForceShowWebPagePreviewRequested() {
+	if (_forceShowWebPagePreviewRequested
+		|| !needsForceShowWebPagePreview()) {
+		return false;
+	}
+	_forceShowWebPagePreviewRequested = true;
+	return true;
 }
 
 std::shared_ptr<const Iv::RichPage> HistoryItem::richPage() const {

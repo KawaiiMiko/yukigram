@@ -82,6 +82,7 @@ struct StateRequest;
 class ElementOverlayHost;
 class EmojiInteractions;
 class TranslateTracker;
+class WebPagePreviewTracker;
 class ReadMetricsTracker;
 enum class CursorState : char;
 enum class PointState : char;
@@ -993,6 +994,7 @@ private:
 	std::unique_ptr<ReplyButton::Manager> _replyButtonManager;
 
 	std::unique_ptr<TranslateTracker> _translateTracker;
+	std::unique_ptr<WebPagePreviewTracker> _webPagePreviewTracker;
 	std::unique_ptr<ReadMetricsTracker> _readMetricsTracker;
 	bool _readMetricsStale = false;
 

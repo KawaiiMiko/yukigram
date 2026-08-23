@@ -28,6 +28,8 @@ namespace EnhancedSettings {
 		constexpr auto kWriteJsonTimeout = crl::time(5000);
 		constexpr auto kRichMessagePreviewBlocksLimitKey
 			= "rich_message_preview_max_blocks";
+		constexpr auto kForceShowWebPagePreviewKey
+			= "force_show_webpage_preview";
 		constexpr auto kStickerHeightKey = "sticker_height";
 
 		[[nodiscard]] int NormalizeRichMessagePreviewBlocksLimit(int limit) {
@@ -345,6 +347,7 @@ namespace EnhancedSettings {
 		settings.insert(qsl("show_group_sender_avatar"), false);
 		settings.insert(qsl("show_seconds"), false);
 		settings.insert(qsl("rich_message_preview_max_blocks"), 0);
+		settings.insert(qsl("force_show_webpage_preview"), false);
 		settings.insert(qsl("sticker_height"), 0);
 		settings.insert(qsl("hide_counter"), false);
 		settings.insert(qsl("use_gt_api"), false);
@@ -409,9 +412,8 @@ namespace EnhancedSettings {
 		settings.insert(qsl("community_chat_click"), GetEnhancedBool("community_chat_click"));
 		settings.insert(qsl("show_group_sender_avatar"), GetEnhancedBool("show_group_sender_avatar"));
 		settings.insert(qsl("show_seconds"), GetEnhancedBool("show_seconds"));
-		settings.insert(
-			qsl("rich_message_preview_max_blocks"),
-			RichMessagePreviewBlocksLimit());
+		settings.insert(qsl("rich_message_preview_max_blocks"), RichMessagePreviewBlocksLimit());
+		settings.insert(qsl("force_show_webpage_preview"), GetEnhancedBool("force_show_webpage_preview"));
 		settings.insert(qsl("sticker_height"), StickerHeight());
 		settings.insert(qsl("hide_counter"), GetEnhancedBool("hide_counter"));
 		settings.insert(qsl("use_gt_api"), GetEnhancedBool("use_gt_api"));

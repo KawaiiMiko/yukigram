@@ -842,6 +842,19 @@ void History::refreshRichMessageViews() {
 	}
 }
 
+void History::refreshForceShowWebPagePreviewViews() {
+	auto items = std::vector<not_null<HistoryItem*>>();
+	items.reserve(_items.size());
+	for (const auto &message : _items) {
+		if (message->needsForceShowWebPagePreview()) {
+			items.push_back(message.get());
+		}
+	}
+	for (const auto &item : items) {
+		owner().requestItemViewRefresh(item);
+	}
+}
+
 void History::refreshStickerViews() {
 	auto items = std::vector<not_null<HistoryItem*>>();
 	items.reserve(_items.size());

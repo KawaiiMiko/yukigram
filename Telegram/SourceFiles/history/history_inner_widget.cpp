@@ -84,6 +84,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "chat_helpers/emoji_interactions.h"
 #include "history/history_widget.h"
 #include "history/view/history_view_translate_tracker.h"
+#include "history/view/history_view_webpage_preview_tracker.h"
 #include "history/view/history_view_read_metrics_tracker.h"
 #include "base/platform/base_platform_info.h"
 #include "base/qt/qt_common_adapters.h"
@@ -388,6 +389,8 @@ HistoryInner::HistoryInner(
 	[=](not_null<const Element*> view) { return itemTop(view); }))
 , _migrated(history->migrateFrom())
 , _translateTracker(std::make_unique<HistoryView::TranslateTracker>(history))
+, _webPagePreviewTracker(
+	std::make_unique<HistoryView::WebPagePreviewTracker>(history))
 , _readMetricsTracker(std::make_unique<HistoryView::ReadMetricsTracker>(
 	_peer))
 , _pathGradient(
@@ -1463,6 +1466,7 @@ void HistoryInner::paintEvent(QPaintEvent *e) {
 	}
 
 	_translateTracker->startBunch();
+	_webPagePreviewTracker->startBunch();
 	const auto metricsStale = base::take(_readMetricsStale);
 	if (metricsStale) {
 		_readMetricsTracker->startBatch(_visibleAreaTop, _visibleAreaBottom);
@@ -1480,6 +1484,7 @@ void HistoryInner::paintEvent(QPaintEvent *e) {
 			_readMetricsTracker->endBatch();
 		}
 		_translateTracker->finishBunch();
+		_webPagePreviewTracker->finishBunch();
 		if (!startEffects.empty()) {
 			for (const auto &view : startEffects) {
 				_emojiInteractions->playEffectOnRead(view);
@@ -1505,6 +1510,7 @@ void HistoryInner::paintEvent(QPaintEvent *e) {
 			int top,
 			int height) {
 		_translateTracker->add(view);
+		_webPagePreviewTracker->add(view);
 		const auto item = view->data();
 		if (metricsStale && height > 0) {
 			_readMetricsTracker->push(item, top, height);
