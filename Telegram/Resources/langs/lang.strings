@@ -8757,6 +8757,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_settings_mpris_call_hangup" = "Use media controls to accept or hangup";
 "lng_settings_enhanced" = "Enhanced Settings";
 "lng_chat_enhanced_settings" = "Chat Enhanced Settings";
+"lng_chat_enhanced_settings_desc" = "The options below will override global enhanced settings and apply only to this chat.";
 "lng_chat_enhanced_default" = "Default";
 "lng_chat_enhanced_enabled" = "Enabled";
 "lng_chat_enhanced_disabled" = "Disabled";

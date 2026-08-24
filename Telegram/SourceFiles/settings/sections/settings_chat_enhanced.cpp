@@ -350,12 +350,17 @@ void ChatEnhancedSection::setupContent() {
 		labels);
 	Ui::AddSkip(content);
 
+	Ui::AddDividerText(content, tr::lng_chat_enhanced_settings_desc());
+
+	auto firstGroup = true;
 	for (const auto group : kGroups) {
 		if (!HasGroup(_peer, group)) {
 			continue;
 		}
-		Ui::AddDivider(content);
-		Ui::AddSkip(content);
+		if (!firstGroup) {
+			Ui::AddDivider(content);
+			Ui::AddSkip(content);
+		}
 		Ui::AddSubsectionTitle(content, GroupTitle(group));
 		const auto inner = content->add(
 			object_ptr<Ui::VerticalLayout>(content));
@@ -366,6 +371,7 @@ void ChatEnhancedSection::setupContent() {
 			}
 		}
 		Ui::AddSkip(content);
+		firstGroup = false;
 	}
 
 	Ui::ResizeFitChild(this, content);
