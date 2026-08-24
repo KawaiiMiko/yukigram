@@ -8,7 +8,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/view/history_view_webpage_preview_tracker.h"
 
 #include "api/api_text_entities.h"
-#include "core/enhanced_settings.h"
 #include "data/data_session.h"
 #include "history/history.h"
 #include "history/history_item.h"
@@ -75,9 +74,6 @@ void WebPagePreviewTracker::finishBunch() {
 
 void WebPagePreviewTracker::requestSome() {
 	if (_requestInProcess) {
-		return;
-	} else if (!GetEnhancedBool("force_show_webpage_preview")) {
-		_visible.clear();
 		return;
 	}
 	const auto owner = &_session->data();

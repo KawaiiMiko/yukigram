@@ -9,6 +9,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_chat.h"
 #include "data/data_peer.h"
 #include "data/data_peer_id.h"
+#include "data/data_session.h"
+#include "history/history.h"
 #include "main/main_session.h"
 #include "storage/storage_account.h"
 #include "settings.h"
@@ -20,15 +22,35 @@ namespace EnhancedSettings {
 namespace {
 
 using GlobalValue = bool (*)();
+using ValueChanged = void (*)(not_null<PeerData*>, bool);
 
 struct ChatFeatureDescriptor {
-	ChatFeature feature;
+	ChatFeature feature = ChatFeature::Count;
 	std::string_view storageKey;
-	GlobalValue globalValue;
+	GlobalValue globalValue = nullptr;
+	ValueChanged valueChanged = nullptr;
 };
 
 bool ForceShowWebPagePreviewGlobalValue() {
 	return GetEnhancedBool(u"force_show_webpage_preview"_q);
+}
+
+void ForceShowWebPagePreviewValueChanged(
+		not_null<PeerData*> peer,
+		bool enabled) {
+	if (!enabled) {
+		return;
+	}
+	const auto canonical = peer->migrateToOrMe();
+	auto &owner = canonical->owner();
+	if (const auto history = owner.historyLoaded(canonical)) {
+		history->refreshForceShowWebPagePreviewViews();
+	}
+	if (const auto migrated = canonical->migrateFrom()) {
+		if (const auto history = owner.historyLoaded(migrated)) {
+			history->refreshForceShowWebPagePreviewViews();
+		}
+	}
 }
 
 constexpr auto kChatFeatureDescriptors = std::array{
@@ -36,6 +58,7 @@ constexpr auto kChatFeatureDescriptors = std::array{
 		.feature = ChatFeature::ForceShowWebPagePreview,
 		.storageKey = "force_show_webpage_preview",
 		.globalValue = ForceShowWebPagePreviewGlobalValue,
+		.valueChanged = ForceShowWebPagePreviewValueChanged,
 	},
 };
 static_assert(
@@ -100,6 +123,7 @@ bool ResolveChatFeature(
 		not_null<PeerData*> peer,
 		ChatFeature feature) {
 	const auto &descriptor = DescriptorFor(feature);
+	Expects(descriptor.globalValue != nullptr);
 	switch (ReadOverride(peer, descriptor)) {
 	case ChatFeatureOverride::Default:
 		return descriptor.globalValue();
@@ -116,6 +140,7 @@ void SetChatFeatureOverride(
 		ChatFeature feature,
 		ChatFeatureOverride value) {
 	const auto &descriptor = DescriptorFor(feature);
+	const auto wasEnabled = ResolveChatFeature(peer, feature);
 	const auto canonical = peer->migrateToOrMe();
 	const auto key = StorageKeyFor(canonical->id, descriptor);
 	auto &local = peer->session().local();
@@ -128,15 +153,20 @@ void SetChatFeatureOverride(
 				descriptor);
 			local.clearPref(PrefKey(migratedKey));
 		}
-		return;
+		break;
 	case ChatFeatureOverride::Enabled:
 		local.writePref<bool>(PrefKey(key), true);
-		return;
+		break;
 	case ChatFeatureOverride::Disabled:
 		local.writePref<bool>(PrefKey(key), false);
-		return;
+		break;
+	default:
+		Unexpected("Unknown ChatFeatureOverride.");
 	}
-	Unexpected("Unknown ChatFeatureOverride.");
+	const auto enabled = ResolveChatFeature(peer, feature);
+	if (wasEnabled != enabled && descriptor.valueChanged) {
+		descriptor.valueChanged(peer, enabled);
+	}
 }
 
 } // namespace EnhancedSettings

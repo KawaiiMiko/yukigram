@@ -38,6 +38,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "apiwrap.h"
 #include "media/audio/media_audio.h"
 #include "core/application.h"
+#include "core/chat_enhanced_settings.h"
 #include "core/enhanced_settings.h"
 #include "window/window_controller.h"
 #include "window/window_session_controller.h"
@@ -4484,7 +4485,9 @@ void HistoryItem::setText(TextWithEntities textWithEntities) {
 }
 
 bool HistoryItem::needsForceShowWebPagePreview() const {
-	if (!GetEnhancedBool("force_show_webpage_preview")
+	if (!EnhancedSettings::ResolveChatFeature(
+			history()->peer,
+			EnhancedSettings::ChatFeature::ForceShowWebPagePreview)
 		|| !isRegular()
 		|| isService()
 		|| richPage()
