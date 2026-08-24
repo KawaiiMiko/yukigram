@@ -8,6 +8,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "core/chat_enhanced_settings.h"
 #include "data/data_peer.h"
+#include "history/view/history_view_chat_preview.h"
 #include "info/profile/info_profile_values.h"
 #include "lang/lang_keys.h"
 #include "settings/settings_common_session.h"
@@ -24,10 +25,12 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include <array>
 #include <memory>
+#include <optional>
 #include <rpl/variable.h>
 #include <utility>
 #include <vector>
 
+#include "styles/style_chat.h"
 #include "styles/style_settings.h"
 #include "styles/style_window.h"
 
@@ -278,6 +281,28 @@ void AddFeature(
 
 void ChatEnhancedSection::setupContent() {
 	const auto content = Ui::CreateChild<Ui::VerticalLayout>(this);
+	const auto labels = Ui::CreateChild<Ui::VerticalLayout>(content);
+	labels->add(object_ptr<Ui::FlatLabel>(
+		labels,
+		Info::Profile::NameValue(_peer),
+		st::previewName));
+	auto statusFields = HistoryView::ChatStatusValue(
+		_peer
+	) | rpl::start_spawning(lifetime());
+	const auto subtitle = labels->add(
+		object_ptr<Ui::FlatLabel>(
+			labels,
+			rpl::duplicate(statusFields) | rpl::map(
+				[](HistoryView::ChatStatus fields) {
+					return std::move(fields.text);
+				}),
+			st::previewStatus));
+	std::move(statusFields) | rpl::on_next(
+		[=](const HistoryView::ChatStatus &fields) {
+			subtitle->setTextColorOverride(fields.active
+				? st::windowActiveTextFg->c
+				: std::optional<QColor>());
+		}, subtitle->lifetime());
 
 	Ui::AddDivider(content);
 	Ui::AddSkip(content);
@@ -288,10 +313,7 @@ void ChatEnhancedSection::setupContent() {
 			_peer,
 			st::mainMenuUserpic,
 			Ui::PeerUserpicShape::Circle),
-		Ui::CreateChild<Ui::FlatLabel>(
-			content,
-			Info::Profile::NameValue(_peer),
-			st::settingsCoverName));
+		labels);
 	Ui::AddSkip(content);
 
 	for (const auto group : kGroups) {

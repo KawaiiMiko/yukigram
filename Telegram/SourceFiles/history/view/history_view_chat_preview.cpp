@@ -214,12 +214,7 @@ private:
 
 };
 
-struct StatusFields {
-	QString text;
-	bool active = false;
-};
-
-[[nodiscard]] rpl::producer<StatusFields> StatusValue(
+[[nodiscard]] rpl::producer<ChatStatus> StatusValue(
 		not_null<PeerData*> peer) {
 	peer->updateFull();
 
@@ -228,9 +223,9 @@ struct StatusFields {
 		peer,
 		UpdateFlag::OnlineStatus | UpdateFlag::Members
 	) | rpl::map([=](const Data::PeerUpdate &update)
-	-> StatusFields {
+	-> ChatStatus {
 		const auto wrap = [](QString text) {
-			return StatusFields{ .text = text };
+			return ChatStatus{ .text = text };
 		};
 		if (const auto user = peer->asUser()) {
 			const auto now = base::unixtime::now();
@@ -357,7 +352,7 @@ void Item::setupTop() {
 	) | rpl::start_spawning(lifetime());
 	auto statusText = rpl::duplicate(
 		statusFields
-	) | rpl::map([](StatusFields &&fields) {
+	) | rpl::map([](ChatStatus &&fields) {
 		return fields.text;
 	});
 	const auto status = _thread->peer()->isSelf()
@@ -371,7 +366,7 @@ void Item::setupTop() {
 	if (status) {
 		std::move(
 			statusFields
-		) | rpl::on_next([=](const StatusFields &fields) {
+		) | rpl::on_next([=](const ChatStatus &fields) {
 			status->setTextColorOverride(fields.active
 				? st::windowActiveTextFg->c
 				: std::optional<QColor>());
@@ -999,6 +994,10 @@ bool Item::cornerButtonsHas(CornerButtonType type) {
 }
 
 } // namespace
+
+rpl::producer<ChatStatus> ChatStatusValue(not_null<PeerData*> peer) {
+	return StatusValue(peer);
+}
 
 ChatPreview MakeChatPreview(
 		QWidget *parent,

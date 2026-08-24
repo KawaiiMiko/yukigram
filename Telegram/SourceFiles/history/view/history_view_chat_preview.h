@@ -9,6 +9,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "base/unique_qptr.h"
 
+class PeerData;
+
 namespace Dialogs {
 class Entry;
 } // namespace Dialogs
@@ -18,6 +20,14 @@ class PopupMenu;
 } // namespace Ui
 
 namespace HistoryView {
+
+struct ChatStatus {
+	QString text;
+	bool active = false;
+};
+
+[[nodiscard]] rpl::producer<ChatStatus> ChatStatusValue(
+	not_null<PeerData*> peer);
 
 struct ChatPreviewAction {
 	FullMsgId openItemId;
