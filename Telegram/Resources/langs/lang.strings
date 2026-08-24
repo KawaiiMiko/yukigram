@@ -8756,6 +8756,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_settings_more_right_action_comments" = "Move comments button to the right";
 "lng_settings_mpris_call_hangup" = "Use media controls to accept or hangup";
 "lng_settings_enhanced" = "Enhanced Settings";
+"lng_chat_enhanced_settings" = "Chat Enhanced Settings";
+"lng_chat_enhanced_default" = "Default";
+"lng_chat_enhanced_enabled" = "Enabled";
+"lng_chat_enhanced_disabled" = "Disabled";
 "lng_settings_show_message_id" = "Show message ID";
 "lng_settings_force_show_webpage_preview" = "Force show webpage preview";
 "lng_settings_rich_message_preview_blocks" = "Custom rich message blocks limit";

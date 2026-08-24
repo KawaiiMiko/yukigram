@@ -94,6 +94,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "window/window_session_controller.h"
 #include "window/window_controller.h"
 #include "settings/sections/settings_advanced.h"
+#include "settings/sections/settings_chat_enhanced.h"
 #include "settings/sections/settings_premium.h"
 #include "settings/settings_common.h"
 #include "support/support_helper.h"
@@ -321,6 +322,7 @@ private:
 	void addToggleMuteSubmenu(bool addSeparator);
 	void addSupportInfo();
 	void addInfo();
+	void addChatEnhancedSettings();
 	void addStoryArchive();
 	void addNewWindow(bool addSeparator = true);
 	void addUngroup();
@@ -669,6 +671,19 @@ void Filler::addInfo() {
 			}
 		}
 	}, infoPeer->isUser() ? &st::menuIconProfile : &st::menuIconInfo);
+}
+
+void Filler::addChatEnhancedSettings() {
+	if (!_thread
+		|| !_peer
+		|| !Settings::HasChatEnhancedSettings(_peer)) {
+		return;
+	}
+	const auto controller = _controller;
+	const auto peer = _peer;
+	_addAction(tr::lng_settings_enhanced(tr::now), [=] {
+		Settings::ShowChatEnhancedSettings(controller, peer);
+	}, &st::menuIconSettings);
 }
 
 void Filler::addStoryArchive() {
@@ -1944,6 +1959,7 @@ void Filler::fillHistoryActions() {
 	addToggleMuteSubmenu(true);
 	addCreateTopic();
 	addInfo();
+	addChatEnhancedSettings();
 	addViewAsTopics();
 	addManageChat();
 	addStoryArchive();
