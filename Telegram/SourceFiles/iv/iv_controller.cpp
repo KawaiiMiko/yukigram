@@ -189,6 +189,9 @@ void Controller::showTonSite(
 void Controller::showTLViewer(
 		const Webview::StorageId &storageId,
 		QString url) {
+#ifdef Q_OS_WIN
+	_window->setNativeFrame(false);
+#endif // Q_OS_WIN
 	if (!_webview) {
 		createWebview(storageId);
 	}
