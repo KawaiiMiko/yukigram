@@ -491,13 +491,12 @@ int LayerWidget::resizeGetHeight(int newWidth) {
 		_tillTop = _tillBottom = true;
 		return windowHeight;
 	}
-	auto newTop = std::clamp(
+	const auto layerMargin = std::clamp(
 		windowHeight / 24,
 		st::infoLayerTopMinimal,
 		st::infoLayerTopMaximal);
-	auto newBottom = newTop;
 	auto desiredHeight = _desiredHeight + st::boxRadius;
-	accumulate_min(desiredHeight, windowHeight - newTop - newBottom);
+	accumulate_min(desiredHeight, windowHeight - 2 * layerMargin);
 
 	// First resize content to new width and get the new desired height.
 	auto contentLeft = 0;
@@ -506,10 +505,13 @@ int LayerWidget::resizeGetHeight(int newWidth) {
 	auto contentWidth = newWidth;
 	auto contentHeight = desiredHeight - contentTop - contentBottom;
 	auto scrollTillBottom = _content->scrollTillBottom(contentHeight);
-	auto additionalScroll = std::min(scrollTillBottom, newBottom);
+	auto additionalScroll = std::min(scrollTillBottom, layerMargin);
 
 	desiredHeight += additionalScroll;
 	contentHeight += additionalScroll;
+	const auto newTop = std::max(
+		layerMargin,
+		(windowHeight - desiredHeight) / 2);
 	_tillTop = false;
 	_tillBottom = (newTop + desiredHeight >= windowHeight);
 	if (_tillBottom) {
