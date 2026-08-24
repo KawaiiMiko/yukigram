@@ -5,17 +5,18 @@ the official desktop application for the Telegram messaging service.
 For license and copyright information please follow this link:
 https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
-#include <core/enhanced_settings.h>
 #include "api/api_blocked_peers.h"
 
 #include "apiwrap.h"
 #include "base/unixtime.h"
+#include "core/enhanced_settings.h"
 #include "data/data_changes.h"
 #include "data/data_histories.h"
 #include "data/data_peer.h"
 #include "data/data_peer_id.h"
 #include "data/data_session.h"
 #include "main/main_session.h"
+#include "settings.h"
 
 namespace Api {
 namespace {
@@ -90,13 +91,12 @@ void BlockedPeers::block(not_null<PeerData*> peer) {
 		const auto data = _blockRequests.take(peer);
 		peer->setIsBlocked(true);
 
-			if (GetEnhancedBool("blocked_user_spoiler_mode")) {
-				if (!blockExist(peer->id.value)) {
-					EnhancedSettings::Manager().addIdToBlocklist(int64(peer->id.value));
-				}
-				auto &histories = _session->data().histories();
-				histories.syncBlockedPeerMessages(peer, true);
-			}
+		if (!blockExist(peer->id.value)) {
+			EnhancedSettings::Manager().addIdToBlocklist(
+				int64(peer->id.value));
+		}
+		auto &histories = _session->data().histories();
+		histories.syncBlockedPeerMessages(peer, true);
 
 		if (_slice) {
 			_slice->list.insert(
@@ -143,13 +143,12 @@ void BlockedPeers::unblock(
 		const auto data = _blockRequests.take(peer);
 		peer->setIsBlocked(false);
 
-		if (GetEnhancedBool("blocked_user_spoiler_mode")) {
-			if (blockExist(peer->id.value)) {
-				EnhancedSettings::Manager().removeIdFromBlocklist(int64(peer->id.value));
-			}
-			auto& histories = _session->data().histories();
-			histories.syncBlockedPeerMessages(peer, false);
+		if (blockExist(peer->id.value)) {
+			EnhancedSettings::Manager().removeIdFromBlocklist(
+				int64(peer->id.value));
 		}
+		auto &histories = _session->data().histories();
+		histories.syncBlockedPeerMessages(peer, false);
 
 		if (_slice) {
 			auto &list = _slice->list;

@@ -12,6 +12,7 @@ namespace EnhancedSettings {
 
 enum class ChatFeature {
 	ForceShowWebPagePreview,
+	HideBlockedMessages,
 	Count,
 };
 

@@ -138,17 +138,6 @@ namespace EnhancedSettings {
 			return (readValueResult && readResult);
 		}
 
-		bool ReadBoolOption(QJsonObject obj, QString key, std::function<void(bool)> callback) {
-			auto readResult = false;
-			auto readValueResult = ReadOption(obj, key, [&](QJsonValue v) {
-				if (v.isBool()) {
-					callback(v.toBool());
-					readResult = true;
-				}
-			});
-			return (readValueResult && readResult);
-		}
-
 		std::unique_ptr<Manager> Data;
 
 	} // namespace
@@ -184,6 +173,7 @@ namespace EnhancedSettings {
 		if (!readCustomFile()) {
 			WriteDefaultCustomFile();
 		}
+		readBlocklist();
 	}
 
 	void Manager::write(bool force) {
@@ -246,12 +236,6 @@ namespace EnhancedSettings {
 		ReadStringOption(settings, "radio_controller", [&](auto v) {
 			if (v.isEmpty()) {
 				SetEnhancedValue("radio_controller", "http://localhost:2468");
-			}
-		});
-
-		ReadBoolOption(settings, "blocked_user_spoiler_mode", [&](auto v) {
-			if (v) {
-				readBlocklist();
 			}
 		});
 

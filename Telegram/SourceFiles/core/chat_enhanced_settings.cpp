@@ -35,22 +35,47 @@ bool ForceShowWebPagePreviewGlobalValue() {
 	return GetEnhancedBool(u"force_show_webpage_preview"_q);
 }
 
+bool HideBlockedMessagesGlobalValue() {
+	return GetEnhancedBool(u"blocked_user_spoiler_mode"_q);
+}
+
+template <typename Callback>
+void ForEachLoadedHistory(
+		not_null<PeerData*> peer,
+		const Callback &callback) {
+	const auto canonical = peer->migrateToOrMe();
+	auto &owner = canonical->owner();
+	if (const auto history = owner.historyLoaded(canonical)) {
+		callback(history);
+	}
+	if (const auto migrated = canonical->migrateFrom()) {
+		if (const auto history = owner.historyLoaded(migrated)) {
+			callback(history);
+		}
+	}
+}
+
 void ForceShowWebPagePreviewValueChanged(
 		not_null<PeerData*> peer,
 		bool enabled) {
 	if (!enabled) {
 		return;
 	}
-	const auto canonical = peer->migrateToOrMe();
-	auto &owner = canonical->owner();
-	if (const auto history = owner.historyLoaded(canonical)) {
+	ForEachLoadedHistory(peer, [](not_null<History*> history) {
 		history->refreshForceShowWebPagePreviewViews();
-	}
-	if (const auto migrated = canonical->migrateFrom()) {
-		if (const auto history = owner.historyLoaded(migrated)) {
-			history->refreshForceShowWebPagePreviewViews();
+	});
+}
+
+void HideBlockedMessagesValueChanged(
+		not_null<PeerData*> peer,
+		bool enabled) {
+	ForEachLoadedHistory(peer, [=](not_null<History*> history) {
+		if (enabled) {
+			history->hideBlockedMessages();
+		} else {
+			history->restoreBlockedHiddenMessages();
 		}
-	}
+	});
 }
 
 constexpr auto kChatFeatureDescriptors = std::array{
@@ -59,6 +84,12 @@ constexpr auto kChatFeatureDescriptors = std::array{
 		.storageKey = "force_show_webpage_preview",
 		.globalValue = ForceShowWebPagePreviewGlobalValue,
 		.valueChanged = ForceShowWebPagePreviewValueChanged,
+	},
+	ChatFeatureDescriptor{
+		.feature = ChatFeature::HideBlockedMessages,
+		.storageKey = "hide_blocked_messages",
+		.globalValue = HideBlockedMessagesGlobalValue,
+		.valueChanged = HideBlockedMessagesValueChanged,
 	},
 };
 static_assert(

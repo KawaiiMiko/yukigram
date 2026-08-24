@@ -6,11 +6,12 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "core/msg_extra_state.h"
 
-#include "core/enhanced_settings.h"
+#include "core/chat_enhanced_settings.h"
 #include "data/data_forum_topic.h"
 #include "data/data_session.h"
 #include "data/data_user.h"
 #include "rpl/event_stream.h"
+#include "settings.h"
 
 #include <algorithm>
 #include <map>
@@ -367,14 +368,21 @@ void hideMessages(
 }
 
 bool shouldHideBlockedMessage(not_null<HistoryItem*> item) {
-	if (!GetEnhancedBool("blocked_user_spoiler_mode")
+	if (!EnhancedSettings::ResolveChatFeature(
+			item->history()->peer,
+			EnhancedSettings::ChatFeature::HideBlockedMessages)
 		|| !item->isRegular()
 		|| item->isService()) {
 		return false;
 	}
 	const auto from = item->from();
-	return blockExist(from->id.value)
-		|| (from->isUser() && from->asUser()->isBlocked());
+	if (blockExist(from->id.value)) {
+		return true;
+	}
+	if (const auto user = from->asUser()) {
+		return user->isBlocked();
+	}
+	return false;
 }
 
 rpl::producer<PeerId> changes() {

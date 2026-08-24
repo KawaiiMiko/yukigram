@@ -7,6 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "history/history.h"
 
+#include "core/chat_enhanced_settings.h"
 #include "core/msg_extra_state.h"
 #include "history/view/history_view_element.h"
 #include "history/view/history_view_item_preview.h"
@@ -790,6 +791,11 @@ void History::hideBlockedMessages() {
 }
 
 void History::syncBlockedPeerMessages(PeerData* peer, bool hide) {
+	if (hide && !EnhancedSettings::ResolveChatFeature(
+			this->peer,
+			EnhancedSettings::ChatFeature::HideBlockedMessages)) {
+		return;
+	}
 	if (hide) {
 		auto ids = MessageIdsList();
 		for (const auto &message : _items) {
@@ -818,6 +824,11 @@ void History::syncBlockedPeerMessages(PeerData* peer, bool hide) {
 }
 
 void History::restoreBlockedHiddenMessages() {
+	if (EnhancedSettings::ResolveChatFeature(
+			peer,
+			EnhancedSettings::ChatFeature::HideBlockedMessages)) {
+		return;
+	}
 	const auto ids = MessageExtraState::unhideAll(
 		peer->id,
 		MessageExtraState::HiddenSource::BlockedPeer);
