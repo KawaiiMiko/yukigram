@@ -7,6 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "settings/sections/settings_chat_enhanced.h"
 
 #include "core/chat_enhanced_settings.h"
+#include "data/data_chat_participant_status.h"
 #include "data/data_peer.h"
 #include "history/view/history_view_chat_preview.h"
 #include "info/profile/info_profile_values.h"
@@ -44,6 +45,7 @@ using Available = bool (*)(not_null<PeerData*>);
 
 enum class Group {
 	Messages,
+	Buttons,
 	Count,
 };
 
@@ -137,12 +139,23 @@ rpl::producer<QString> HideBlockedMessagesTitle() {
 	return tr::lng_settings_hide_messages();
 }
 
+rpl::producer<QString> ShowScheduledButtonTitle() {
+	return tr::lng_settings_show_scheduled_button();
+}
+
 bool ForceShowWebPagePreviewAvailable(not_null<PeerData*> peer) {
 	return !peer->isSelf();
 }
 
 bool HideBlockedMessagesAvailable(not_null<PeerData*> peer) {
 	return peer->isChat() || peer->isMegagroup();
+}
+
+bool ShowScheduledButtonAvailable(not_null<PeerData*> peer) {
+	const auto rights = Data::AllSendRestrictions()
+		& ~ChatRestriction::SendPolls;
+	return !peer->starsPerMessageChecked()
+		&& Data::CanSendAnyOf(peer, rights, false);
 }
 
 constexpr auto kFeatureDescriptors = std::array{
@@ -158,6 +171,12 @@ constexpr auto kFeatureDescriptors = std::array{
 		.title = HideBlockedMessagesTitle,
 		.available = HideBlockedMessagesAvailable,
 	},
+	FeatureDescriptor{
+		.feature = Feature::ShowScheduledButton,
+		.group = Group::Buttons,
+		.title = ShowScheduledButtonTitle,
+		.available = ShowScheduledButtonAvailable,
+	},
 };
 static_assert(
 	kFeatureDescriptors.size()
@@ -165,6 +184,7 @@ static_assert(
 
 constexpr auto kGroups = std::array{
 	Group::Messages,
+	Group::Buttons,
 };
 static_assert(
 	kGroups.size()
@@ -174,6 +194,8 @@ rpl::producer<QString> GroupTitle(Group group) {
 	switch (group) {
 	case Group::Messages:
 		return tr::lng_settings_messages();
+	case Group::Buttons:
+		return tr::lng_settings_button();
 	case Group::Count:
 		break;
 	}

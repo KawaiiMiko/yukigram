@@ -33,9 +33,10 @@ https://github.com/TDesktop-x64/tdesktop/blob/dev/LEGAL
 #include "window/window_session_controller.h"
 #include "lang/lang_keys.h"
 #include "lang/lang_instance.h"
-#include "core/update_checker.h"
-#include "core/enhanced_settings.h"
 #include "core/application.h"
+#include "core/chat_enhanced_settings.h"
+#include "core/enhanced_settings.h"
+#include "core/update_checker.h"
 #include "storage/localstorage.h"
 #include "data/data_session.h"
 #include "data/data_histories.h"
@@ -898,6 +899,9 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}) | rpl::on_next([=](bool toggled) {
 			SetEnhancedValue("show_scheduled_button", toggled);
 			EnhancedSettings::Write();
+			EnhancedSettings::NotifyChatFeatureChange(
+				nullptr,
+				EnhancedSettings::ChatFeature::ShowScheduledButton);
 		}, container->lifetime());
 
 		AddSkip(container);

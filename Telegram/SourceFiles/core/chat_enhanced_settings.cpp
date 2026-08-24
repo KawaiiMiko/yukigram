@@ -12,6 +12,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_session.h"
 #include "history/history.h"
 #include "main/main_session.h"
+#include "rpl/event_stream.h"
 #include "storage/storage_account.h"
 #include "settings.h"
 
@@ -31,12 +32,18 @@ struct ChatFeatureDescriptor {
 	ValueChanged valueChanged = nullptr;
 };
 
+rpl::event_stream<ChatFeatureChange> ChatFeatureChangeEvents;
+
 bool ForceShowWebPagePreviewGlobalValue() {
 	return GetEnhancedBool(u"force_show_webpage_preview"_q);
 }
 
 bool HideBlockedMessagesGlobalValue() {
 	return GetEnhancedBool(u"blocked_user_spoiler_mode"_q);
+}
+
+bool ShowScheduledButtonGlobalValue() {
+	return GetEnhancedBool(u"show_scheduled_button"_q);
 }
 
 template <typename Callback>
@@ -90,6 +97,11 @@ constexpr auto kChatFeatureDescriptors = std::array{
 		.storageKey = "hide_blocked_messages",
 		.globalValue = HideBlockedMessagesGlobalValue,
 		.valueChanged = HideBlockedMessagesValueChanged,
+	},
+	ChatFeatureDescriptor{
+		.feature = ChatFeature::ShowScheduledButton,
+		.storageKey = "show_scheduled_button",
+		.globalValue = ShowScheduledButtonGlobalValue,
 	},
 };
 static_assert(
@@ -195,9 +207,23 @@ void SetChatFeatureOverride(
 		Unexpected("Unknown ChatFeatureOverride.");
 	}
 	const auto enabled = ResolveChatFeature(peer, feature);
-	if (wasEnabled != enabled && descriptor.valueChanged) {
-		descriptor.valueChanged(peer, enabled);
+	if (wasEnabled != enabled) {
+		if (descriptor.valueChanged) {
+			descriptor.valueChanged(peer, enabled);
+		}
+		NotifyChatFeatureChange(peer, feature);
 	}
+}
+
+rpl::producer<ChatFeatureChange> ChatFeatureChanges() {
+	return ChatFeatureChangeEvents.events();
+}
+
+void NotifyChatFeatureChange(PeerData *peer, ChatFeature feature) {
+	ChatFeatureChangeEvents.fire({
+		.peer = peer,
+		.feature = feature,
+	});
 }
 
 } // namespace EnhancedSettings

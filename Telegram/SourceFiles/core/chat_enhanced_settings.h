@@ -6,6 +6,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #pragma once
 
+#include "rpl/producer.h"
+
 class PeerData;
 
 namespace EnhancedSettings {
@@ -13,6 +15,7 @@ namespace EnhancedSettings {
 enum class ChatFeature {
 	ForceShowWebPagePreview,
 	HideBlockedMessages,
+	ShowScheduledButton,
 	Count,
 };
 
@@ -20,6 +23,11 @@ enum class ChatFeatureOverride {
 	Default,
 	Enabled,
 	Disabled,
+};
+
+struct ChatFeatureChange {
+	PeerData *peer = nullptr;
+	ChatFeature feature = ChatFeature::Count;
 };
 
 [[nodiscard]] ChatFeatureOverride GetChatFeatureOverride(
@@ -32,5 +40,7 @@ void SetChatFeatureOverride(
 	not_null<PeerData*> peer,
 	ChatFeature feature,
 	ChatFeatureOverride value);
+[[nodiscard]] rpl::producer<ChatFeatureChange> ChatFeatureChanges();
+void NotifyChatFeatureChange(PeerData *peer, ChatFeature feature);
 
 } // namespace EnhancedSettings

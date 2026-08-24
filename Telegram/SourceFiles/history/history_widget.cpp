@@ -31,6 +31,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "boxes/star_gift_box.h"
 #include "boxes/peers/edit_peer_permissions_box.h" // ShowAboutGigagroup.
 #include "boxes/peers/edit_peer_requests_box.h"
+#include "core/chat_enhanced_settings.h"
 #include "core/core_settings.h"
 #include "core/file_utilities.h"
 #include "core/mime_type.h"
@@ -3903,6 +3904,11 @@ void HistoryWidget::setupFastButtonMode() {
 }
 
 void HistoryWidget::setupScheduledToggle() {
+	const auto refresh = [=] {
+		refreshScheduledToggle();
+		updateControlsVisibility();
+		updateControlsGeometry();
+	};
 	controller()->activeChatValue(
 	) | rpl::map([=](Dialogs::Key key) -> rpl::producer<> {
 		if (const auto history = key.history()) {
@@ -3913,18 +3919,29 @@ void HistoryWidget::setupScheduledToggle() {
 		}
 		return rpl::never<rpl::empty_value>();
 	}) | rpl::flatten_latest(
-	) | rpl::on_next([=] {
-		refreshScheduledToggle();
-		updateControlsVisibility();
-		updateControlsGeometry();
+	) | rpl::on_next(refresh, lifetime());
+
+	EnhancedSettings::ChatFeatureChanges(
+	) | rpl::filter([=](const EnhancedSettings::ChatFeatureChange &change) {
+		return (change.feature
+				== EnhancedSettings::ChatFeature::ShowScheduledButton)
+			&& (!change.peer
+				|| (_peer && (change.peer->migrateToOrMe()
+					== _peer->migrateToOrMe())));
+	}) | rpl::on_next([=](const auto &) {
+		refresh();
 	}, lifetime());
 }
 
 void HistoryWidget::refreshScheduledToggle() {
-	auto has = _history
+	const auto always = _peer
+		&& !_peer->starsPerMessageChecked()
+		&& EnhancedSettings::ResolveChatFeature(
+			_peer,
+			EnhancedSettings::ChatFeature::ShowScheduledButton);
+	const auto has = _history
 		&& _canSendMessages
-		&& (session().scheduledMessages().count(_history) > 0);
-	if (GetEnhancedBool("show_scheduled_button")) has = true;
+		&& ((session().scheduledMessages().count(_history) > 0) || always);
 	if (!_scheduled && has) {
 		_scheduled.create(this, st::historyScheduledToggle);
 		_scheduled->setAccessibleName(tr::lng_scheduled_messages(tr::now));
