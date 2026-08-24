@@ -545,6 +545,8 @@ PRIVATE
     core/bank_card_click_handler.h
     core/base_integration.cpp
     core/base_integration.h
+    core/chat_enhanced_settings.cpp
+    core/chat_enhanced_settings.h
     core/changelogs.cpp
     core/changelogs.h
     core/click_handler_types.cpp

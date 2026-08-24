@@ -188,6 +188,12 @@ public:
 	}
 	void clearPref(std::string_view key);
 
+	template <typename Type>
+	[[nodiscard]] std::optional<Type> readPrefOptional(
+			std::string_view key) {
+		return readPrefImpl<Type>(key);
+	}
+
 	template <typename Type, typename Other = Type>
 	[[nodiscard]] Type readPref(
 			std::string_view key,
