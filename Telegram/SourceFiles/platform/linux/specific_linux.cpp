@@ -370,7 +370,7 @@ bool GenerateDesktopFile(
 		hashMd5Hex(d.constData(), d.size(), md5Hash);
 
 		if (!Core::Launcher::Instance().customWorkingDir()) {
-			QFile::remove(u"%1sylfn.Yukigram._%2.desktop"_q.arg(
+			QFile::remove(u"%1rua.Yurigram._%2.desktop"_q.arg(
 				targetPath,
 				md5Hash));
 
@@ -379,7 +379,7 @@ bool GenerateDesktopFile(
 			hashMd5Hex(exePath.constData(), exePath.size(), md5Hash);
 		}
 
-		QFile::remove(u"%1sylfn.Yukigram.desktop"_q.arg(
+		QFile::remove(u"%1rua.Yurigram.desktop"_q.arg(
 			targetPath));
 	}
 
@@ -437,10 +437,10 @@ bool GenerateServiceFile(bool silent = false) {
 		const auto d = QFile::encodeName(QDir(cWorkingDir()).absolutePath());
 		hashMd5Hex(d.constData(), d.size(), md5Hash);
 
-		QFile::remove(u"%1sylfn.Yukigram._%2.service"_q.arg(
+		QFile::remove(u"%1rua.Yurigram._%2.service"_q.arg(
 			targetPath,
 			md5Hash));
-		QFile::remove(u"%1sylfn.Yukigram.service"_q.arg(targetPath));
+		QFile::remove(u"%1rua.Yurigram.service"_q.arg(targetPath));
 	}
 
 	XdgDBus::DBusProxy::new_for_bus(
