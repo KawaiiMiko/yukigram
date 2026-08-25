@@ -1,0 +1,51 @@
+name: Publish Full Source Code Tarball to Release
+
+on:
+  release:
+    types: [published]
+
+env:
+  PACKAGE_NAME: yurigram
+  REPO_TAG: ${{ github.event.release.tag_name }}
+
+jobs:
+  package:
+    name: Package source tarball
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Clone.
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          path: ${{ env.PACKAGE_NAME }}
+          ref: ${{ env.REPO_TAG }}
+
+      - name: Package source.
+        id: package
+        run: |
+          set -euo pipefail
+
+          if git -C "$PACKAGE_NAME" submodule status --recursive \
+              | grep -q '^-'; then
+            echo "A submodule was not initialized."
+            exit 1
+          fi
+
+          ARCHIVE_TAG="${REPO_TAG//\//-}"
+          ARCHIVE="$PACKAGE_NAME-$ARCHIVE_TAG-source.tar.gz"
+          tar --create --gzip --file="$ARCHIVE" \
+            --exclude-vcs \
+            --exclude='*/.git' \
+            --exclude='*/.git/*' \
+            "$PACKAGE_NAME"
+          echo "archive=$ARCHIVE" >> "$GITHUB_OUTPUT"
+
+      - name: Upload release package.
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          release_id: ${{ github.event.release.id }}
+          file: ${{ steps.package.outputs.archive }}
