@@ -366,9 +366,28 @@
     currentJsonText = "";
   }
 
+  function writeToNativeClipboard(text) {
+    if (!window.TelegramDesktopTLVClipboardBridge
+        || !window.external
+        || typeof window.external.invoke !== "function") {
+      return false;
+    }
+
+    window.external.invoke(JSON.stringify({
+      type: "clipboard_write",
+      text,
+    }));
+    return true;
+  }
+
   async function copyJson() {
     if (!currentJsonText) {
       setStatus("No JSON to copy.", "error");
+      return;
+    }
+
+    if (writeToNativeClipboard(currentJsonText)) {
+      setStatus("Copied to clipboard.", "success", { toast: true, duration: 1800 });
       return;
     }
 
@@ -432,6 +451,19 @@
   }
 
   elements.copyButton.addEventListener("click", copyJson);
+  document.addEventListener("keydown", (event) => {
+    if (!event.ctrlKey
+        || event.altKey
+        || event.metaKey
+        || event.key.toLowerCase() !== "c") {
+      return;
+    }
+    const selection = window.getSelection();
+    const text = selection ? selection.toString() : "";
+    if (text && writeToNativeClipboard(text)) {
+      event.preventDefault();
+    }
+  });
   window.addEventListener("hashchange", loadFromHash);
 
   if (!schema || typeof schema !== "object") {

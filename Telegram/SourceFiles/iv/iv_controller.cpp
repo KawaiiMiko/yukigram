@@ -30,8 +30,13 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "styles/style_window.h"
 
 #include <QtCore/QFile>
+#include <QtCore/QJsonDocument>
+#include <QtCore/QJsonObject>
 #include <QtCore/QRegularExpression>
 #include <QtCore/QUrl>
+#ifdef Q_OS_LINUX
+#include <QtGui/QClipboard>
+#endif // Q_OS_LINUX
 #include <QtGui/QGuiApplication>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QPainter>
@@ -427,6 +432,32 @@ void Controller::createWebview(const Webview::StorageId &storageId) {
 		return Webview::DataResult::Failed;
 	});
 
+#ifdef Q_OS_LINUX
+	raw->setMessageHandler([=](Webview::Message message) {
+		if (!Platform::IsWayland()) {
+			return;
+		}
+		const auto source = QUrl(QString::fromStdString(message.sourceUrl));
+		if (source.scheme() != u"http"_q
+			|| source.host() != u"127.0.0.1"_q
+			|| source.path() != u"/tlv/tlv.html"_q) {
+			return;
+		}
+		const auto document = QJsonDocument::fromJson(
+			QByteArray::fromRawData(message.text.data(), message.text.size()));
+		if (!document.isObject()) {
+			return;
+		}
+		const auto object = document.object();
+		if (object.value(u"type"_q).toString() != u"clipboard_write"_q
+			|| !object.value(u"text"_q).isString()) {
+			return;
+		}
+		QGuiApplication::clipboard()->setText(
+			object.value(u"text"_q).toString());
+	});
+#endif // Q_OS_LINUX
+
 	raw->navigationHistoryState(
 	) | rpl::on_next([=](Webview::NavigationHistoryState state) {
 		_back->setDisabled(!state.canGoBack);
@@ -434,7 +465,13 @@ void Controller::createWebview(const Webview::StorageId &storageId) {
 		_url = QString::fromStdString(state.url);
 	}, _webview->lifetime());
 
+#ifdef Q_OS_LINUX
+	raw->init(Platform::IsWayland()
+		? R"(window.TelegramDesktopTLVClipboardBridge = true;)"
+		: R"()");
+#else // Q_OS_LINUX
 	raw->init(R"()");
+#endif // Q_OS_LINUX
 }
 
 void Controller::processKey(QKeyEvent *event) {
