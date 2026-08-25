@@ -142,15 +142,21 @@ body {
   z-index: 10;
   border: 0;
   border-radius: 999px;
-  padding: 12px 16px;
-  font: inherit;
-  font-size: 14px;
+  width: 56px;
+  height: 56px;
+  padding: 0;
   color: var(--td-button-text, var(--button-text));
   background: var(--td-button, var(--button-bg));
   box-shadow: var(--button-shadow);
   cursor: pointer;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+}
+
+.copy-button svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
 }
 
 .copy-button:hover {
@@ -224,7 +230,8 @@ body {
   .copy-button {
     right: 20px;
     bottom: 20px;
-    padding: 11px 14px;
+    width: 56px;
+    height: 56px;
   }
 
   .status.toast {
