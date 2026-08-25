@@ -58,8 +58,8 @@ html, body {
 
 body {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-  background: var(--bg);
-  color: var(--text);
+  background: var(--td-bg, var(--bg));
+  color: var(--td-text, var(--text));
 }
 
 .tree-panel {
@@ -67,11 +67,11 @@ body {
   min-height: 100vh;
   margin: 0 auto;
   padding: 10px 16px 96px;
-  background: var(--panel);
+  background: var(--td-bg, var(--panel));
 }
 
 .status {
-  color: var(--muted);
+  color: var(--td-hint, var(--muted));
   font-size: 13px;
   min-height: 20px;
   margin-bottom: 4px;
@@ -145,8 +145,8 @@ body {
   padding: 12px 16px;
   font: inherit;
   font-size: 14px;
-  color: var(--button-text);
-  background: var(--button-bg);
+  color: var(--td-button-text, var(--button-text));
+  background: var(--td-button, var(--button-bg));
   box-shadow: var(--button-shadow);
   cursor: pointer;
   backdrop-filter: blur(10px);
@@ -183,7 +183,7 @@ body {
 }
 
 .key {
-  color: var(--key);
+  color: var(--td-text, var(--key));
   white-space: nowrap;
 }
 
@@ -204,7 +204,7 @@ body {
 }
 
 .constructor-link {
-  color: inherit;
+  color: var(--td-link, inherit);
   text-decoration: none;
 }
 

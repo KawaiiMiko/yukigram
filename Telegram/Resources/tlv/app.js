@@ -18,6 +18,35 @@
   let currentJsonText = "";
   let statusResetTimer = 0;
 
+  function applyDesktopTheme() {
+    const theme = window.TelegramDesktopTLVTheme;
+    if (!theme || typeof theme !== "object") {
+      return;
+    }
+
+    const colors = {
+      "--td-bg": theme.bg_color,
+      "--td-secondary-bg": theme.secondary_bg_color,
+      "--td-text": theme.text_color,
+      "--td-hint": theme.hint_color,
+      "--td-link": theme.link_color,
+      "--td-button": theme.button_color,
+      "--td-button-text": theme.button_text_color,
+      "--td-section": theme.section_bg_color,
+      "--td-section-header": theme.section_header_text_color,
+      "--td-destructive": theme.destructive_text_color,
+    };
+
+    for (const [name, value] of Object.entries(colors)) {
+      if (typeof value === "string") {
+        document.documentElement.style.setProperty(name, value);
+      }
+    }
+  }
+
+  window.addEventListener("tdesktop-theme-changed", applyDesktopTheme);
+  applyDesktopTheme();
+
   class UnknownObjectIdError extends Error {
     constructor(objectId) {
       super(`Unknown object id: 0x${objectId.toString(16)}`);

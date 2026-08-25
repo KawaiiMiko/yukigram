@@ -28,6 +28,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "styles/style_iv.h"
 #include "styles/style_payments.h"
 #include "styles/style_window.h"
+#include "window/themes/window_theme.h"
 
 #include <QtCore/QFile>
 #include <QtCore/QJsonDocument>
@@ -57,6 +58,21 @@ constexpr auto kWaylandWebviewTeardownDelay = crl::time(1000);
 		const QString &name) {
 	auto file = QFile(u":/"_q + prefix + u'/' + name);
 	return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
+}
+
+[[nodiscard]] QByteArray TLViewerThemeScript(
+		const QByteArray &params,
+		bool notify) {
+	auto result = QByteArray(
+		"if (window.location.pathname.endsWith('/tlv/tlv.html')) {"
+		"window.TelegramDesktopTLVTheme = ")
+		+ params
+		+ ';';
+	if (notify) {
+		result += "window.dispatchEvent(new Event('tdesktop-theme-changed'));";
+	}
+	result += '}';
+	return result;
 }
 
 [[nodiscard]] QString TonsiteToHttps(QString value) {
@@ -334,6 +350,8 @@ void Controller::createWebview(const Webview::StorageId &storageId) {
 			.safe = true,
 		});
 	const auto raw = _webview.get();
+	const auto theme = Window::Theme::WebViewParams();
+	raw->init(TLViewerThemeScript(theme.json, false));
 
 	if (const auto webviewZoomController = raw->zoomController()) {
 		webviewZoomController->zoomValue(
@@ -465,6 +483,11 @@ void Controller::createWebview(const Webview::StorageId &storageId) {
 		_url = QString::fromStdString(state.url);
 	}, _webview->lifetime());
 
+	style::PaletteChanged() | rpl::on_next([=] {
+		updateWebviewTheme();
+	}, _webview->lifetime());
+	updateWebviewTheme();
+
 #ifdef Q_OS_LINUX
 	raw->init(Platform::IsWayland()
 		? R"(window.TelegramDesktopTLVClipboardBridge = true;)"
@@ -472,6 +495,20 @@ void Controller::createWebview(const Webview::StorageId &storageId) {
 #else // Q_OS_LINUX
 	raw->init(R"()");
 #endif // Q_OS_LINUX
+}
+
+void Controller::updateWebviewTheme() {
+	if (!_webview) {
+		return;
+	}
+	const auto params = Window::Theme::WebViewParams();
+	_webview->updateTheme(
+		params.bodyBg,
+		params.scrollBg,
+		params.scrollBgOver,
+		params.scrollBarBg,
+		params.scrollBarBgOver);
+	_webview->eval(TLViewerThemeScript(params.json, true));
 }
 
 void Controller::processKey(QKeyEvent *event) {

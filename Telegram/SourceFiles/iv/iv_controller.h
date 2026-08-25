@@ -70,6 +70,7 @@ public:
 private:
 	void createWindow();
 	void createWebview(const Webview::StorageId &storageId);
+	void updateWebviewTheme();
 
 	void processKey(QKeyEvent *event);
 	void updateTitleGeometry(int newWidth) const;
