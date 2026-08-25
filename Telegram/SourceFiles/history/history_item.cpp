@@ -849,11 +849,11 @@ HistoryItem::HistoryItem(
 		.spoiler = mediaSpoiler,
 	});
 	setText(caption);
-	if (fields.groupedId) {
+	if (groupedId) {
 		setGroupId(MessageGroupId::FromRaw(
 			history->peer->id,
-			fields.groupedId,
-			_flags & MessageFlag::IsOrWasScheduled));
+			groupedId,
+			scheduled));
 	}
 }
 
@@ -873,11 +873,11 @@ HistoryItem::HistoryItem(
 		photo,
 		Data::MediaPhoto::Args{ .spoiler = mediaSpoiler });
 	setText(caption);
-	if (fields.groupedId) {
+	if (groupedId) {
 		setGroupId(MessageGroupId::FromRaw(
 			history->peer->id,
-			fields.groupedId,
-			_flags & MessageFlag::IsOrWasScheduled));
+			groupedId,
+			scheduled));
 	}
 }
 
