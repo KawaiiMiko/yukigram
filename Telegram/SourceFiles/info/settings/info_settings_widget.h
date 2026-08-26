@@ -88,6 +88,7 @@ public:
 	const Ui::RoundRect *bottomSkipRounding() const override;
 
 	rpl::producer<bool> desiredShadowVisibility() const override;
+	[[nodiscard]] bool centerLayerVertically() const override;
 
 	bool closeByOutsideClick() const override;
 	void checkBeforeClose(Fn<void()> close) override;

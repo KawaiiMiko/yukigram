@@ -85,6 +85,7 @@ public:
 
 	[[nodiscard]] Type id() const override;
 	[[nodiscard]] rpl::producer<QString> title() override;
+	[[nodiscard]] bool centerLayerVertically() const override;
 
 private:
 	void setupContent();
@@ -129,6 +130,10 @@ Type ChatEnhancedSection::id() const {
 
 rpl::producer<QString> ChatEnhancedSection::title() {
 	return tr::lng_chat_enhanced_settings();
+}
+
+bool ChatEnhancedSection::centerLayerVertically() const {
+	return true;
 }
 
 rpl::producer<QString> ForceShowWebPagePreviewTitle() {

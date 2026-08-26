@@ -218,6 +218,10 @@ rpl::producer<bool> Widget::desiredShadowVisibility() const {
 		: rpl::single(true);
 }
 
+bool Widget::centerLayerVertically() const {
+	return _inner->centerLayerVertically();
+}
+
 bool Widget::closeByOutsideClick() const {
 	return _inner->closeByOutsideClick();;
 }

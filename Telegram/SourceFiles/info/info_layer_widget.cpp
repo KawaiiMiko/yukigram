@@ -295,14 +295,14 @@ QRect LayerWidget::countGeometry(int newWidth) {
 	const auto windowWidth = parentSize.width();
 	const auto windowHeight = parentSize.height();
 	const auto newLeft = (windowWidth - newWidth) / 2;
-	const auto newTop = std::clamp(
+	auto newTop = std::clamp(
 		windowHeight / 24,
 		st::infoLayerTopMinimal,
 		st::infoLayerTopMaximal);
 	const auto newBottom = newTop;
 
 	const auto bottomRadius = st::boxRadius;
-	const auto maxVisibleHeight = windowHeight - newTop;
+	auto maxVisibleHeight = windowHeight - newTop;
 	// Top rounding is included in _contentWrapHeight.
 	auto desiredHeight = _contentWrapHeight + bottomRadius;
 	accumulate_min(desiredHeight, maxVisibleHeight - newBottom);
@@ -321,6 +321,10 @@ QRect LayerWidget::countGeometry(int newWidth) {
 
 	desiredHeight += additionalScroll;
 	contentHeight += additionalScroll;
+	if (_contentWrap->centerLayerVertically()) {
+		newTop = std::max(newTop, (windowHeight - desiredHeight) / 2);
+		maxVisibleHeight = windowHeight - newTop;
+	}
 	_tillBottom = (desiredHeight >= maxVisibleHeight);
 	if (_tillBottom) {
 		additionalScroll += contentBottom;

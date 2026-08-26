@@ -125,6 +125,7 @@ public:
 	bool processChosenSticker(ChatHelpers::FileChosen &&chosen) override;
 
 	rpl::producer<int> desiredHeightValue() const override;
+	[[nodiscard]] bool centerLayerVertically() const;
 
 	// Float player interface.
 	bool floatPlayerHandleWheelEvent(QEvent *e) override;

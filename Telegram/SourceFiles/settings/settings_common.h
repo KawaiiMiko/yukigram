@@ -135,6 +135,9 @@ public:
 	[[nodiscard]] virtual bool closeByOutsideClick() const {
 		return true;
 	}
+	[[nodiscard]] virtual bool centerLayerVertically() const {
+		return false;
+	}
 	virtual void checkBeforeClose(Fn<void()> close) {
 		close();
 	}

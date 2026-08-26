@@ -928,6 +928,10 @@ rpl::producer<int> WrapWidget::desiredHeightValue() const {
 		| rpl::flatten_latest();
 }
 
+bool WrapWidget::centerLayerVertically() const {
+	return _content && _content->centerLayerVertically();
+}
+
 QRect WrapWidget::contentGeometry() const {
 	const auto top = _topBar ? _topBar->height() : 0;
 	return rect().marginsRemoved({ 0, std::min(top, height()), 0, 0});
