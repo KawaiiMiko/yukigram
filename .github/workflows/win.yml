@@ -2,52 +2,16 @@ name: Windows.
 
 on:
   workflow_dispatch:
-  push:
-    tags-ignore:
-      - '**'
-    paths-ignore:
-      - 'docs/**'
-      - '**.md'
-      - '!docs/building-win*.md'
-      - 'changelog.txt'
-      - 'LEGAL'
-      - 'LICENSE'
-      - '.github/**'
-      - '!.github/workflows/win.yml'
-      - 'lib/xdg/**'
-      - 'snap/**'
-      - 'Telegram/build/docker/**'
-      - 'Telegram/Resources/uwp/**'
-      - 'Telegram/SourceFiles/platform/linux/**'
-      - 'Telegram/SourceFiles/platform/mac/**'
-      - 'Telegram/Telegram/**'
-      - 'Telegram/configure.sh'
-      - 'Telegram/Telegram.plist'
-  pull_request:
-    paths-ignore:
-      - 'docs/**'
-      - '**.md'
-      - '!docs/building-win*.md'
-      - 'changelog.txt'
-      - 'LEGAL'
-      - 'LICENSE'
-      - '.github/**'
-      - '!.github/workflows/win.yml'
-      - 'lib/xdg/**'
-      - 'snap/**'
-      - 'Telegram/build/docker/**'
-      - 'Telegram/Resources/uwp/**'
-      - 'Telegram/SourceFiles/platform/linux/**'
-      - 'Telegram/SourceFiles/platform/mac/**'
-      - 'Telegram/Telegram/**'
-      - 'Telegram/configure.sh'
-      - 'Telegram/Telegram.plist'
+  release:
+    types: [published]
 
 jobs:
 
   windows:
     name: Windows
     runs-on: ${{ matrix.arch == 'arm64' && 'windows-11-arm' || 'windows-latest' }}
+    permissions:
+      contents: write
 
     strategy:
       matrix:
@@ -92,6 +56,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           submodules: recursive
+          ref: ${{ github.event_name == 'release' && github.event.release.tag_name || github.ref }}
           path: ${{ env.TBUILD }}\${{ env.REPO_NAME }}
 
       - name: First set up.
@@ -176,8 +141,12 @@ jobs:
         shell: bash
         run: |
           cd "$TBUILD/$REPO_NAME"
-          ARTIFACT_NAME="Yurigram"
-          VERSION=$(grep 'AppVersionStr' Telegram/SourceFiles/core/version.h | cut -d '"' -f 2)
+          ARTIFACT_NAME="Yurigram_Win"
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION="${{ github.event.release.tag_name }}"
+          else
+            VERSION="v$(grep 'AppVersionStr' Telegram/SourceFiles/core/version.h | cut -d '"' -f 2)"
+          fi
 
           ARCH=""
           if [ -n "${{ matrix.arch }}" ]; then
@@ -187,7 +156,7 @@ jobs:
               *) ARCH="${{ matrix.arch }}";;
             esac
             echo "Architecture from matrix: $ARCH"
-            ARTIFACT_NAME="${ARTIFACT_NAME}_v${VERSION}_${ARCH}"
+            ARTIFACT_NAME="${ARTIFACT_NAME}_${VERSION}_${ARCH}"
           fi
 
           if [ -n "${{ matrix.qt }}" ]; then
@@ -198,7 +167,7 @@ jobs:
           if [ -n "${{ matrix.generator }}" ]; then
             GENERATOR="-G \"${{ matrix.generator }}\""
             echo "Generator from matrix: $GENERATOR"
-            ARTIFACT_NAME="${ARTIFACT_NAME}_v${VERSION}_${ARCH}_${{ matrix.generator }}"
+            ARTIFACT_NAME="${ARTIFACT_NAME}_${VERSION}_${ARCH}_${{ matrix.generator }}"
           fi
           echo "TDESKTOP_BUILD_GENERATOR=$GENERATOR" >> $GITHUB_ENV
 
@@ -271,6 +240,23 @@ jobs:
           name: ${{ env.ARTIFACT_NAME }}
           path: artifact\
           retention-days: 1
+
+      - name: Package release artifact.
+        id: package-release
+        if: github.event_name == 'release' && env.UPLOAD_ARTIFACT == 'true'
+        shell: pwsh
+        run: |
+          $archive = "$env:ARTIFACT_NAME.zip"
+          Compress-Archive -LiteralPath "artifact\Yurigram.exe" -DestinationPath $archive
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "archive=$archive"
+
+      - name: Upload release package.
+        if: github.event_name == 'release' && env.UPLOAD_ARTIFACT == 'true'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          release_id: ${{ github.event.release.id }}
+          file: ${{ steps.package-release.outputs.archive }}
 
       - name: Save ThirdParty cache.
         if: always() && steps.cache-third-party.outcome == 'success' && steps.cache-third-party.outputs.cache-hit != 'true'
