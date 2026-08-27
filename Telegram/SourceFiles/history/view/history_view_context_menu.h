@@ -22,7 +22,6 @@ class SessionShow;
 } // namespace Main
 
 namespace Ui {
-class DropdownMenu;
 class PopupMenu;
 class Show;
 enum class ReportReason;
@@ -159,11 +158,6 @@ enum class EmojiPacksSource {
 	EmojiPacksSource source);
 void AddEmojiPacksAction(
 	not_null<Ui::PopupMenu*> menu,
-	std::vector<StickerSetIdentifier> packIds,
-	EmojiPacksSource source,
-	not_null<Window::SessionController*> controller);
-void AddEmojiPacksAction(
-	not_null<Ui::DropdownMenu*> menu,
 	std::vector<StickerSetIdentifier> packIds,
 	EmojiPacksSource source,
 	not_null<Window::SessionController*> controller);
