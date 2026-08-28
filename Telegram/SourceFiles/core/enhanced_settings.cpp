@@ -14,6 +14,7 @@ https://github.com/TDesktop-x64/tdesktop/blob/dev/LEGAL
 #include "facades.h"
 #include "ui/widgets/fields/input_field.h"
 #include "lang/lang_cloud_manager.h"
+#include "rpl/event_stream.h"
 
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
@@ -31,6 +32,9 @@ namespace EnhancedSettings {
 		constexpr auto kForceShowWebPagePreviewKey
 			= "force_show_webpage_preview";
 		constexpr auto kStickerHeightKey = "sticker_height";
+		constexpr auto kShowMediaMetadataKey = "show_media_metadata";
+
+		rpl::event_stream<bool> ShowMediaMetadataChanges;
 
 		[[nodiscard]] int NormalizeRichMessagePreviewBlocksLimit(int limit) {
 			if (limit <= 0) {
@@ -137,6 +141,24 @@ namespace EnhancedSettings {
 
 	void SetStickerHeight(int height) {
 		SetEnhancedValue(kStickerHeightKey, NormalizeStickerHeight(height));
+	}
+
+	bool ShowMediaMetadata() {
+		return GetEnhancedBool(kShowMediaMetadataKey);
+	}
+
+	void SetShowMediaMetadata(bool enabled) {
+		if (ShowMediaMetadata() == enabled) {
+			return;
+		}
+		SetEnhancedValue(kShowMediaMetadataKey, enabled);
+		ShowMediaMetadataChanges.fire_copy(enabled);
+		Write();
+	}
+
+	rpl::producer<bool> ShowMediaMetadataValue() {
+		return rpl::single(ShowMediaMetadata()) | rpl::then(
+			ShowMediaMetadataChanges.events());
 	}
 
 	Manager::Manager() {
@@ -305,6 +327,7 @@ namespace EnhancedSettings {
 		settings.insert(qsl("blocked_user_spoiler_mode"), false);
 		settings.insert(qsl("disable_premium_animation"), false);
 		settings.insert(qsl("disable_global_search"), false);
+		settings.insert(qsl("show_media_metadata"), false);
 		settings.insert(qsl("community_chat_click"), false);
 		settings.insert(qsl("show_group_sender_avatar"), false);
 		settings.insert(qsl("show_seconds"), false);
@@ -371,6 +394,7 @@ namespace EnhancedSettings {
 		settings.insert(qsl("blocked_user_spoiler_mode"), GetEnhancedBool("blocked_user_spoiler_mode"));
 		settings.insert(qsl("disable_premium_animation"), GetEnhancedBool("disable_premium_animation"));
 		settings.insert(qsl("disable_global_search"), GetEnhancedBool("disable_global_search"));
+		settings.insert(qsl("show_media_metadata"), ShowMediaMetadata());
 		settings.insert(qsl("community_chat_click"), GetEnhancedBool("community_chat_click"));
 		settings.insert(qsl("show_group_sender_avatar"), GetEnhancedBool("show_group_sender_avatar"));
 		settings.insert(qsl("show_seconds"), GetEnhancedBool("show_seconds"));

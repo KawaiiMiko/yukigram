@@ -2,6 +2,11 @@
     "lng_intro_about2": "Welcome to the Yurigram app.\nIt's fast and secure.",
 
     "lng_settings_enhanced": "Enhanced Settings",
+    "lng_settings_show_media_metadata": "Show media metadata",
+    "lng_media_metadata_average_bitrate": "{bitrate} kbps average",
+    "lng_media_metadata_video": "Video",
+    "lng_media_metadata_silent": "Silent",
+    "lng_media_metadata_streamable": "Streamable",
     "lng_settings_show_message_id": "Show message ID",
     "lng_settings_button": "Button",
     "lng_settings_show_emoji_button_as_text": "Show emoji button as text",

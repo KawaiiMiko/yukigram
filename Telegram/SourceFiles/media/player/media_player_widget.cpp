@@ -7,6 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "media/player/media_player_widget.h"
 
+#include "core/enhanced_settings.h"
 #include "platform/platform_specific.h"
 #include "data/data_document.h"
 #include "data/data_session.h"
@@ -40,6 +41,64 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 namespace Media {
 namespace Player {
+namespace {
+
+[[nodiscard]] QString FormatMediaDimensions(QSize size) {
+	return size.isEmpty()
+		? QString()
+		: (QString::number(size.width())
+			+ u"×"_q
+			+ QString::number(size.height()));
+}
+
+[[nodiscard]] QString FormatAverageBitrate(
+		int64 bytes,
+		crl::time duration) {
+	if (bytes <= 0 || duration <= 0) {
+		return QString();
+	}
+	const auto bitrate = qRound64((bytes * 8.) / duration);
+	return (bitrate > 0)
+		? tr::lng_media_metadata_average_bitrate(
+			tr::now,
+			lt_bitrate,
+			QString::number(bitrate))
+		: QString();
+}
+
+[[nodiscard]] QString DocumentMetadataText(
+		not_null<DocumentData*> document) {
+	auto parts = QStringList();
+	const auto dimensions = FormatMediaDimensions(document->dimensions);
+	if (!dimensions.isEmpty()) {
+		parts.push_back(dimensions);
+	}
+	const auto video = document->video();
+	if (video && !video->codec.isEmpty()) {
+		parts.push_back(video->codec.toUpper());
+	}
+	if (!document->mimeString().isEmpty()) {
+		parts.push_back(document->mimeString());
+	}
+	const auto bitrate = FormatAverageBitrate(
+		document->size,
+		document->duration());
+	if (!bitrate.isEmpty()) {
+		parts.push_back(bitrate);
+	}
+	if (document->size > 0) {
+		parts.push_back(Ui::FormatSizeText(document->size));
+	}
+	if (document->isSilentVideo()) {
+		parts.push_back(tr::lng_media_metadata_silent(tr::now));
+	}
+	if (document->supportsStreaming()) {
+		parts.push_back(tr::lng_media_metadata_streamable(tr::now));
+	}
+	return parts.join(u" · "_q);
+}
+
+} // namespace
 
 Widget::Widget(
 	QWidget *parent,
@@ -103,6 +162,13 @@ Widget::Widget(
 	_playbackProgress->setInLoadingStateChangedCallback([=](bool loading) {
 		_playbackSlider->setDisabled(loading);
 	});
+	rpl::merge(
+		EnhancedSettings::ShowMediaMetadataValue() | rpl::to_empty,
+		Lang::Updated()
+	) | rpl::on_next([=] {
+		_lastSongId = AudioMsgId();
+		handleSongChange();
+	}, lifetime());
 	_playbackProgress->setValueChangedCallback([=](float64 value, float64) {
 		_playbackSlider->setValue(value);
 	});
@@ -718,7 +784,7 @@ void Widget::handleSongChange() {
 	_lastSongId = current;
 	_speedController->reloadFromLookup();
 
-	auto textWithEntities = TextWithEntities();
+	auto textWithEntities = tr::marked();
 	if (document->isVoiceMessage() || document->isVideoMessage()) {
 		textWithEntities = Ui::Text::FormatVoiceName(
 			document,
@@ -726,6 +792,12 @@ void Widget::handleSongChange() {
 	} else {
 		textWithEntities = Ui::Text::FormatSongNameFor(document)
 			.textWithEntities(true);
+	}
+	if (EnhancedSettings::ShowMediaMetadata()) {
+		const auto metadata = DocumentMetadataText(document);
+		if (!metadata.isEmpty()) {
+			textWithEntities.append(u" · "_q).append(metadata);
+		}
 	}
 	_nameLabel->setMarkedText(textWithEntities);
 	handlePlaylistUpdate();

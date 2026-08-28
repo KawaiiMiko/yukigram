@@ -1,4 +1,4 @@
-﻿/*
+/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -20,6 +20,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "calls/calls_instance.h"
 #include "core/application.h"
 #include "core/click_handler_types.h"
+#include "core/enhanced_settings.h"
 #include "core/file_utilities.h"
 #include "core/mime_type.h"
 #include "core/ui_integration.h"
@@ -213,6 +214,94 @@ constexpr auto kLeftSiblingTextureIndex = 1;
 constexpr auto kRightSiblingTextureIndex = 2;
 constexpr auto kStoriesControlsOpacity = 1.;
 constexpr auto kStorySavePromoDuration = 3 * crl::time(1000);
+
+[[nodiscard]] QString FormatMediaDimensions(QSize size) {
+	return size.isEmpty()
+		? QString()
+		: (QString::number(size.width())
+			+ u"×"_q
+			+ QString::number(size.height()));
+}
+
+[[nodiscard]] QString FormatAverageBitrate(
+		int64 bytes,
+		crl::time duration) {
+	if (bytes <= 0 || duration <= 0) {
+		return QString();
+	}
+	const auto bitrate = qRound64((bytes * 8.) / duration);
+	return (bitrate > 0)
+		? tr::lng_media_metadata_average_bitrate(
+			tr::now,
+			lt_bitrate,
+			QString::number(bitrate))
+		: QString();
+}
+
+[[nodiscard]] QString MediaMetadataText(
+		PhotoData *photo,
+		DocumentData *document) {
+	if (!EnhancedSettings::ShowMediaMetadata()) {
+		return QString();
+	}
+	auto parts = QStringList();
+	if (photo) {
+		const auto dimensions = FormatMediaDimensions(
+			QSize(photo->width(), photo->height()));
+		if (!dimensions.isEmpty()) {
+			parts.push_back(dimensions);
+		}
+		const auto bytes = photo->imageByteSize(Data::PhotoSize::Large);
+		if (bytes > 0) {
+			parts.push_back(Ui::FormatSizeText(bytes));
+		}
+		if (photo->hasVideo()) {
+			auto video = QStringList();
+			video.push_back(tr::lng_media_metadata_video(tr::now));
+			const auto duration = photo->extendedMediaVideoDuration();
+			if (duration && *duration > 0) {
+				video.push_back(Ui::FormatDurationText(*duration));
+			}
+			const auto videoBytes = photo->videoByteSize(
+				Data::PhotoSize::Large);
+			if (videoBytes > 0) {
+				video.push_back(Ui::FormatSizeText(videoBytes));
+			}
+			parts.push_back(video.join(' '));
+		}
+	} else if (document) {
+		const auto dimensions = FormatMediaDimensions(document->dimensions);
+		if (!dimensions.isEmpty()) {
+			parts.push_back(dimensions);
+		}
+		const auto video = document->video();
+		if (video && !video->codec.isEmpty()) {
+			parts.push_back(video->codec.toUpper());
+		}
+		if (!document->mimeString().isEmpty()) {
+			parts.push_back(document->mimeString());
+		}
+		if (document->size > 0) {
+			parts.push_back(Ui::FormatSizeText(document->size));
+		}
+		const auto duration = document->duration();
+		if (duration >= crl::time(1000)) {
+			parts.push_back(Ui::FormatDurationText(
+				duration / crl::time(1000)));
+		}
+		const auto bitrate = FormatAverageBitrate(document->size, duration);
+		if (!bitrate.isEmpty()) {
+			parts.push_back(bitrate);
+		}
+		if (document->isSilentVideo()) {
+			parts.push_back(tr::lng_media_metadata_silent(tr::now));
+		}
+		if (document->supportsStreaming()) {
+			parts.push_back(tr::lng_media_metadata_streamable(tr::now));
+		}
+	}
+	return parts.join(u" · "_q);
+}
 
 class PipDelegate final : public Pip::Delegate {
 public:
@@ -973,6 +1062,12 @@ OverlayWidget::OverlayWidget()
 	_dropdownShowTimer.setCallback([=] { showDropdown(); });
 
 	orderWidgets();
+
+	EnhancedSettings::ShowMediaMetadataValue(
+	) | rpl::on_next([=] {
+		updateControls();
+		update();
+	}, lifetime());
 }
 
 void OverlayWidget::showSaveMsgToast(const QString &path, auto phrase) {
@@ -1082,7 +1177,11 @@ void OverlayWidget::setupWindow() {
 }
 
 void OverlayWidget::refreshLang() {
-	InvokeQueued(_widget, [=] { updateThemePreviewGeometry(); });
+	InvokeQueued(_widget, [=] {
+		updateThemePreviewGeometry();
+		updateControls();
+		update();
+	});
 }
 
 void OverlayWidget::moveToScreen(bool inMove) {
@@ -1824,6 +1923,10 @@ void OverlayWidget::updateControls() {
 		_dateText += QString(" @ DC%1").arg(_photo->getDC());
 	} else if (_document) {
 		_dateText += QString(" @ DC%1").arg(_document->getDC());
+	}
+	const auto metadata = MediaMetadataText(_photo, _document);
+	if (!metadata.isEmpty()) {
+		_dateText += u" · "_q + metadata;
 	}
 	const auto destroyAt = _message ? _message->mediaDestroyAt() : TimeId();
 	if (destroyAt > 0) {

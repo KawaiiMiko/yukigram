@@ -210,6 +210,15 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
+			.id = u"enhanced/messages/show-media-metadata"_q,
+			.title = tr::lng_settings_show_media_metadata(tr::now),
+			.keywords = { u"media"_q, u"metadata"_q, u"codec"_q },
+			.deeplink = u"tg://settings/enhanced/messages/show-media-metadata"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
 			.id = u"enhanced/messages/show-group-sender-avatar"_q,
 			.title = tr::lng_settings_show_group_sender_avatar(tr::now),
 			.keywords = { u"group"_q, u"sender"_q, u"avatar"_q },
@@ -631,6 +640,22 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}) | rpl::on_next([=](bool toggled) {
 			SetEnhancedValue("disable_global_search", toggled);
 			EnhancedSettings::Write();
+		}, container->lifetime());
+
+		const auto showMediaMetadata = AddButtonWithIcon(
+			inner,
+			tr::lng_settings_show_media_metadata(),
+			st::settingsButtonNoIcon);
+		registerHighlight(
+			u"enhanced/messages/show-media-metadata"_q,
+			showMediaMetadata);
+		showMediaMetadata->toggleOn(
+			EnhancedSettings::ShowMediaMetadataValue()
+		)->toggledChanges(
+		) | rpl::filter([=](bool toggled) {
+			return toggled != EnhancedSettings::ShowMediaMetadata();
+		}) | rpl::on_next([=](bool toggled) {
+			EnhancedSettings::SetShowMediaMetadata(toggled);
 		}, container->lifetime());
 
 		const auto showGroupSenderAvatar = AddButtonWithIcon(
