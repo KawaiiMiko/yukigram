@@ -94,28 +94,6 @@ namespace EnhancedSettings {
 			return true;
 		}
 
-		bool ReadObjectOption(QJsonObject obj, QString key, std::function<void(QJsonObject)> callback) {
-			auto readResult = false;
-			auto readValueResult = ReadOption(obj, key, [&](QJsonValue v) {
-				if (v.isObject()) {
-					callback(v.toObject());
-					readResult = true;
-				}
-			});
-			return (readValueResult && readResult);
-		}
-
-		bool ReadArrayOption(QJsonObject obj, QString key, std::function<void(QJsonArray)> callback) {
-			auto readResult = false;
-			auto readValueResult = ReadOption(obj, key, [&](QJsonValue v) {
-				if (v.isArray()) {
-					callback(v.toArray());
-					readResult = true;
-				}
-			});
-			return (readValueResult && readResult);
-		}
-
 		bool ReadStringOption(QJsonObject obj, QString key, std::function<void(QString)> callback) {
 			auto readResult = false;
 			auto readValueResult = ReadOption(obj, key, [&](QJsonValue v) {

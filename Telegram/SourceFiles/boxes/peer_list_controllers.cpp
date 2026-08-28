@@ -275,7 +275,6 @@ public:
 				   std::move(updateCallback));
 	   }
 	   // Adjust point to center the ripple on the icon
-	   const auto iconSize = rightActionSize();
 	   const auto adjustedPoint = point - QPoint(8, 8);
 	   _ripple->add(adjustedPoint);
 	}

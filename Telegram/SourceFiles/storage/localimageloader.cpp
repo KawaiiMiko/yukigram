@@ -480,7 +480,7 @@ void FilePrepareResult::setFileData(const QByteArray &filedata) {
 		partssize = filedata.size();
 		fileparts.reserve(
 			(partssize + kPhotoUploadPartSize - 1) / kPhotoUploadPartSize);
-		for (int32 i = 0, part = 0; i < partssize; i += kPhotoUploadPartSize, ++part) {
+		for (int32 i = 0; i < partssize; i += kPhotoUploadPartSize) {
 			fileparts.push_back(filedata.mid(i, kPhotoUploadPartSize));
 		}
 		filemd5.resize(32);
@@ -494,7 +494,7 @@ void FilePrepareResult::setThumbData(const QByteArray &thumbdata) {
 		int32 size = thumbdata.size();
 		thumbparts.reserve(
 			(size + kPhotoUploadPartSize - 1) / kPhotoUploadPartSize);
-		for (int32 i = 0, part = 0; i < size; i += kPhotoUploadPartSize, ++part) {
+		for (int32 i = 0; i < size; i += kPhotoUploadPartSize) {
 			thumbparts.push_back(thumbdata.mid(i, kPhotoUploadPartSize));
 		}
 		thumbmd5.resize(32);

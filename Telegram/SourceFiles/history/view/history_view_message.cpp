@@ -1800,7 +1800,7 @@ void Message::draw(Painter &p, const PaintContext &context) const {
 	const auto customHighlight = mediaDisplayed && media->customHighlight();
 	if (!mediaSelectionIntervals.empty() || customHighlight) {
 		auto localMediaBottom = gForIntervals.top() + gForIntervals.height();
-		if (data()->repliesAreComments() || data()->externalReply() && !displayRightActionComments()) {
+		if (data()->repliesAreComments() || (data()->externalReply() && !displayRightActionComments())) {
 			localMediaBottom -= st::historyCommentsButtonHeight;
 		}
 		if (_viewButton) {
@@ -5961,7 +5961,7 @@ bool Message::displayRightActionComments() const {
 	return !isPinnedContext()
 		&& (context() != Context::SavedSublist)
 		&& data()->repliesAreComments()
-		&& (media() && media()->isDisplayed() && !hasBubble() || GetEnhancedBool("more_right_action_comments"));
+		&& ((media() && media()->isDisplayed() && !hasBubble()) || GetEnhancedBool("more_right_action_comments"));
 }
 
 std::optional<QSize> Message::rightActionSize() const {
