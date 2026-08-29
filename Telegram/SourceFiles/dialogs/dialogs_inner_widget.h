@@ -145,7 +145,8 @@ public:
 		std::vector<not_null<HistoryItem*>> result,
 		HistoryItem *inject,
 		SearchRequestType type,
-		int fullCount);
+		int fullCount,
+		bool loading = false);
 	void peerSearchReceived(Api::PeerSearchResult result);
 
 	[[nodiscard]] FilterId filterId() const;
@@ -486,6 +487,7 @@ private:
 	[[nodiscard]] int searchInChatOffset() const;
 	[[nodiscard]] int previewOffset() const;
 	[[nodiscard]] int searchedOffset() const;
+	[[nodiscard]] int searchedResultsBottom() const;
 	[[nodiscard]] int searchInChatSkip() const;
 	[[nodiscard]] int hashtagsOffset() const;
 	[[nodiscard]] int communityViewableTop() const;

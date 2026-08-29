@@ -3611,6 +3611,12 @@ void Widget::searchMoreNow() {
 	}
 }
 
+bool Widget::messageSearchLoading() const {
+	return _searchQueryMessageTypes
+		&& (!_searchProcess.full
+			|| (_searchInMigrated && !_migratedProcess.full));
+}
+
 void Widget::requestPublicPosts(bool fromStart) {
 	if (!_postsProcess.lastId || !_postsProcess.lastPeer) {
 		fromStart = true;
@@ -3852,7 +3858,12 @@ void Widget::searchReceived(
 		&& messages.empty()
 		&& !process->full;
 	if (!waitForMore) {
-		_inner->searchReceived(messages, inject, type, fullCount);
+		_inner->searchReceived(
+			messages,
+			inject,
+			type,
+			fullCount,
+			messageSearchLoading());
 	}
 
 	process->requestId = 0;
@@ -3894,7 +3905,8 @@ void Widget::searchFailed(
 				{},
 				nullptr,
 				type,
-				process->matchedCount);
+				process->matchedCount,
+				messageSearchLoading());
 			listScrollUpdated();
 			update();
 		}

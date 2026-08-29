@@ -805,6 +805,10 @@ int InnerWidget::searchedOffset() const {
 	return result;
 }
 
+int InnerWidget::searchedResultsBottom() const {
+	return searchedOffset() + (int(_searchResults.size()) * _st->height);
+}
+
 int InnerWidget::communityViewableTop() const {
 	return dialogsOffset() + _shownList->height();
 }
@@ -4216,7 +4220,7 @@ void InnerWidget::applySearchState(SearchState state) {
 			refresh();
 			moveSearchIn();
 			if (_loadingAnimation) {
-				_loadingAnimation->move(0, searchedOffset());
+				_loadingAnimation->move(0, searchedResultsBottom());
 			}
 		}, _searchTags->lifetime());
 	} else {
@@ -4675,9 +4679,10 @@ void InnerWidget::searchReceived(
 		std::vector<not_null<HistoryItem*>> messages,
 		HistoryItem *inject,
 		SearchRequestType type,
-		int fullCount) {
+		int fullCount,
+		bool loading) {
 	_searchWaiting = false;
-	_searchLoading = false;
+	_searchLoading = loading;
 
 	const auto uniquePeers = uniqueSearchResults();
 	const auto withPreview = _searchWithPostsPreview;
@@ -4857,10 +4862,9 @@ void InnerWidget::refresh(bool toTop) {
 			h = searchedOffset() + st::recentPeersEmptyHeightMin;
 			_searchEmpty->setMinimalHeight(st::recentPeersEmptyHeightMin);
 			_searchEmpty->move(0, h - st::recentPeersEmptyHeightMin);
-		} else if (_loadingAnimation) {
-			h = searchedOffset() + _loadingAnimation->height();
 		} else {
-			h = searchedOffset() + (_searchResults.size() * _st->height);
+			h = searchedResultsBottom()
+				+ (_loadingAnimation ? _loadingAnimation->height() : 0);
 		}
 	}
 	resize(width(), h);
@@ -4879,6 +4883,8 @@ void InnerWidget::refreshEmpty() {
 			&& _searchResults.empty()
 			&& _peerSearchResults.empty()
 			&& _hashtagResults.empty();
+		const auto loading = (_searchLoading || _searchWaiting)
+			&& (empty || _searchState.messageTypes);
 		if (_searchLoading || _searchWaiting || !empty) {
 			if (_searchEmpty) {
 				_searchEmpty->hide();
@@ -4895,7 +4901,7 @@ void InnerWidget::refreshEmpty() {
 			_searchEmpty->show();
 		}
 
-		if ((!_searchLoading && !_searchWaiting) || !empty) {
+		if (!loading) {
 			_loadingAnimation.destroy();
 		} else if (!_loadingAnimation) {
 			_loadingAnimation = Ui::CreateLoadingDialogRowWidget(
@@ -4903,8 +4909,10 @@ void InnerWidget::refreshEmpty() {
 				*_st,
 				2);
 			_loadingAnimation->resizeToWidth(width());
-			_loadingAnimation->move(0, searchedOffset());
 			_loadingAnimation->show();
+		}
+		if (_loadingAnimation) {
+			_loadingAnimation->move(0, searchedResultsBottom());
 		}
 	} else {
 		_searchEmpty.destroy();
@@ -5069,7 +5077,7 @@ void InnerWidget::resizeEmpty() {
 	}
 	if (_loadingAnimation) {
 		_loadingAnimation->resizeToWidth(width());
-		_loadingAnimation->move(0, searchedOffset());
+		_loadingAnimation->move(0, searchedResultsBottom());
 	}
 }
 

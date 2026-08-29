@@ -201,6 +201,7 @@ private:
 	void searchTopics();
 	void searchMore();
 	void searchMoreNow();
+	[[nodiscard]] bool messageSearchLoading() const;
 
 	void slideFinished();
 	void searchReceived(
