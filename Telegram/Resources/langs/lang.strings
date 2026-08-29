@@ -8915,8 +8915,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 "lng_message_search_filter_selected#one" = "{count} message type selected";
 "lng_message_search_filter_selected#other" = "{count} message types selected";
-"lng_message_search_filter_all" = "All messages";
 "lng_message_search_filter_mentions" = "Mentions of me";
-"lng_message_search_filter_locations" = "Locations";
 
 // Keys finished

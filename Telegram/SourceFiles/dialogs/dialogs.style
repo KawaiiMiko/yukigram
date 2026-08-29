@@ -482,6 +482,18 @@ dialogsSearchInMenu: PopupMenu(defaultPopupMenu) {
 dialogsSearchInCheck: icon {{ "player/player_check", mediaPlayerActiveFg }};
 dialogsSearchInCheckSkip: 8px;
 dialogsSearchFromStyle: defaultTextStyle;
+dialogsSearchInMessageTypePhoto: icon {{ "menu/image", menuIconColor }};
+dialogsSearchInMessageTypeVideo: icon {{ "info/info_media_video", menuIconColor }};
+dialogsSearchInMessageTypeFile: icon {{ "menu/file", menuIconColor }};
+dialogsSearchInMessageTypeLink: icon {{ "menu/link", menuIconColor }};
+dialogsSearchInMessageTypeMusic: icon {{ "info/info_media_audio", menuIconColor }};
+dialogsSearchInMessageTypeVoice: icon {{ "info/info_media_voice", menuIconColor }};
+dialogsSearchInMessageTypeRoundVideo: icon {{ "info/info_media_round", menuIconColor }};
+dialogsSearchInMessageTypeGif: icon {{ "menu/gif", menuIconColor }};
+dialogsSearchInMessageTypePoll: icon {{ "menu/create_poll", menuIconColor }};
+dialogsSearchInMessageTypeMention: icon {{ "settings/mention", menuIconColor }};
+dialogsSearchInMessageTypeLocation: icon {{ "menu/payment_address", menuIconColor }};
+dialogsSearchInMessageTypePinned: icon {{ "menu/pin", menuIconColor }};
 
 dialogsScamPadding: margins(2px, 0px, 2px, 0px);
 dialogsScamFont: font(9px semibold);

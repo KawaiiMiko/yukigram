@@ -10,6 +10,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 class DocumentData;
 class PeerData;
 class PhotoData;
+struct FullMsgId;
 
 namespace Main {
 class Session;

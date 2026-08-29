@@ -15,6 +15,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/widgets/shadow.h"
 #include "ui/widgets/menu/menu_item_base.h"
 #include "ui/dynamic_image.h"
+#include "ui/dynamic_thumbnails.h"
 #include "ui/painter.h"
 #include "styles/style_dialogs.h"
 #include "styles/style_menu_icons.h"
@@ -107,6 +108,39 @@ void TagFilterThumbnail::subscribeToUpdates(Fn<void()> callback) {
 	return std::make_shared<TagFilterThumbnail>();
 }
 
+[[nodiscard]] auto MessageSearchTypeIcon(MessageSearchType type)
+-> const style::icon & {
+	switch (type) {
+	case MessageSearchType::Photo:
+		return st::dialogsSearchInMessageTypePhoto;
+	case MessageSearchType::Video:
+		return st::dialogsSearchInMessageTypeVideo;
+	case MessageSearchType::File:
+		return st::dialogsSearchInMessageTypeFile;
+	case MessageSearchType::Link:
+		return st::dialogsSearchInMessageTypeLink;
+	case MessageSearchType::Music:
+		return st::dialogsSearchInMessageTypeMusic;
+	case MessageSearchType::Voice:
+		return st::dialogsSearchInMessageTypeVoice;
+	case MessageSearchType::RoundVideo:
+		return st::dialogsSearchInMessageTypeRoundVideo;
+	case MessageSearchType::Gif:
+		return st::dialogsSearchInMessageTypeGif;
+	case MessageSearchType::Poll:
+		return st::dialogsSearchInMessageTypePoll;
+	case MessageSearchType::Mention:
+		return st::dialogsSearchInMessageTypeMention;
+	case MessageSearchType::Location:
+		return st::dialogsSearchInMessageTypeLocation;
+	case MessageSearchType::Pinned:
+		return st::dialogsSearchInMessageTypePinned;
+	case MessageSearchType::kCount:
+		break;
+	}
+	Unexpected("MessageSearchType in MessageSearchTypeIcon.");
+}
+
 [[nodiscard]] const std::vector<MessageSearchType> &MessageSearchTypeList() {
 	static const auto result = std::vector{
 		MessageSearchType::Photo,
@@ -148,7 +182,7 @@ void TagFilterThumbnail::subscribeToUpdates(Fn<void()> callback) {
 	case MessageSearchType::Mention:
 		return tr::lng_message_search_filter_mentions(tr::now);
 	case MessageSearchType::Location:
-		return tr::lng_message_search_filter_locations(tr::now);
+		return tr::lng_location_title(tr::now);
 	case MessageSearchType::Pinned:
 		return tr::lng_settings_events_pinned(tr::now);
 	case MessageSearchType::kCount:
@@ -170,7 +204,7 @@ void TagFilterThumbnail::subscribeToUpdates(Fn<void()> callback) {
 [[nodiscard]] QString MessageSearchTypesLabel(MessageSearchTypes types) {
 	const auto count = MessageSearchTypesCount(types);
 	if (!count) {
-		return tr::lng_message_search_filter_all(tr::now);
+		return tr::lng_forum_all_messages(tr::now);
 	} else if (count == 1) {
 		for (const auto type : MessageSearchTypeList()) {
 			if (types & MessageSearchTypeBit(type)) {
@@ -509,7 +543,9 @@ void ChatSearchIn::showMessageTypesMenu() {
 	const auto add = [&](QString label, std::optional<MessageSearchType> type) {
 		auto action = base::make_unique_q<Action>(
 			_menu.get(),
-			MakeTagFilterThumbnail(),
+			type
+				? Ui::MakeIconThumbnail(MessageSearchTypeIcon(*type))
+				: MakeTagFilterThumbnail(),
 			label,
 			type
 				? bool(_messageTypes & MessageSearchTypeBit(*type))
@@ -533,7 +569,7 @@ void ChatSearchIn::showMessageTypesMenu() {
 		});
 		_menu->addAction(std::move(action));
 	};
-	add(tr::lng_message_search_filter_all(tr::now), std::nullopt);
+	add(tr::lng_forum_all_messages(tr::now), std::nullopt);
 	for (const auto type : MessageSearchTypeList()) {
 		add(MessageSearchTypeLabel(type), type);
 	}
