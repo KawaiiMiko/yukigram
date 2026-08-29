@@ -8764,9 +8764,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_settings_more_right_action_comments" = "Move comments button to the right";
 "lng_settings_mpris_call_hangup" = "Use media controls to accept or hangup";
 "lng_settings_enhanced" = "Enhanced Settings";
-"lng_settings_show_media_metadata" = "Show media metadata";
-"lng_media_metadata_average_bitrate" = "{bitrate} kbps average";
-"lng_media_metadata_video" = "Video";
+"lng_settings_show_media_metadata" = "Show metadata info in media viewer";
+"lng_media_metadata_average_bitrate" = "{bitrate} kbps";
 "lng_media_metadata_silent" = "Silent";
 "lng_media_metadata_streamable" = "Streamable";
 "lng_chat_enhanced_settings" = "Chat Enhanced Settings";

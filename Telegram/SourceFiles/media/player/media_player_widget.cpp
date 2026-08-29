@@ -66,6 +66,21 @@ namespace {
 		: QString();
 }
 
+[[nodiscard]] QString DocumentMetadataFlags(
+		not_null<DocumentData*> document) {
+	if (!EnhancedSettings::ShowMediaMetadata()) {
+		return QString();
+	}
+	auto flags = QStringList();
+	if (document->isSilentVideo()) {
+		flags.push_back(tr::lng_media_metadata_silent(tr::now));
+	}
+	if (document->supportsStreaming()) {
+		flags.push_back(tr::lng_media_metadata_streamable(tr::now));
+	}
+	return flags.join(u" · "_q);
+}
+
 [[nodiscard]] QString DocumentMetadataText(
 		not_null<DocumentData*> document) {
 	auto parts = QStringList();
@@ -77,9 +92,6 @@ namespace {
 	if (video && !video->codec.isEmpty()) {
 		parts.push_back(video->codec.toUpper());
 	}
-	if (!document->mimeString().isEmpty()) {
-		parts.push_back(document->mimeString());
-	}
 	const auto bitrate = FormatAverageBitrate(
 		document->size,
 		document->duration());
@@ -89,13 +101,11 @@ namespace {
 	if (document->size > 0) {
 		parts.push_back(Ui::FormatSizeText(document->size));
 	}
-	if (document->isSilentVideo()) {
-		parts.push_back(tr::lng_media_metadata_silent(tr::now));
-	}
-	if (document->supportsStreaming()) {
-		parts.push_back(tr::lng_media_metadata_streamable(tr::now));
-	}
-	return parts.join(u" · "_q);
+	const auto metadata = parts.join(u" · "_q);
+	const auto flags = DocumentMetadataFlags(document);
+	return flags.isEmpty()
+		? metadata
+		: (metadata.isEmpty() ? flags : metadata + u" | "_q + flags);
 }
 
 } // namespace

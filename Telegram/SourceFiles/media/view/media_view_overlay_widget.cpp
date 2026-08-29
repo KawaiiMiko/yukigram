@@ -257,17 +257,14 @@ constexpr auto kStorySavePromoDuration = 3 * crl::time(1000);
 		}
 		if (photo->hasVideo()) {
 			auto video = QStringList();
-			video.push_back(tr::lng_media_metadata_video(tr::now));
-			const auto duration = photo->extendedMediaVideoDuration();
-			if (duration && *duration > 0) {
-				video.push_back(Ui::FormatDurationText(*duration));
-			}
 			const auto videoBytes = photo->videoByteSize(
 				Data::PhotoSize::Large);
 			if (videoBytes > 0) {
 				video.push_back(Ui::FormatSizeText(videoBytes));
 			}
-			parts.push_back(video.join(' '));
+			if (!video.isEmpty()) {
+				parts.push_back(video.join(' '));
+			}
 		}
 	} else if (document) {
 		const auto dimensions = FormatMediaDimensions(document->dimensions);
@@ -278,29 +275,31 @@ constexpr auto kStorySavePromoDuration = 3 * crl::time(1000);
 		if (video && !video->codec.isEmpty()) {
 			parts.push_back(video->codec.toUpper());
 		}
-		if (!document->mimeString().isEmpty()) {
-			parts.push_back(document->mimeString());
-		}
 		if (document->size > 0) {
 			parts.push_back(Ui::FormatSizeText(document->size));
 		}
 		const auto duration = document->duration();
-		if (duration >= crl::time(1000)) {
-			parts.push_back(Ui::FormatDurationText(
-				duration / crl::time(1000)));
-		}
 		const auto bitrate = FormatAverageBitrate(document->size, duration);
 		if (!bitrate.isEmpty()) {
 			parts.push_back(bitrate);
 		}
-		if (document->isSilentVideo()) {
-			parts.push_back(tr::lng_media_metadata_silent(tr::now));
-		}
-		if (document->supportsStreaming()) {
-			parts.push_back(tr::lng_media_metadata_streamable(tr::now));
-		}
 	}
 	return parts.join(u" · "_q);
+}
+
+[[nodiscard]] QString DocumentMetadataFlags(
+		not_null<DocumentData*> document) {
+	if (!EnhancedSettings::ShowMediaMetadata()) {
+		return QString();
+	}
+	auto flags = QStringList();
+	if (document->isSilentVideo()) {
+		flags.push_back(tr::lng_media_metadata_silent(tr::now));
+	}
+	if (document->supportsStreaming()) {
+		flags.push_back(tr::lng_media_metadata_streamable(tr::now));
+	}
+	return flags.join(u" · "_q);
 }
 
 class PipDelegate final : public Pip::Delegate {
@@ -9120,6 +9119,12 @@ void OverlayWidget::updateHeader() {
 			_headerText = tr::lng_mediaview_group_photo(tr::now);
 		} else {
 			_headerText = tr::lng_mediaview_single_photo(tr::now);
+		}
+	}
+	if (_document) {
+		const auto flags = DocumentMetadataFlags(_document);
+		if (!flags.isEmpty()) {
+			_headerText += u" | "_q + flags;
 		}
 	}
 	_headerHasLink = computeOverviewType() != std::nullopt;
