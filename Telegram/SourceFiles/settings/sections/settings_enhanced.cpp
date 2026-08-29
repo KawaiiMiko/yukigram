@@ -81,16 +81,16 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 }, [](Builder::SectionBuilder &builder) {
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/show-message-id"_q,
+			.id = u"enhanced/show-message-id"_q,
 			.title = tr::lng_settings_show_message_id(tr::now),
 			.keywords = { u"message"_q, u"id"_q, u"info"_q },
-			.deeplink = u"tg://settings/enhanced/messages/show-message-id"_q,
+			.deeplink = u"tg://settings/enhanced/show-message-id"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/rich-message-blocks-limit"_q,
+			.id = u"enhanced/rich-message-blocks-limit"_q,
 			.title = tr::lng_settings_rich_message_preview_blocks(tr::now),
 			.keywords = {
 				u"rich message"_q,
@@ -99,40 +99,40 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				u"show more"_q,
 			},
 			.deeplink
-				= u"tg://settings/enhanced/messages/rich-message-blocks-limit"_q,
+				= u"tg://settings/enhanced/rich-message-blocks-limit"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/sticker-height"_q,
+			.id = u"enhanced/sticker-height"_q,
 			.title = tr::lng_settings_sticker_height(tr::now),
 			.keywords = { u"sticker"_q, u"height"_q, u"size"_q },
-			.deeplink = u"tg://settings/enhanced/messages/sticker-height"_q,
+			.deeplink = u"tg://settings/enhanced/sticker-height"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/show-similar-on-joined"_q,
+			.id = u"enhanced/show-similar-on-joined"_q,
 			.title = tr::lng_settings_show_similar_on_joined(tr::now),
 			.keywords = { u"similar"_q, u"recommendations"_q, u"joined"_q },
-			.deeplink = u"tg://settings/enhanced/messages/show-similar-on-joined"_q,
+			.deeplink = u"tg://settings/enhanced/show-similar-on-joined"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/more-right-action-comments"_q,
+			.id = u"enhanced/more-right-action-comments"_q,
 			.title = tr::lng_settings_more_right_action_comments(tr::now),
 			.keywords = { u"context"_q, u"menu"_q, u"comments"_q },
-			.deeplink = u"tg://settings/enhanced/messages/more-right-action-comments"_q,
+			.deeplink = u"tg://settings/enhanced/more-right-action-comments"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/extra-context-menu-options"_q,
+			.id = u"enhanced/extra-context-menu-options"_q,
 			.title = tr::lng_settings_extra_context_menu_options(tr::now),
 			.keywords = {
 				u"forward"_q,
@@ -141,31 +141,31 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				u"context"_q,
 				u"menu"_q,
 			},
-			.deeplink = u"tg://settings/enhanced/messages/extra-context-menu-options"_q,
+			.deeplink = u"tg://settings/enhanced/extra-context-menu-options"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/repeater-reply-to-original"_q,
+			.id = u"enhanced/repeater-reply-to-original"_q,
 			.title = tr::lng_settings_repeater_reply_to_orig_msg(tr::now),
 			.keywords = { u"repeater"_q, u"reply"_q, u"original"_q },
-			.deeplink = u"tg://settings/enhanced/messages/repeater-reply-to-original"_q,
+			.deeplink = u"tg://settings/enhanced/repeater-reply-to-original"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/disable-cloud-draft-sync"_q,
+			.id = u"enhanced/disable-cloud-draft-sync"_q,
 			.title = tr::lng_settings_disable_cloud_draft_sync(tr::now),
 			.keywords = { u"draft"_q, u"cloud"_q, u"sync"_q },
-			.deeplink = u"tg://settings/enhanced/messages/disable-cloud-draft-sync"_q,
+			.deeplink = u"tg://settings/enhanced/disable-cloud-draft-sync"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/force-show-webpage-preview"_q,
+			.id = u"enhanced/force-show-webpage-preview"_q,
 			.title = tr::lng_settings_force_show_webpage_preview(tr::now),
 			.keywords = {
 				u"force"_q,
@@ -177,229 +177,229 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				u"webpage"_q,
 			},
 			.deeplink
-				= u"tg://settings/enhanced/messages/force-show-webpage-preview"_q,
+				= u"tg://settings/enhanced/force-show-webpage-preview"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/disable-link-warning"_q,
+			.id = u"enhanced/disable-link-warning"_q,
 			.title = tr::lng_settings_disable_link_warning(tr::now),
 			.keywords = { u"link"_q, u"warning"_q, u"confirm"_q },
-			.deeplink = u"tg://settings/enhanced/messages/disable-link-warning"_q,
+			.deeplink = u"tg://settings/enhanced/disable-link-warning"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/disable-premium-animation"_q,
+			.id = u"enhanced/disable-premium-animation"_q,
 			.title = tr::lng_settings_disable_premium_animation(tr::now),
 			.keywords = { u"premium"_q, u"animation"_q, u"effects"_q },
-			.deeplink = u"tg://settings/enhanced/messages/disable-premium-animation"_q,
+			.deeplink = u"tg://settings/enhanced/disable-premium-animation"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/disable-global-search"_q,
+			.id = u"enhanced/disable-global-search"_q,
 			.title = tr::lng_settings_disable_global_search(tr::now),
 			.keywords = { u"global"_q, u"search"_q, u"server"_q },
-			.deeplink = u"tg://settings/enhanced/messages/disable-global-search"_q,
+			.deeplink = u"tg://settings/enhanced/disable-global-search"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/show-media-metadata"_q,
+			.id = u"enhanced/show-media-metadata"_q,
 			.title = tr::lng_settings_show_media_metadata(tr::now),
 			.keywords = { u"media"_q, u"metadata"_q, u"codec"_q },
-			.deeplink = u"tg://settings/enhanced/messages/show-media-metadata"_q,
+			.deeplink = u"tg://settings/enhanced/show-media-metadata"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/show-group-sender-avatar"_q,
+			.id = u"enhanced/show-group-sender-avatar"_q,
 			.title = tr::lng_settings_show_group_sender_avatar(tr::now),
 			.keywords = { u"group"_q, u"sender"_q, u"avatar"_q },
-			.deeplink = u"tg://settings/enhanced/messages/show-group-sender-avatar"_q,
+			.deeplink = u"tg://settings/enhanced/show-group-sender-avatar"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/use-gt-api"_q,
+			.id = u"enhanced/use-gt-api"_q,
 			.title = tr::lng_settings_use_gt_api(tr::now),
 			.keywords = { u"translate"_q, u"google"_q, u"api"_q, u"gt"_q },
-			.deeplink = u"tg://settings/enhanced/messages/use-gt-api"_q,
+			.deeplink = u"tg://settings/enhanced/use-gt-api"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/translate-to-tc"_q,
+			.id = u"enhanced/translate-to-tc"_q,
 			.title = tr::lng_settings_translate_to_tc(tr::now),
 			.keywords = { u"translate"_q, u"traditional"_q, u"chinese"_q, u"tc"_q },
-			.deeplink = u"tg://settings/enhanced/messages/translate-to-tc"_q,
+			.deeplink = u"tg://settings/enhanced/translate-to-tc"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/show-seconds"_q,
+			.id = u"enhanced/show-seconds"_q,
 			.title = tr::lng_settings_show_seconds(tr::now),
 			.keywords = { u"seconds"_q, u"clock"_q, u"time"_q },
-			.deeplink = u"tg://settings/enhanced/messages/show-seconds"_q,
+			.deeplink = u"tg://settings/enhanced/show-seconds"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/messages/hide-blocked-messages"_q,
+			.id = u"enhanced/hide-blocked-messages"_q,
 			.title = tr::lng_settings_hide_messages(tr::now),
 			.keywords = { u"blocked"_q, u"messages"_q, u"spoiler"_q, u"hide"_q },
-			.deeplink = u"tg://settings/enhanced/messages/hide-blocked-messages"_q,
+			.deeplink = u"tg://settings/enhanced/hide-blocked-messages"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/buttons/show-emoji-button-as-text"_q,
+			.id = u"enhanced/show-emoji-button-as-text"_q,
 			.title = tr::lng_settings_show_emoji_button_as_text(tr::now),
 			.keywords = { u"emoji"_q, u"button"_q, u"text"_q },
-			.deeplink = u"tg://settings/enhanced/buttons/show-emoji-button-as-text"_q,
+			.deeplink = u"tg://settings/enhanced/show-emoji-button-as-text"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/buttons/show-scheduled-button"_q,
+			.id = u"enhanced/show-scheduled-button"_q,
 			.title = tr::lng_settings_show_scheduled_button(tr::now),
 			.keywords = { u"scheduled"_q, u"schedule"_q, u"button"_q },
-			.deeplink = u"tg://settings/enhanced/buttons/show-scheduled-button"_q,
+			.deeplink = u"tg://settings/enhanced/show-scheduled-button"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/voice-chat/radio-controller"_q,
+			.id = u"enhanced/radio-controller"_q,
 			.title = tr::lng_settings_radio_controller(tr::now),
 			.keywords = { u"radio"_q, u"voice"_q, u"controller"_q },
-			.deeplink = u"tg://settings/enhanced/voice-chat/radio-controller"_q,
+			.deeplink = u"tg://settings/enhanced/radio-controller"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/voice-chat/auto-unmute"_q,
+			.id = u"enhanced/auto-unmute"_q,
 			.title = tr::lng_settings_auto_unmute(tr::now),
 			.keywords = { u"auto"_q, u"unmute"_q, u"voice"_q },
-			.deeplink = u"tg://settings/enhanced/voice-chat/auto-unmute"_q,
+			.deeplink = u"tg://settings/enhanced/auto-unmute"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/voice-chat/bitrate-controller"_q,
+			.id = u"enhanced/bitrate-controller"_q,
 			.title = tr::lng_bitrate_controller(tr::now),
 			.keywords = { u"bitrate"_q, u"audio"_q, u"quality"_q },
-			.deeplink = u"tg://settings/enhanced/voice-chat/bitrate-controller"_q,
+			.deeplink = u"tg://settings/enhanced/bitrate-controller"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/voice-chat/enable-hd-video"_q,
+			.id = u"enhanced/enable-hd-video"_q,
 			.title = tr::lng_settings_enable_hd_video(tr::now),
 			.keywords = { u"hd"_q, u"video"_q, u"quality"_q },
-			.deeplink = u"tg://settings/enhanced/voice-chat/enable-hd-video"_q,
+			.deeplink = u"tg://settings/enhanced/enable-hd-video"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/voice-chat/mpris-call-hangup"_q,
+			.id = u"enhanced/mpris-call-hangup"_q,
 			.title = tr::lng_settings_mpris_call_hangup(tr::now),
 			.keywords = { u"mpris"_q, u"media"_q, u"hangup"_q },
-			.deeplink = u"tg://settings/enhanced/voice-chat/mpris-call-hangup"_q,
+			.deeplink = u"tg://settings/enhanced/mpris-call-hangup"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/other/show-peer-id"_q,
+			.id = u"enhanced/show-peer-id"_q,
 			.title = tr::lng_settings_show_peer_id(tr::now),
 			.keywords = { u"peer"_q, u"id"_q, u"user"_q, u"chat"_q },
-			.deeplink = u"tg://settings/enhanced/other/show-peer-id"_q,
+			.deeplink = u"tg://settings/enhanced/show-peer-id"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/other/hide-all-chats"_q,
+			.id = u"enhanced/hide-all-chats"_q,
 			.title = tr::lng_settings_hide_all_chats(tr::now),
 			.keywords = { u"hide"_q, u"all"_q, u"chats"_q },
-			.deeplink = u"tg://settings/enhanced/other/hide-all-chats"_q,
+			.deeplink = u"tg://settings/enhanced/hide-all-chats"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/other/replace-edit-button"_q,
+			.id = u"enhanced/replace-edit-button"_q,
 			.title = tr::lng_settings_replace_edit_button(tr::now),
 			.keywords = { u"edit"_q, u"button"_q, u"replace"_q },
-			.deeplink = u"tg://settings/enhanced/other/replace-edit-button"_q,
+			.deeplink = u"tg://settings/enhanced/replace-edit-button"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/other/skip-message"_q,
+			.id = u"enhanced/skip-message"_q,
 			.title = tr::lng_settings_skip_message(tr::now),
 			.keywords = { u"skip"_q, u"message"_q, u"next"_q },
-			.deeplink = u"tg://settings/enhanced/other/skip-message"_q,
+			.deeplink = u"tg://settings/enhanced/skip-message"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/other/hide-counter"_q,
+			.id = u"enhanced/hide-counter"_q,
 			.title = tr::lng_settings_hide_counter(tr::now),
 			.keywords = { u"unread"_q, u"counter"_q, u"badge"_q },
-			.deeplink = u"tg://settings/enhanced/other/hide-counter"_q,
+			.deeplink = u"tg://settings/enhanced/hide-counter"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/other/hide-stories"_q,
+			.id = u"enhanced/hide-stories"_q,
 			.title = tr::lng_settings_hide_stories(tr::now),
 			.keywords = { u"stories"_q, u"hide"_q },
-			.deeplink = u"tg://settings/enhanced/other/hide-stories"_q,
+			.deeplink = u"tg://settings/enhanced/hide-stories"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/other/hide-star-ratings"_q,
+			.id = u"enhanced/hide-star-ratings"_q,
 			.title = tr::lng_settings_hide_star_ratings(tr::now),
 			.keywords = { u"stars"_q, u"ratings"_q, u"hide"_q },
-			.deeplink = u"tg://settings/enhanced/other/hide-star-ratings"_q,
+			.deeplink = u"tg://settings/enhanced/hide-star-ratings"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/other/force-mobile"_q,
+			.id = u"enhanced/force-mobile"_q,
 			.title = tr::lng_settings_force_mobile(tr::now),
 			.keywords = { u"mobile"_q, u"layout"_q, u"force"_q },
-			.deeplink = u"tg://settings/enhanced/other/force-mobile"_q,
+			.deeplink = u"tg://settings/enhanced/force-mobile"_q,
 		};
 	});
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
-			.id = u"enhanced/other/community-chat-click"_q,
+			.id = u"enhanced/community-chat-click"_q,
 			.title = tr::lng_settings_community_chat_click(tr::now),
 			.keywords = {
 				u"chat"_q,
@@ -409,7 +409,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				u"profile"_q,
 			},
 			.deeplink
-				= u"tg://settings/enhanced/other/community-chat-click"_q,
+				= u"tg://settings/enhanced/community-chat-click"_q,
 		};
 	});
 });
@@ -488,7 +488,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsAttentionButton
 		);
 		registerHighlight(
-			u"enhanced/messages/show-message-id"_q,
+			u"enhanced/show-message-id"_q,
 			showMessageId);
 		showMessageId->toggleOn(
 				rpl::single(GetEnhancedBool("show_messages_id"))
@@ -507,7 +507,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsAttentionButton
 		);
 		registerHighlight(
-			u"enhanced/messages/show-similar-on-joined"_q,
+			u"enhanced/show-similar-on-joined"_q,
 			showSimilarOnJoined);
 		showSimilarOnJoined->toggleOn(
 				rpl::single(GetEnhancedBool("show_similar_on_joined"))
@@ -526,7 +526,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsAttentionButton
 		);
 		registerHighlight(
-			u"enhanced/messages/more-right-action-comments"_q,
+			u"enhanced/more-right-action-comments"_q,
 			moreRightActionComments);
 		moreRightActionComments->toggleOn(
 				rpl::single(GetEnhancedBool("more_right_action_comments"))
@@ -545,7 +545,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/messages/disable-cloud-draft-sync"_q,
+			u"enhanced/disable-cloud-draft-sync"_q,
 			disableCloudDraftSync);
 		disableCloudDraftSync->toggleOn(
 				rpl::single(GetEnhancedBool("disable_cloud_draft_sync"))
@@ -562,7 +562,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				tr::lng_settings_force_show_webpage_preview(),
 				st::settingsButtonNoIcon);
 		registerHighlight(
-			u"enhanced/messages/force-show-webpage-preview"_q,
+			u"enhanced/force-show-webpage-preview"_q,
 			forceShowWebPagePreview);
 		forceShowWebPagePreview->toggleOn(
 				rpl::single(GetEnhancedBool("force_show_webpage_preview"))
@@ -591,7 +591,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/messages/disable-link-warning"_q,
+			u"enhanced/disable-link-warning"_q,
 			disableLinkWarning);
 		disableLinkWarning->toggleOn(
 				rpl::single(GetEnhancedBool("disable_link_warning"))
@@ -609,7 +609,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/messages/disable-premium-animation"_q,
+			u"enhanced/disable-premium-animation"_q,
 			disablePremiumAnimation);
 		disablePremiumAnimation->toggleOn(
 				rpl::single(GetEnhancedBool("disable_premium_animation"))
@@ -627,7 +627,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/messages/disable-global-search"_q,
+			u"enhanced/disable-global-search"_q,
 			disableGlobalSearch);
 		disableGlobalSearch->toggleOn(
 				rpl::single(GetEnhancedBool("disable_global_search"))
@@ -644,7 +644,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			tr::lng_settings_show_media_metadata(),
 			st::settingsButtonNoIcon);
 		registerHighlight(
-			u"enhanced/messages/show-media-metadata"_q,
+			u"enhanced/show-media-metadata"_q,
 			showMediaMetadata);
 		showMediaMetadata->toggleOn(
 			rpl::single(GetEnhancedBool("show_media_metadata"))
@@ -662,7 +662,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/messages/show-group-sender-avatar"_q,
+			u"enhanced/show-group-sender-avatar"_q,
 			showGroupSenderAvatar);
 		showGroupSenderAvatar->toggleOn(
 				rpl::single(GetEnhancedBool("show_group_sender_avatar"))
@@ -680,7 +680,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/messages/use-gt-api"_q,
+			u"enhanced/use-gt-api"_q,
 			useGtApi);
 		useGtApi->toggleOn(
 				rpl::single(GetEnhancedBool("use_gt_api"))
@@ -700,7 +700,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 					st::settingsButtonNoIcon
 			);
 			registerHighlight(
-				u"enhanced/messages/translate-to-tc"_q,
+				u"enhanced/translate-to-tc"_q,
 				translateToTc);
 			translateToTc->toggleOn(
 					rpl::single(GetEnhancedBool("translate_to_tc"))
@@ -719,7 +719,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			st::settingsAttentionButton
 		);
 		registerHighlight(
-			u"enhanced/messages/show-seconds"_q,
+			u"enhanced/show-seconds"_q,
 			showSeconds);
 		showSeconds->toggleOn(
 			rpl::single(GetEnhancedBool("show_seconds"))
@@ -738,7 +738,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/messages/hide-blocked-messages"_q,
+			u"enhanced/hide-blocked-messages"_q,
 			hideBlockedMessages);
 		hideBlockedMessages->toggleOn(
 				rpl::single(GetEnhancedBool("blocked_user_spoiler_mode"))
@@ -764,7 +764,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/messages/extra-context-menu-options"_q,
+			u"enhanced/extra-context-menu-options"_q,
 			extraContextMenu);
 		extraContextMenu->addClickHandler([=] {
 			Ui::show(Box<ExtraContextMenuBox>());
@@ -794,7 +794,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/messages/repeater-reply-to-original"_q,
+			u"enhanced/repeater-reply-to-original"_q,
 			repeaterReplyToOrig);
 		repeaterReplyToOrig->toggleOn(
 				rpl::single(GetEnhancedBool("repeater_reply_to_orig_msg"))
@@ -820,7 +820,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			std::move(richMessagePreviewBlocksValue),
 			st::settingsButtonNoIcon);
 		registerHighlight(
-			u"enhanced/messages/rich-message-blocks-limit"_q,
+			u"enhanced/rich-message-blocks-limit"_q,
 			richMessagePreviewBlocks);
 		richMessagePreviewBlocks->events(
 		) | rpl::on_next([=](not_null<QEvent*> e) {
@@ -844,7 +844,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			stickerHeightLabel->events_starting_with(
 				StickerHeightLabel(currentStickerHeight)),
 			st::settingsButtonNoIcon);
-		registerHighlight(u"enhanced/messages/sticker-height"_q, stickerHeight);
+		registerHighlight(u"enhanced/sticker-height"_q, stickerHeight);
 
 		const auto slider = interfaceInner->add(
 			object_ptr<Ui::MediaSliderWheelless>(interfaceInner, st::settingsScale),
@@ -901,7 +901,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/buttons/show-emoji-button-as-text"_q,
+			u"enhanced/show-emoji-button-as-text"_q,
 			showEmojiButtonAsText);
 		showEmojiButtonAsText->toggleOn(
 				rpl::single(GetEnhancedBool("show_emoji_button_as_text"))
@@ -922,7 +922,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/buttons/show-scheduled-button"_q,
+			u"enhanced/show-scheduled-button"_q,
 			showScheduledButton);
 		showScheduledButton->toggleOn(
 				rpl::single(GetEnhancedBool("show_scheduled_button"))
@@ -955,7 +955,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/voice-chat/radio-controller"_q,
+			u"enhanced/radio-controller"_q,
 			radioController);
 		radioController->addClickHandler([=] {
 			Ui::show(Box<RadioController>());
@@ -969,7 +969,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/voice-chat/auto-unmute"_q,
+			u"enhanced/auto-unmute"_q,
 			autoUnmute);
 		autoUnmute->toggleOn(
 				rpl::single(GetEnhancedBool("auto_unmute"))
@@ -998,7 +998,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/voice-chat/bitrate-controller"_q,
+			u"enhanced/bitrate-controller"_q,
 			btn);
 		btn->events(
 		) | rpl::on_next([=](not_null<QEvent*> e) {
@@ -1015,7 +1015,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/voice-chat/enable-hd-video"_q,
+			u"enhanced/enable-hd-video"_q,
 			enableHdVideo);
 		enableHdVideo->toggleOn(
 				rpl::single(GetEnhancedBool("hd_video"))
@@ -1034,7 +1034,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/voice-chat/mpris-call-hangup"_q,
+			u"enhanced/mpris-call-hangup"_q,
 			mprisCallHangup);
 		mprisCallHangup->toggleOn(
 				rpl::single(GetEnhancedBool("mpris_call_hangup"))
@@ -1058,7 +1058,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/other/show-peer-id"_q,
+			u"enhanced/show-peer-id"_q,
 			showPeerId);
 		showPeerId->toggleOn(
 				rpl::single(GetEnhancedBool("show_peer_id"))
@@ -1076,7 +1076,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			st::settingsAttentionButton
 		);
 		registerHighlight(
-			u"enhanced/other/hide-all-chats"_q,
+			u"enhanced/hide-all-chats"_q,
 			hideAllChats);
 		hideAllChats->toggleOn(
 				rpl::single(GetEnhancedBool("hide_all_chats"))
@@ -1095,7 +1095,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/other/replace-edit-button"_q,
+			u"enhanced/replace-edit-button"_q,
 			replaceEditButton);
 		replaceEditButton->toggleOn(
 				rpl::single(GetEnhancedBool("replace_edit_button"))
@@ -1114,7 +1114,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/other/skip-message"_q,
+			u"enhanced/skip-message"_q,
 			skipMessage);
 		skipMessage->toggleOn(
 				rpl::single(GetEnhancedBool("skip_to_next"))
@@ -1136,7 +1136,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/other/hide-counter"_q,
+			u"enhanced/hide-counter"_q,
 			hideCounter);
 		hideCounter->toggleOn(
 				rpl::single(GetEnhancedBool("hide_counter"))
@@ -1154,7 +1154,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/other/hide-stories"_q,
+			u"enhanced/hide-stories"_q,
 			hideStories);
 		hideStories->toggleOn(
 				rpl::single(GetEnhancedBool("hide_stories"))
@@ -1172,7 +1172,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/other/hide-star-ratings"_q,
+			u"enhanced/hide-star-ratings"_q,
 			hideStarRatings);
 		hideStarRatings->toggleOn(
 				rpl::single(GetEnhancedBool("hide_star_ratings"))
@@ -1190,7 +1190,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/other/force-mobile"_q,
+			u"enhanced/force-mobile"_q,
 			forceMobile);
 		forceMobile->toggleOn(
 				rpl::single(GetEnhancedBool("force_mobile"))
@@ -1209,7 +1209,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				st::settingsButtonNoIcon
 		);
 		registerHighlight(
-			u"enhanced/other/community-chat-click"_q,
+			u"enhanced/community-chat-click"_q,
 			communityChatClick);
 		communityChatClick->toggleOn(
 				rpl::single(GetEnhancedBool("community_chat_click"))

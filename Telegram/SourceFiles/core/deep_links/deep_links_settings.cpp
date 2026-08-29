@@ -1768,266 +1768,266 @@ void RegisterSettingsHandlers(Router &router) {
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/show-message-id"_q,
+		.path = u"enhanced/show-message-id"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/messages/show-message-id"_q,
+			u"enhanced/show-message-id"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/rich-message-blocks-limit"_q,
+		.path = u"enhanced/rich-message-blocks-limit"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/messages/rich-message-blocks-limit"_q,
+			u"enhanced/rich-message-blocks-limit"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/sticker-height"_q,
+		.path = u"enhanced/sticker-height"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/messages/sticker-height"_q,
+			u"enhanced/sticker-height"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/show-similar-on-joined"_q,
+		.path = u"enhanced/show-similar-on-joined"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/messages/show-similar-on-joined"_q,
+			u"enhanced/show-similar-on-joined"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/more-right-action-comments"_q,
+		.path = u"enhanced/more-right-action-comments"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/messages/more-right-action-comments"_q,
+			u"enhanced/more-right-action-comments"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/extra-context-menu-options"_q,
+		.path = u"enhanced/extra-context-menu-options"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/messages/extra-context-menu-options"_q,
+			u"enhanced/extra-context-menu-options"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/repeater-reply-to-original"_q,
+		.path = u"enhanced/repeater-reply-to-original"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/messages/repeater-reply-to-original"_q,
+			u"enhanced/repeater-reply-to-original"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/disable-cloud-draft-sync"_q,
+		.path = u"enhanced/disable-cloud-draft-sync"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/messages/disable-cloud-draft-sync"_q,
+			u"enhanced/disable-cloud-draft-sync"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/force-show-webpage-preview"_q,
+		.path = u"enhanced/force-show-webpage-preview"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/messages/force-show-webpage-preview"_q,
+			u"enhanced/force-show-webpage-preview"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/disable-link-warning"_q,
+		.path = u"enhanced/disable-link-warning"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/messages/disable-link-warning"_q,
+			u"enhanced/disable-link-warning"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/disable-premium-animation"_q,
+		.path = u"enhanced/disable-premium-animation"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/messages/disable-premium-animation"_q,
+			u"enhanced/disable-premium-animation"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/disable-global-search"_q,
+		.path = u"enhanced/disable-global-search"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/messages/disable-global-search"_q,
+			u"enhanced/disable-global-search"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/show-group-sender-avatar"_q,
+		.path = u"enhanced/show-group-sender-avatar"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/messages/show-group-sender-avatar"_q,
+			u"enhanced/show-group-sender-avatar"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/use-gt-api"_q,
+		.path = u"enhanced/use-gt-api"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/messages/use-gt-api"_q,
+			u"enhanced/use-gt-api"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/translate-to-tc"_q,
+		.path = u"enhanced/translate-to-tc"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/messages/translate-to-tc"_q,
+			u"enhanced/translate-to-tc"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/show-seconds"_q,
+		.path = u"enhanced/show-seconds"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/messages/show-seconds"_q,
+			u"enhanced/show-seconds"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/messages/hide-blocked-messages"_q,
+		.path = u"enhanced/hide-blocked-messages"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/messages/hide-blocked-messages"_q,
+			u"enhanced/hide-blocked-messages"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/buttons/show-emoji-button-as-text"_q,
+		.path = u"enhanced/show-emoji-button-as-text"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/buttons/show-emoji-button-as-text"_q,
+			u"enhanced/show-emoji-button-as-text"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/buttons/show-scheduled-button"_q,
+		.path = u"enhanced/show-scheduled-button"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/buttons/show-scheduled-button"_q,
+			u"enhanced/show-scheduled-button"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/voice-chat/radio-controller"_q,
+		.path = u"enhanced/radio-controller"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/voice-chat/radio-controller"_q,
+			u"enhanced/radio-controller"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/voice-chat/auto-unmute"_q,
+		.path = u"enhanced/auto-unmute"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/voice-chat/auto-unmute"_q,
+			u"enhanced/auto-unmute"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/voice-chat/bitrate-controller"_q,
+		.path = u"enhanced/bitrate-controller"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/voice-chat/bitrate-controller"_q,
+			u"enhanced/bitrate-controller"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/voice-chat/enable-hd-video"_q,
+		.path = u"enhanced/enable-hd-video"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/voice-chat/enable-hd-video"_q,
+			u"enhanced/enable-hd-video"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/voice-chat/mpris-call-hangup"_q,
+		.path = u"enhanced/mpris-call-hangup"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/voice-chat/mpris-call-hangup"_q,
+			u"enhanced/mpris-call-hangup"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/other/show-peer-id"_q,
+		.path = u"enhanced/show-peer-id"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/other/show-peer-id"_q,
+			u"enhanced/show-peer-id"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/other/hide-all-chats"_q,
+		.path = u"enhanced/hide-all-chats"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/other/hide-all-chats"_q,
+			u"enhanced/hide-all-chats"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/other/replace-edit-button"_q,
+		.path = u"enhanced/replace-edit-button"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/other/replace-edit-button"_q,
+			u"enhanced/replace-edit-button"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/other/skip-message"_q,
+		.path = u"enhanced/skip-message"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/other/skip-message"_q,
+			u"enhanced/skip-message"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/other/hide-counter"_q,
+		.path = u"enhanced/hide-counter"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/other/hide-counter"_q,
+			u"enhanced/hide-counter"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/other/hide-stories"_q,
+		.path = u"enhanced/hide-stories"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/other/hide-stories"_q,
+			u"enhanced/hide-stories"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/other/hide-star-ratings"_q,
+		.path = u"enhanced/hide-star-ratings"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/other/hide-star-ratings"_q,
+			u"enhanced/hide-star-ratings"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/other/force-mobile"_q,
+		.path = u"enhanced/force-mobile"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/other/force-mobile"_q,
+			u"enhanced/force-mobile"_q,
 		},
 	});
 
 	router.add(u"settings"_q, {
-		.path = u"enhanced/other/community-chat-click"_q,
+		.path = u"enhanced/community-chat-click"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
-			u"enhanced/other/community-chat-click"_q,
+			u"enhanced/community-chat-click"_q,
 		},
 	});
 
