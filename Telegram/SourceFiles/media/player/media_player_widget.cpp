@@ -10,6 +10,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "core/enhanced_settings.h"
 #include "platform/platform_specific.h"
 #include "data/data_document.h"
+#include "data/data_document_media.h"
 #include "data/data_session.h"
 #include "data/data_peer.h"
 #include "core/application.h"
@@ -27,6 +28,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/text/format_song_document_name.h"
 #include "lang/lang_keys.h"
 #include "media/audio/media_audio.h"
+#include "media/media_video_frames.h"
 #include "media/view/media_view_playback_progress.h"
 #include "media/player/media_player_button.h"
 #include "media/player/media_player_instance.h"
@@ -81,20 +83,49 @@ namespace {
 	return flags.join(u" · "_q);
 }
 
+[[nodiscard]] auto LocalDocumentVideoInformation(
+		not_null<DocumentData*> document)
+-> std::optional<::Media::Video::Information> {
+	const auto media = document->activeMediaView();
+	const auto bytes = media ? media->bytes() : QByteArray();
+	if (!bytes.isEmpty()) {
+		return ::Media::Video::ReadInformation(QString(), bytes);
+	}
+	const auto &location = document->location(true);
+	if (location.isEmpty() || !location.accessEnable()) {
+		return std::nullopt;
+	}
+	const auto guard = gsl::finally([&] { location.accessDisable(); });
+	return ::Media::Video::ReadInformation(location.name());
+}
+
+[[nodiscard]] ::Media::Video::Information DocumentVideoInformation(
+		not_null<DocumentData*> document) {
+	auto result = LocalDocumentVideoInformation(document).value_or(
+		::Media::Video::Information());
+	const auto video = document->video();
+	result.fillMissingFrom({
+		.dimensions = document->dimensions,
+		.duration = document->duration(),
+		.codec = video ? video->codec : QString(),
+	});
+	return result;
+}
+
 [[nodiscard]] QString DocumentMetadataText(
 		not_null<DocumentData*> document) {
 	auto parts = QStringList();
-	const auto dimensions = FormatMediaDimensions(document->dimensions);
+	const auto information = DocumentVideoInformation(document);
+	const auto dimensions = FormatMediaDimensions(information.dimensions);
 	if (!dimensions.isEmpty()) {
 		parts.push_back(dimensions);
 	}
-	const auto video = document->video();
-	if (video && !video->codec.isEmpty()) {
-		parts.push_back(video->codec.toUpper());
+	if (!information.codec.isEmpty()) {
+		parts.push_back(information.codec.toUpper());
 	}
 	const auto bitrate = FormatAverageBitrate(
 		document->size,
-		document->duration());
+		information.duration);
 	if (!bitrate.isEmpty()) {
 		parts.push_back(bitrate);
 	}

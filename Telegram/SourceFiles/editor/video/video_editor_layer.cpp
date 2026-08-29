@@ -61,7 +61,7 @@ void PrepareProfileVideo(
 		EditorData data,
 		const QString &path,
 		Fn<void(ProfileMedia&&)> &&doneCallback) {
-	const auto info = Media::Video::ReadFileInfo(path);
+	const auto info = Media::Video::ReadDecodableInformation(path);
 	if (!info.valid() || !AcceptableDimensions(info.dimensions)) {
 		controller->show(Ui::MakeInformBox(tr::lng_bad_video()));
 		return;

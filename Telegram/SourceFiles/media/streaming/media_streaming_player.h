@@ -7,10 +7,13 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #pragma once
 
+#include "base/timer.h"
+#include "base/weak_ptr.h"
 #include "media/streaming/media_streaming_common.h"
 #include "media/streaming/media_streaming_file_delegate.h"
-#include "base/weak_ptr.h"
-#include "base/timer.h"
+#include "media/media_video_frames.h"
+
+#include <rpl/variable.h>
 
 namespace Media {
 namespace Player {
@@ -58,6 +61,8 @@ public:
 	[[nodiscard]] bool finished() const;
 
 	[[nodiscard]] rpl::producer<Update, Error> updates() const;
+	[[nodiscard]] auto videoInformationValue() const
+	-> rpl::producer<::Media::Video::Information>;
 	[[nodiscard]] rpl::producer<bool> fullInCache() const;
 
 	[[nodiscard]] int64 fileSize() const;
@@ -202,6 +207,7 @@ private:
 	crl::time _nextFrameTime = kTimeUnknown;
 	base::Timer _renderFrameTimer;
 	rpl::event_stream<Update, Error> _updates;
+	rpl::variable<::Media::Video::Information> _videoInformation;
 	rpl::event_stream<bool> _fullInCache;
 	std::optional<bool> _fullInCacheSinceStart;
 

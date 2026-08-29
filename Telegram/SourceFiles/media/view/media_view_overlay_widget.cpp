@@ -58,6 +58,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "boxes/moderate_messages_box.h"
 #include "boxes/report_messages_box.h"
 #include "media/audio/media_audio.h"
+#include "media/media_video_frames.h"
 #include "media/view/media_view_group_thumbs.h"
 #include "media/view/media_view_pip.h"
 #include "media/view/media_view_overlay_raster.h"
@@ -238,9 +239,45 @@ constexpr auto kStorySavePromoDuration = 3 * crl::time(1000);
 		: QString();
 }
 
+[[nodiscard]] auto LocalDocumentVideoInformation(
+		not_null<DocumentData*> document)
+-> std::optional<::Media::Video::Information> {
+	const auto media = document->activeMediaView();
+	const auto bytes = media ? media->bytes() : QByteArray();
+	if (!bytes.isEmpty()) {
+		return ::Media::Video::ReadInformation(QString(), bytes);
+	}
+	const auto &location = document->location(true);
+	if (location.isEmpty() || !location.accessEnable()) {
+		return std::nullopt;
+	}
+	const auto guard = gsl::finally([&] { location.accessDisable(); });
+	return ::Media::Video::ReadInformation(location.name());
+}
+
+[[nodiscard]] ::Media::Video::Information DocumentVideoInformation(
+		not_null<DocumentData*> document,
+		::Media::Video::Information streamingInformation) {
+	auto result = std::move(streamingInformation);
+	if (!result.complete()) {
+		const auto local = LocalDocumentVideoInformation(document);
+		if (local) {
+			result.fillMissingFrom(*local);
+		}
+	}
+	const auto video = document->video();
+	result.fillMissingFrom({
+		.dimensions = document->dimensions,
+		.duration = document->duration(),
+		.codec = video ? video->codec : QString(),
+	});
+	return result;
+}
+
 [[nodiscard]] QString MediaMetadataText(
 		PhotoData *photo,
-		DocumentData *document) {
+		DocumentData *document,
+		::Media::Video::Information streamingInformation) {
 	if (!EnhancedSettings::ShowMediaMetadata()) {
 		return QString();
 	}
@@ -267,19 +304,23 @@ constexpr auto kStorySavePromoDuration = 3 * crl::time(1000);
 			}
 		}
 	} else if (document) {
-		const auto dimensions = FormatMediaDimensions(document->dimensions);
+		const auto information = DocumentVideoInformation(
+			document,
+			std::move(streamingInformation));
+		const auto dimensions = FormatMediaDimensions(
+			information.dimensions);
 		if (!dimensions.isEmpty()) {
 			parts.push_back(dimensions);
 		}
-		const auto video = document->video();
-		if (video && !video->codec.isEmpty()) {
-			parts.push_back(video->codec.toUpper());
+		if (!information.codec.isEmpty()) {
+			parts.push_back(information.codec.toUpper());
 		}
 		if (document->size > 0) {
 			parts.push_back(Ui::FormatSizeText(document->size));
 		}
-		const auto duration = document->duration();
-		const auto bitrate = FormatAverageBitrate(document->size, duration);
+		const auto bitrate = FormatAverageBitrate(
+			document->size,
+			information.duration);
 		if (!bitrate.isEmpty()) {
 			parts.push_back(bitrate);
 		}
@@ -576,6 +617,7 @@ struct OverlayWidget::Streamed {
 	std::unique_ptr<PlaybackControls> controls;
 	std::unique_ptr<PlaybackSponsored> sponsored;
 	std::unique_ptr<base::PowerSaveBlocker> powerSaveBlocker;
+	::Media::Video::Information information;
 
 	bool ready = false;
 	bool withSound = false;
@@ -1923,7 +1965,13 @@ void OverlayWidget::updateControls() {
 	} else if (_document) {
 		_dateText += QString(" @ DC%1").arg(_document->getDC());
 	}
-	const auto metadata = MediaMetadataText(_photo, _document);
+	const auto streamingInformation = _streamed
+		? _streamed->information
+		: ::Media::Video::Information();
+	const auto metadata = MediaMetadataText(
+		_photo,
+		_document,
+		streamingInformation);
 	if (!metadata.isEmpty()) {
 		_dateText += u" · "_q + metadata;
 	}
@@ -5097,6 +5145,13 @@ bool OverlayWidget::initStreaming(const StartStreaming &startStreaming) {
 		handleStreamingUpdate(std::move(update));
 	}, [=](Streaming::Error &&error) {
 		handleStreamingError(std::move(error));
+	}, _streamed->instance.lifetime());
+	_streamed->instance.player().videoInformationValue(
+	) | rpl::on_next([=](::Media::Video::Information information) {
+		if (_streamed && _streamed->information != information) {
+			_streamed->information = std::move(information);
+			updateControls();
+		}
 	}, _streamed->instance.lifetime());
 
 	_streamed->instance.switchQualityRequests(

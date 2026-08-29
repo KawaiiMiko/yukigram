@@ -338,21 +338,57 @@ QImage Extractor::take(crl::time position) {
 		_scale);
 }
 
-} // namespace
-
-FileInfo ReadFileInfo(const QString &path, const QByteArray &content) {
+Information ReadInformation(
+		const QString &path,
+		const QByteArray &content,
+		bool withDecoder) {
 	auto source = Source();
-	if (!OpenSource(source, path, content, true)) {
+	if (!OpenSource(source, path, content, withDecoder)) {
 		return {};
 	}
 	const auto stream = source.videoStream;
+	const auto parameters = stream->codecpar;
+	if (!parameters) {
+		return {};
+	}
 	const auto original = QSize(
-		stream->codecpar->width,
-		stream->codecpar->height);
+		parameters->width,
+		parameters->height);
+	const auto codec = parameters->codec_id;
+	const auto name = (codec == AV_CODEC_ID_NONE)
+		? nullptr
+		: avcodec_get_name(codec);
 	return {
 		.dimensions = TransposeSizeByRotation(original, source.rotation),
 		.duration = SourceDuration(source),
+		.codec = name ? QString::fromLatin1(name) : QString(),
 	};
+}
+
+} // namespace
+
+void Information::fillMissingFrom(const Information &fallback) {
+	if (dimensions.isEmpty()) {
+		dimensions = fallback.dimensions;
+	}
+	if (duration <= 0) {
+		duration = fallback.duration;
+	}
+	if (codec.isEmpty()) {
+		codec = fallback.codec;
+	}
+}
+
+Information ReadInformation(
+		const QString &path,
+		const QByteArray &content) {
+	return ReadInformation(path, content, false);
+}
+
+Information ReadDecodableInformation(
+		const QString &path,
+		const QByteArray &content) {
+	return ReadInformation(path, content, true);
 }
 
 void ExtractFrames(

@@ -264,6 +264,24 @@ bool Player::fileReady(int headerSize, Stream &&video, Stream &&audio) {
 	if (mode != Mode::Video && mode != Mode::Both) {
 		video = Stream();
 	}
+	if (video.codec) {
+		const auto codec = video.codec->codec_id;
+		const auto name = (codec == AV_CODEC_ID_NONE)
+			? nullptr
+			: avcodec_get_name(codec);
+		const auto information = ::Media::Video::Information{
+			.dimensions = FFmpeg::TransposeSizeByRotation(
+				QSize(video.codec->width, video.codec->height),
+				video.rotation),
+			.duration = (video.duration == kDurationUnavailable)
+				? crl::time(0)
+				: video.duration,
+			.codec = name ? QString::fromLatin1(name) : QString(),
+		};
+		crl::on_main(weak, [=] {
+			_videoInformation = information;
+		});
+	}
 	if (audio.duration == kDurationUnavailable) {
 		LOG(("Streaming Error: Audio stream with unknown duration."));
 		return false;
@@ -881,6 +899,11 @@ bool Player::ready() const {
 
 rpl::producer<Update, Error> Player::updates() const {
 	return _updates.events();
+}
+
+auto Player::videoInformationValue() const
+-> rpl::producer<::Media::Video::Information> {
+	return _videoInformation.value();
 }
 
 rpl::producer<bool> Player::fullInCache() const {

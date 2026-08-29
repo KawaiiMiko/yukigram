@@ -9,16 +9,29 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 namespace Media::Video {
 
-struct FileInfo {
+struct Information {
 	QSize dimensions;
 	crl::time duration = 0;
+	QString codec;
 
 	[[nodiscard]] bool valid() const {
 		return !dimensions.isEmpty() && (duration > 0);
 	}
+	[[nodiscard]] bool complete() const {
+		return valid() && !codec.isEmpty();
+	}
+	void fillMissingFrom(const Information &fallback);
+
+	friend inline bool operator==(
+		const Information &,
+		const Information &) = default;
 };
 
-[[nodiscard]] FileInfo ReadFileInfo(
+[[nodiscard]] Information ReadInformation(
+	const QString &path,
+	const QByteArray &content = QByteArray());
+
+[[nodiscard]] Information ReadDecodableInformation(
 	const QString &path,
 	const QByteArray &content = QByteArray());
 
