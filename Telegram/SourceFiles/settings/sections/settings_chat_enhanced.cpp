@@ -45,7 +45,7 @@ using Available = bool (*)(not_null<PeerData*>);
 
 enum class Group {
 	Messages,
-	Buttons,
+	Interface,
 	Count,
 };
 
@@ -178,7 +178,7 @@ constexpr auto kFeatureDescriptors = std::array{
 	},
 	FeatureDescriptor{
 		.feature = Feature::ShowScheduledButton,
-		.group = Group::Buttons,
+		.group = Group::Interface,
 		.title = ShowScheduledButtonTitle,
 		.available = ShowScheduledButtonAvailable,
 	},
@@ -189,7 +189,7 @@ static_assert(
 
 constexpr auto kGroups = std::array{
 	Group::Messages,
-	Group::Buttons,
+	Group::Interface,
 };
 static_assert(
 	kGroups.size()
@@ -199,8 +199,8 @@ rpl::producer<QString> GroupTitle(Group group) {
 	switch (group) {
 	case Group::Messages:
 		return tr::lng_settings_messages();
-	case Group::Buttons:
-		return tr::lng_settings_button();
+	case Group::Interface:
+		return tr::lng_settings_interface();
 	case Group::Count:
 		break;
 	}

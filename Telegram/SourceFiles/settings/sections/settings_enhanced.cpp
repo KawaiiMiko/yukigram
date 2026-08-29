@@ -472,19 +472,18 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}).send();
 	}
 
-	void Enhanced::SetupEnhancedMessages(not_null<Ui::VerticalLayout *> container) {
-		AddDivider(container);
-		AddSkip(container);
-		AddSubsectionTitle(container, tr::lng_settings_messages());
-
-		const auto wrap = container->add(
-				object_ptr<Ui::SlideWrap<Ui::VerticalLayout>>(
-						container,
-						object_ptr<Ui::VerticalLayout>(container)));
-		const auto inner = wrap->entity();
+	void Enhanced::SetupEnhancedChat(not_null<Ui::VerticalLayout *> container) {
+		auto messages = object_ptr<Ui::VerticalLayout>(container);
+		const auto messagesInner = messages.data();
+		auto interface = object_ptr<Ui::VerticalLayout>(container);
+		const auto interfaceInner = interface.data();
+		auto behavior = object_ptr<Ui::VerticalLayout>(container);
+		const auto behaviorInner = behavior.data();
+		auto translation = object_ptr<Ui::VerticalLayout>(container);
+		const auto translationInner = translation.data();
 
 		const auto showMessageId = AddButtonWithIcon(
-				inner,
+				messagesInner,
 				tr::lng_settings_show_message_id(),
 				st::settingsAttentionButton
 		);
@@ -503,7 +502,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}, container->lifetime());
 
 		const auto showSimilarOnJoined = AddButtonWithIcon(
-				inner,
+				behaviorInner,
 				tr::lng_settings_show_similar_on_joined(),
 				st::settingsAttentionButton
 		);
@@ -522,7 +521,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}, container->lifetime());
 
 		const auto moreRightActionComments = AddButtonWithIcon(
-				inner,
+				behaviorInner,
 				tr::lng_settings_more_right_action_comments(),
 				st::settingsAttentionButton
 		);
@@ -541,7 +540,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}, container->lifetime());
 
 		const auto disableCloudDraftSync = AddButtonWithIcon(
-				inner,
+				behaviorInner,
 				tr::lng_settings_disable_cloud_draft_sync(),
 				st::settingsButtonNoIcon
 		);
@@ -558,10 +557,8 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			EnhancedSettings::Write();
 		}, container->lifetime());
 
-		AddSkip(container);
-
 		const auto forceShowWebPagePreview = AddButtonWithIcon(
-				inner,
+				messagesInner,
 				tr::lng_settings_force_show_webpage_preview(),
 				st::settingsButtonNoIcon);
 		registerHighlight(
@@ -589,7 +586,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}, container->lifetime());
 
 		const auto disableLinkWarning = AddButtonWithIcon(
-				inner,
+				behaviorInner,
 				tr::lng_settings_disable_link_warning(),
 				st::settingsButtonNoIcon
 		);
@@ -607,7 +604,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}, container->lifetime());
 
 		const auto disablePremiumAnimation = AddButtonWithIcon(
-				inner,
+				interfaceInner,
 				tr::lng_settings_disable_premium_animation(),
 				st::settingsButtonNoIcon
 		);
@@ -625,7 +622,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}, container->lifetime());
 
 		const auto disableGlobalSearch = AddButtonWithIcon(
-				inner,
+				behaviorInner,
 				tr::lng_settings_disable_global_search(),
 				st::settingsButtonNoIcon
 		);
@@ -643,7 +640,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}, container->lifetime());
 
 		const auto showMediaMetadata = AddButtonWithIcon(
-			inner,
+			messagesInner,
 			tr::lng_settings_show_media_metadata(),
 			st::settingsButtonNoIcon);
 		registerHighlight(
@@ -660,7 +657,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}, container->lifetime());
 
 		const auto showGroupSenderAvatar = AddButtonWithIcon(
-				inner,
+				interfaceInner,
 				tr::lng_settings_show_group_sender_avatar(),
 				st::settingsButtonNoIcon
 		);
@@ -678,7 +675,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}, container->lifetime());
 
 		const auto useGtApi = AddButtonWithIcon(
-				inner,
+				translationInner,
 				tr::lng_settings_use_gt_api(),
 				st::settingsButtonNoIcon
 		);
@@ -698,7 +695,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		QString langPackBaseId = Lang::GetInstance().baseId();
 		if (langPackBaseId == "zh-hant-raw" || langPackBaseId == "zh-hans-raw") {
 			const auto translateToTc = AddButtonWithIcon(
-					inner,
+					translationInner,
 					tr::lng_settings_translate_to_tc(),
 					st::settingsButtonNoIcon
 			);
@@ -717,7 +714,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}
 
 		const auto showSeconds = AddButtonWithIcon(
-			inner,
+			interfaceInner,
 			tr::lng_settings_show_seconds(),
 			st::settingsAttentionButton
 		);
@@ -736,7 +733,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}, container->lifetime());
 
 		const auto hideBlockedMessages = AddButtonWithIcon(
-			inner,
+			messagesInner,
 			tr::lng_settings_hide_messages(),
 			st::settingsButtonNoIcon
 		);
@@ -762,7 +759,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}, container->lifetime());
 
 		const auto extraContextMenu = AddButtonWithIcon(
-				inner,
+				behaviorInner,
 				tr::lng_settings_extra_context_menu_options(),
 				st::settingsButtonNoIcon
 		);
@@ -774,10 +771,10 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		});
 
 
-		const auto repeaterSubWrap = inner->add(
+		const auto repeaterSubWrap = behaviorInner->add(
 			object_ptr<Ui::SlideWrap<Ui::VerticalLayout>>(
-				inner,
-				object_ptr<Ui::VerticalLayout>(inner)));
+				behaviorInner,
+				object_ptr<Ui::VerticalLayout>(behaviorInner)));
 		const auto repeaterSubInner = repeaterSubWrap->entity();
 		repeaterSubWrap->toggle(
 			HasExtraContextMenuOption(ExtraContextMenuOption::Repeater),
@@ -818,7 +815,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			return limit ? QString::number(limit) : std::move(defaultLabel);
 		});
 		const auto richMessagePreviewBlocks = AddButtonWithLabel(
-			inner,
+			messagesInner,
 			tr::lng_settings_rich_message_preview_blocks(),
 			std::move(richMessagePreviewBlocksValue),
 			st::settingsButtonNoIcon);
@@ -839,18 +836,18 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		const auto currentStickerHeight = storedStickerHeight
 			? storedStickerHeight
 			: EnhancedSettings::kStickerHeightMax;
-		const auto stickerHeightLabel = inner->lifetime(
+		const auto stickerHeightLabel = interfaceInner->lifetime(
 		).make_state<rpl::event_stream<QString>>();
 		const auto stickerHeight = AddButtonWithLabel(
-			inner,
+			interfaceInner,
 			tr::lng_settings_sticker_height(),
 			stickerHeightLabel->events_starting_with(
 				StickerHeightLabel(currentStickerHeight)),
 			st::settingsButtonNoIcon);
 		registerHighlight(u"enhanced/messages/sticker-height"_q, stickerHeight);
 
-		const auto slider = inner->add(
-			object_ptr<Ui::MediaSliderWheelless>(inner, st::settingsScale),
+		const auto slider = interfaceInner->add(
+			object_ptr<Ui::MediaSliderWheelless>(interfaceInner, st::settingsScale),
 			st::settingsBigScalePadding);
 		slider->resize(slider->width(), st::settingsScale.seekSize.height());
 		slider->setAccessibleName(tr::lng_settings_sticker_height(tr::now));
@@ -875,18 +872,28 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			[=](int index) {
 				saveStickerHeight(StickerHeightForIndex(index));
 			});
+
+		SetupEnhancedCompose(interfaceInner);
+		SetupEnhancedApplication(interfaceInner, behaviorInner);
+
+		const auto addGroup = [=](
+				rpl::producer<QString> title,
+				object_ptr<Ui::VerticalLayout> content) {
+			AddDivider(container);
+			AddSkip(container);
+			AddSubsectionTitle(container, std::move(title));
+			container->add(object_ptr<Ui::SlideWrap<Ui::VerticalLayout>>(
+				container,
+				std::move(content)));
+		};
+		addGroup(tr::lng_settings_messages(), std::move(messages));
+		addGroup(tr::lng_settings_interface(), std::move(interface));
+		addGroup(tr::lng_settings_behavior(), std::move(behavior));
+		addGroup(tr::lng_settings_translation(), std::move(translation));
 	}
 
-	void Enhanced::SetupEnhancedButton(not_null<Ui::VerticalLayout *> container) {
-		AddDivider(container);
-		AddSkip(container);
-		AddSubsectionTitle(container, tr::lng_settings_button());
-
-		const auto wrap = container->add(
-				object_ptr<Ui::SlideWrap<Ui::VerticalLayout>>(
-						container,
-						object_ptr<Ui::VerticalLayout>(container)));
-		const auto inner = wrap->entity();
+	void Enhanced::SetupEnhancedCompose(not_null<Ui::VerticalLayout *> container) {
+		const auto inner = container;
 
 		const auto showEmojiButtonAsText = AddButtonWithIcon(
 				inner,
@@ -929,8 +936,6 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 				nullptr,
 				EnhancedSettings::ChatFeature::ShowScheduledButton);
 		}, container->lifetime());
-
-		AddSkip(container);
 	}
 
 	void Enhanced::SetupEnhancedVoiceChat(not_null<Ui::VerticalLayout *> container) {
@@ -1044,13 +1049,11 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		AddSkip(container);
 	}
 
-	void Enhanced::SetupEnhancedOthers(not_null<Window::SessionController*> controller, not_null<Ui::VerticalLayout *> container) {
-		AddDivider(container);
-		AddSkip(container);
-		AddSubsectionTitle(container, tr::lng_settings_other());
-
+	void Enhanced::SetupEnhancedApplication(
+			not_null<Ui::VerticalLayout *> interfaceContainer,
+			not_null<Ui::VerticalLayout *> behaviorContainer) {
 		const auto showPeerId = AddButtonWithIcon(
-			container,
+			interfaceContainer,
 			tr::lng_settings_show_peer_id(),
 			st::settingsButtonNoIcon
 		);
@@ -1065,10 +1068,10 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}) | rpl::on_next([=](bool enabled) {
 			SetEnhancedValue("show_peer_id", enabled);
 			EnhancedSettings::Write();
-		}, container->lifetime());
+		}, interfaceContainer->lifetime());
 
 		const auto hideAllChats = AddButtonWithIcon(
-			container,
+			interfaceContainer,
 			tr::lng_settings_hide_all_chats(),
 			st::settingsAttentionButton
 		);
@@ -1084,10 +1087,10 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			SetEnhancedValue("hide_all_chats", enabled);
 			EnhancedSettings::Write();
 			Core::Restart();
-		}, container->lifetime());
+		}, interfaceContainer->lifetime());
 
 		const auto replaceEditButton = AddButtonWithIcon(
-				container,
+				behaviorContainer,
 				tr::lng_settings_replace_edit_button(),
 				st::settingsButtonNoIcon
 		);
@@ -1102,11 +1105,11 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}) | rpl::on_next([=](bool enabled) {
 			SetEnhancedValue("replace_edit_button", enabled);
 			EnhancedSettings::Write();
-			controller->reloadFiltersMenu();
-		}, container->lifetime());
+			controller()->reloadFiltersMenu();
+		}, behaviorContainer->lifetime());
 
 		const auto skipMessage = AddButtonWithIcon(
-				container,
+				behaviorContainer,
 				tr::lng_settings_skip_message(),
 				st::settingsButtonNoIcon
 		);
@@ -1121,12 +1124,14 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}) | rpl::on_next([=](bool enabled) {
 			SetEnhancedValue("skip_to_next", enabled);
 			EnhancedSettings::Write();
-		}, container->lifetime());
+		}, behaviorContainer->lifetime());
 
-		AddDividerText(container, tr::lng_settings_skip_message_desc());
+		AddDividerText(
+			behaviorContainer,
+			tr::lng_settings_skip_message_desc());
 
 		const auto hideCounter = AddButtonWithIcon(
-				container,
+				interfaceContainer,
 				tr::lng_settings_hide_counter(),
 				st::settingsButtonNoIcon
 		);
@@ -1141,10 +1146,10 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}) | rpl::on_next([=](bool enabled) {
 			SetEnhancedValue("hide_counter", enabled);
 			EnhancedSettings::Write();
-		}, container->lifetime());
+		}, interfaceContainer->lifetime());
 
 		const auto hideStories = AddButtonWithIcon(
-				container,
+				interfaceContainer,
 				tr::lng_settings_hide_stories(),
 				st::settingsButtonNoIcon
 		);
@@ -1159,10 +1164,10 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}) | rpl::on_next([=](bool enabled) {
 			SetEnhancedValue("hide_stories", enabled);
 			EnhancedSettings::Write();
-		}, container->lifetime());
+		}, interfaceContainer->lifetime());
 
 		const auto hideStarRatings = AddButtonWithIcon(
-				container,
+				interfaceContainer,
 				tr::lng_settings_hide_star_ratings(),
 				st::settingsButtonNoIcon
 		);
@@ -1177,10 +1182,10 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}) | rpl::on_next([=](bool enabled) {
 			SetEnhancedValue("hide_star_ratings", enabled);
 			EnhancedSettings::Write();
-		}, container->lifetime());
+		}, interfaceContainer->lifetime());
 
 		const auto forceMobile = AddButtonWithIcon(
-				container,
+				interfaceContainer,
 				tr::lng_settings_force_mobile(),
 				st::settingsButtonNoIcon
 		);
@@ -1196,10 +1201,10 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			SetEnhancedValue("force_mobile", toggled);
 			EnhancedSettings::Write();
 			Core::Restart();
-		}, container->lifetime());
+		}, interfaceContainer->lifetime());
 
 		const auto communityChatClick = AddButtonWithIcon(
-				container,
+				behaviorContainer,
 				tr::lng_settings_community_chat_click(),
 				st::settingsButtonNoIcon
 		);
@@ -1214,9 +1219,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		}) | rpl::on_next([=](bool enabled) {
 			SetEnhancedValue("community_chat_click", enabled);
 			EnhancedSettings::Write();
-		}, container->lifetime());
-
-		AddSkip(container);
+		}, behaviorContainer->lifetime());
 	}
 
 	rpl::producer<QString> Enhanced::title() {
@@ -1227,16 +1230,14 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			QWidget *parent,
 			not_null<Window::SessionController *> controller)
 			: Section(parent, controller) {
-		setupContent(controller);
+		setupContent();
 	}
 
-	void Enhanced::setupContent(not_null<Window::SessionController *> controller) {
+	void Enhanced::setupContent() {
 		const auto content = Ui::CreateChild<Ui::VerticalLayout>(this);
 
-		SetupEnhancedMessages(content);
-		SetupEnhancedButton(content);
+		SetupEnhancedChat(content);
 		SetupEnhancedVoiceChat(content);
-		SetupEnhancedOthers(controller, content);
 
 		Ui::ResizeFitChild(this, content);
 	}

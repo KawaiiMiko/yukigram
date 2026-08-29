@@ -872,6 +872,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_settings_advanced" = "Advanced";
 "lng_settings_stickers_emoji" = "Stickers and emoji";
 "lng_settings_messages" = "Messages";
+"lng_settings_interface" = "Interface";
+"lng_settings_behavior" = "Behavior";
+"lng_settings_translation" = "Translation";
 "lng_settings_themes" = "Themes";
 "lng_settings_theme_day" = "Day";
 "lng_settings_theme_classic" = "Classic";
@@ -8794,7 +8797,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_settings_unpin_voice_chat" = "Unpin";
 "lng_settings_radio_controller" = "Radio controller";
 "lng_settings_auto_unmute" = "Auto unmute";
-"lng_settings_other" = "Other";
 "lng_settings_hide_all_chats" = "Hide \"All chats\" folder";
 "lng_settings_replace_edit_button" = "Replace \"Edit\" button by Saved Messages";
 "lng_settings_disable_link_warning" = "Disable open link warning";

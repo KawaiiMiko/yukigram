@@ -38,11 +38,13 @@ namespace Settings {
 		void showFinished() override;
 
 	private:
-		void setupContent(not_null<Window::SessionController *> controller);
-		void SetupEnhancedMessages(not_null<Ui::VerticalLayout *> container);
-		void SetupEnhancedButton(not_null<Ui::VerticalLayout *> container);
+		void setupContent();
+		void SetupEnhancedChat(not_null<Ui::VerticalLayout *> container);
+		void SetupEnhancedCompose(not_null<Ui::VerticalLayout *> container);
 		void SetupEnhancedVoiceChat(not_null<Ui::VerticalLayout *> container);
-		void SetupEnhancedOthers(not_null<Window::SessionController*> controller, not_null<Ui::VerticalLayout *> container);
+		void SetupEnhancedApplication(
+			not_null<Ui::VerticalLayout *> interfaceContainer,
+			not_null<Ui::VerticalLayout *> behaviorContainer);
 		void reqBlocked(int offset);
 		void writeBlocklistFile();
 		void registerHighlight(
