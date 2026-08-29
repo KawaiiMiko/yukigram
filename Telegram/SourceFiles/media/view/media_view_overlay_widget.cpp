@@ -20,7 +20,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "calls/calls_instance.h"
 #include "core/application.h"
 #include "core/click_handler_types.h"
-#include "core/enhanced_settings.h"
+#include "settings.h"
 #include "core/file_utilities.h"
 #include "core/mime_type.h"
 #include "core/ui_integration.h"
@@ -278,7 +278,7 @@ constexpr auto kStorySavePromoDuration = 3 * crl::time(1000);
 		PhotoData *photo,
 		DocumentData *document,
 		::Media::Video::Information streamingInformation) {
-	if (!EnhancedSettings::ShowMediaMetadata()) {
+	if (!GetEnhancedBool("show_media_metadata")) {
 		return QString();
 	}
 	auto parts = QStringList();
@@ -330,7 +330,7 @@ constexpr auto kStorySavePromoDuration = 3 * crl::time(1000);
 
 [[nodiscard]] QString DocumentMetadataFlags(
 		not_null<DocumentData*> document) {
-	if (!EnhancedSettings::ShowMediaMetadata()) {
+	if (!GetEnhancedBool("show_media_metadata")) {
 		return QString();
 	}
 	auto flags = QStringList();
@@ -1104,11 +1104,6 @@ OverlayWidget::OverlayWidget()
 
 	orderWidgets();
 
-	EnhancedSettings::ShowMediaMetadataValue(
-	) | rpl::on_next([=] {
-		updateControls();
-		update();
-	}, lifetime());
 }
 
 void OverlayWidget::showSaveMsgToast(const QString &path, auto phrase) {

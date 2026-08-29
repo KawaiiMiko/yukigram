@@ -650,12 +650,13 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			u"enhanced/messages/show-media-metadata"_q,
 			showMediaMetadata);
 		showMediaMetadata->toggleOn(
-			EnhancedSettings::ShowMediaMetadataValue()
+			rpl::single(GetEnhancedBool("show_media_metadata"))
 		)->toggledChanges(
 		) | rpl::filter([=](bool toggled) {
-			return toggled != EnhancedSettings::ShowMediaMetadata();
+			return toggled != GetEnhancedBool("show_media_metadata");
 		}) | rpl::on_next([=](bool toggled) {
-			EnhancedSettings::SetShowMediaMetadata(toggled);
+			SetEnhancedValue("show_media_metadata", toggled);
+			EnhancedSettings::Write();
 		}, container->lifetime());
 
 		const auto showGroupSenderAvatar = AddButtonWithIcon(

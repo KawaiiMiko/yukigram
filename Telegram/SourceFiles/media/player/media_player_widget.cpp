@@ -7,7 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "media/player/media_player_widget.h"
 
-#include "core/enhanced_settings.h"
+#include "settings.h"
 #include "platform/platform_specific.h"
 #include "data/data_document.h"
 #include "data/data_document_media.h"
@@ -70,7 +70,7 @@ namespace {
 
 [[nodiscard]] QString DocumentMetadataFlags(
 		not_null<DocumentData*> document) {
-	if (!EnhancedSettings::ShowMediaMetadata()) {
+	if (!GetEnhancedBool("show_media_metadata")) {
 		return QString();
 	}
 	auto flags = QStringList();
@@ -203,10 +203,7 @@ Widget::Widget(
 	_playbackProgress->setInLoadingStateChangedCallback([=](bool loading) {
 		_playbackSlider->setDisabled(loading);
 	});
-	rpl::merge(
-		EnhancedSettings::ShowMediaMetadataValue() | rpl::to_empty,
-		Lang::Updated()
-	) | rpl::on_next([=] {
+	Lang::Updated() | rpl::on_next([=] {
 		_lastSongId = AudioMsgId();
 		handleSongChange();
 	}, lifetime());
@@ -834,7 +831,7 @@ void Widget::handleSongChange() {
 		textWithEntities = Ui::Text::FormatSongNameFor(document)
 			.textWithEntities(true);
 	}
-	if (EnhancedSettings::ShowMediaMetadata()) {
+	if (GetEnhancedBool("show_media_metadata")) {
 		const auto metadata = DocumentMetadataText(document);
 		if (!metadata.isEmpty()) {
 			textWithEntities.append(u" · "_q).append(metadata);

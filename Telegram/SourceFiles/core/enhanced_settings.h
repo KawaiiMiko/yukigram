@@ -6,8 +6,6 @@ https://github.com/TDesktop-x64/tdesktop/blob/dev/LEGAL
 */
 #pragma once
 
-#include "rpl/producer.h"
-
 #include <QtCore/QTimer>
 
 namespace EnhancedSettings {
@@ -21,9 +19,6 @@ namespace EnhancedSettings {
 	void SetRichMessagePreviewBlocksLimit(int limit);
 	[[nodiscard]] int StickerHeight();
 	void SetStickerHeight(int height);
-	[[nodiscard]] bool ShowMediaMetadata();
-	void SetShowMediaMetadata(bool enabled);
-	[[nodiscard]] rpl::producer<bool> ShowMediaMetadataValue();
 
 	class Manager : public QObject {
 	Q_OBJECT
