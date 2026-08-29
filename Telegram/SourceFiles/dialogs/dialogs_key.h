@@ -9,6 +9,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "base/qt/qt_compare.h"
 #include "data/data_message_reaction_id.h"
+#include "dialogs/dialogs_search_types.h"
 
 class History;
 class PeerData;
@@ -143,6 +144,7 @@ enum class ChatTypeFilter : uchar {
 struct SearchState {
 	Key inChat;
 	PeerData *fromPeer = nullptr;
+	MessageSearchTypes messageTypes = 0;
 	ChannelData *community = nullptr;
 	std::vector<Data::ReactionId> tags;
 	ChatSearchTab tab = {};

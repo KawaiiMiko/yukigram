@@ -1622,6 +1622,8 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 				? (_searchState.query.isEmpty()
 					? tr::lng_posts_subtitle_empty(tr::now)
 					: tr::lng_posts_subtitle(tr::now))
+				: _searchState.messageTypes
+				? tr::lng_group_call_invite_search_results(tr::now)
 				: tr::lng_search_found_results(
 					tr::now,
 					lt_count,
@@ -4168,7 +4170,12 @@ void InnerWidget::applySearchState(SearchState state) {
 	}
 	auto withSameQuery = state;
 	withSameQuery.query = _searchState.query;
-	const auto otherChanged = (_searchState != withSameQuery);
+	withSameQuery.messageTypes = _searchState.messageTypes;
+	const auto immediateChanged = (_searchState != withSameQuery);
+	const auto messageTypesChanged = (_searchState.messageTypes
+		!= state.messageTypes);
+	const auto restrictionsChanged = immediateChanged
+		|| messageTypesChanged;
 
 	const auto ignoreInChat = (state.tab == ChatSearchTab::MyMessages)
 		|| (state.tab == ChatSearchTab::PublicPosts)
@@ -4242,7 +4249,7 @@ void InnerWidget::applySearchState(SearchState state) {
 		? QStringList(newFilter)
 		: TextUtilities::PrepareSearchWords(newFilter);
 	newFilter = words.isEmpty() ? QString() : words.join(' ');
-	if (newFilter != _filter || otherChanged) {
+	if (newFilter != _filter || restrictionsChanged) {
 		_filter = newFilter;
 		if (_filter.isEmpty()
 			&& !_searchState.fromPeer
@@ -4258,7 +4265,7 @@ void InnerWidget::applySearchState(SearchState state) {
 	}
 	if (_state != WidgetState::Default) {
 		_searchWaiting = true;
-		_searchRequests.fire(otherChanged
+		_searchRequests.fire(immediateChanged
 			? SearchRequestDelay::Instant
 			: SearchRequestDelay::Delayed);
 		if (_searchWaiting) {
@@ -4561,6 +4568,11 @@ rpl::producer<> InnerWidget::cancelSearchFromRequests() const {
 
 rpl::producer<> InnerWidget::changeSearchFromRequests() const {
 	return _changeSearchFromRequests.events();
+}
+
+auto InnerWidget::changeMessageSearchTypesRequests() const
+-> rpl::producer<MessageSearchTypes> {
+	return _changeMessageSearchTypesRequests.events();
 }
 
 rpl::producer<Ui::ScrollToRequest> InnerWidget::mustScrollTo() const {
@@ -5146,6 +5158,9 @@ void InnerWidget::updateSearchIn() {
 		_searchIn->tabChanges() | rpl::start_to_stream(
 			_changeSearchTabRequests,
 			_searchIn->lifetime());
+		_searchIn->messageTypesChanges() | rpl::start_to_stream(
+			_changeMessageSearchTypesRequests,
+			_searchIn->lifetime());
 	}
 
 	const auto sublist = _searchState.inChat.sublist();
@@ -5219,7 +5234,13 @@ void InnerWidget::updateSearchIn() {
 		{ ChatSearchTab::Archive, archiveIcon },
 		{ ChatSearchTab::MyMessages, myIcon },
 		{ ChatSearchTab::PublicPosts, publicIcon },
-	}, _searchState.tab, peerTabType, fromImage, fromName);
+	},
+		_searchState.tab,
+		peerTabType,
+		fromImage,
+		fromName,
+		_searchState.fromPeer != nullptr,
+		_searchState.messageTypes);
 }
 
 void InnerWidget::repaintSearchResult(int index) {

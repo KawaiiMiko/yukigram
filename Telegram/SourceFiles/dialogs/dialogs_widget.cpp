@@ -73,6 +73,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "storage/storage_media_prepare.h"
 #include "storage/storage_account.h"
 #include "storage/storage_domain.h"
+#include "storage/storage_shared_media.h"
 #include "data/components/recent_peers.h"
 #include "data/components/sponsored_messages.h"
 #include "data/data_session.h"
@@ -84,6 +85,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_forum.h"
 #include "data/data_forum_topic.h"
 #include "data/data_histories.h"
+#include "data/data_media_types.h"
 #include "data/data_changes.h"
 #include "data/data_download_manager.h"
 #include "data/data_chat_filters.h"
@@ -114,6 +116,35 @@ namespace {
 constexpr auto kSearchPerPage = 50;
 constexpr auto kStoriesExpandDuration = crl::time(200);
 constexpr auto kSearchRequestDelay = crl::time(900);
+
+[[nodiscard]] bool MatchesMessageSearchTypes(
+		not_null<HistoryItem*> item,
+		MessageSearchTypes selected) {
+	if (!selected) {
+		return true;
+	}
+	using Shared = Storage::SharedMediaType;
+	const auto shared = item->sharedMediaTypes();
+	const auto matches = [&](MessageSearchType type, Shared value) {
+		return (selected & MessageSearchTypeBit(type))
+			&& shared.test(value);
+	};
+	return matches(MessageSearchType::Photo, Shared::Photo)
+		|| matches(MessageSearchType::Video, Shared::Video)
+		|| matches(MessageSearchType::File, Shared::File)
+		|| matches(MessageSearchType::Link, Shared::Link)
+		|| matches(MessageSearchType::Music, Shared::MusicFile)
+		|| matches(MessageSearchType::Voice, Shared::VoiceFile)
+		|| matches(MessageSearchType::RoundVideo, Shared::RoundFile)
+		|| matches(MessageSearchType::Gif, Shared::GIF)
+		|| matches(MessageSearchType::Poll, Shared::Poll)
+		|| matches(MessageSearchType::Pinned, Shared::Pinned)
+		|| ((selected & MessageSearchTypeBit(MessageSearchType::Mention))
+			&& item->mentionsMe())
+		|| ((selected & MessageSearchTypeBit(MessageSearchType::Location))
+			&& item->media()
+			&& item->media()->location());
+}
 
 base::options::toggle OptionForumHideChatsList({
 	.id = kOptionForumHideChatsList,
@@ -428,7 +459,7 @@ Widget::Widget(
 		st::dialogsStoriesList,
 		_storiesContents.events() | rpl::flatten_latest())
 	: nullptr)
-, _searchTimer([=] { search(); })
+, _searchTimer([=] { searchTimerFired(); })
 , _peerSearch(&controller->session(), Api::PeerSearch::Type::WithSponsored)
 , _singleMessageSearch(&controller->session()) {
 	const auto makeChildListShown = [](PeerId peerId, float64 shown) {
@@ -591,6 +622,14 @@ Widget::Widget(
 	_inner->changeSearchFromRequests(
 	) | rpl::on_next([=] {
 		showSearchFrom();
+	}, lifetime());
+	_inner->changeMessageSearchTypesRequests(
+	) | rpl::filter([=](MessageSearchTypes types) {
+		return _searchState.messageTypes != types;
+	}) | rpl::on_next([=](MessageSearchTypes types) {
+		auto copy = _searchState;
+		copy.messageTypes = types;
+		applySearchState(std::move(copy));
 	}, lifetime());
 	_inner->chosenRow(
 	) | rpl::on_next([=](const ChosenRow &row) {
@@ -1959,7 +1998,7 @@ void Widget::fullSearchRefreshOn(rpl::producer<> events) {
 	) | rpl::filter([=] {
 		return !_searchQuery.isEmpty();
 	}) | rpl::on_next([=] {
-		_searchTimer.cancel();
+		cancelSearchTimer();
 		_searchProcess.cache.clear();
 		const auto queries = base::take(_searchProcess.queries);
 		for (const auto &[requestId, query] : queries) {
@@ -3074,6 +3113,7 @@ bool Widget::search(bool inCache, SearchRequestDelay delay) {
 		: query.mid(1).trimmed();
 	const auto inPeer = searchInPeer();
 	const auto fromPeer = searchFromPeer();
+	const auto messageTypes = _searchState.messageTypes;
 	const auto &inTags = searchInTags();
 	const auto tab = _searchState.tab;
 	const auto community = _searchState.community
@@ -3112,9 +3152,10 @@ bool Widget::search(bool inCache, SearchRequestDelay delay) {
 		peerSearchReceived({});
 		return true;
 	} else if (inCache) {
-		const auto success = _singleMessageSearch.lookup(query, [=] {
-			searchRequested(delay);
-		});
+		const auto success = messageTypes
+			|| bool(_singleMessageSearch.lookup(query, [=] {
+				searchRequested(delay);
+			}));
 		if (!success) {
 			return false;
 		}
@@ -3123,6 +3164,7 @@ bool Widget::search(bool inCache, SearchRequestDelay delay) {
 		if (i != process->cache.end()) {
 			_searchQuery = query;
 			_searchQueryFrom = fromPeer;
+			_searchQueryMessageTypes = messageTypes;
 			_searchQueryTags = inTags;
 			_searchQueryTab = tab;
 			_searchQueryCommunity = community;
@@ -3132,11 +3174,20 @@ bool Widget::search(bool inCache, SearchRequestDelay delay) {
 			process->full = false;
 			_migratedProcess.full = false;
 			cancelSearchRequest();
-			searchReceived(fromStartType, i->second, process, true);
+			if (messageTypes) {
+				_inner->searchRequested(true);
+			}
+			searchReceived(
+				fromStartType,
+				i->second,
+				process,
+				true,
+				_searchRevision);
 			result = true;
 		}
 	} else if (_searchQuery != query
 		|| _searchQueryFrom != fromPeer
+		|| _searchQueryMessageTypes != messageTypes
 		|| _searchQueryTags != inTags
 		|| _searchQueryTab != tab
 		|| _searchQueryCommunity != community
@@ -3145,6 +3196,7 @@ bool Widget::search(bool inCache, SearchRequestDelay delay) {
 		const auto process = currentSearchProcess();
 		_searchQuery = query;
 		_searchQueryFrom = fromPeer;
+		_searchQueryMessageTypes = messageTypes;
 		_searchQueryTags = inTags;
 		_searchQueryTab = tab;
 		_searchQueryCommunity = community;
@@ -3155,6 +3207,7 @@ bool Widget::search(bool inCache, SearchRequestDelay delay) {
 		_migratedProcess.full = false;
 		cancelSearchRequest();
 		if (inPeer) {
+			const auto revision = _searchRevision;
 			const auto topic = searchInTopic();
 			auto &histories = session().data().histories();
 			const auto type = Data::Histories::RequestType::History;
@@ -3200,10 +3253,23 @@ bool Widget::search(bool inCache, SearchRequestDelay delay) {
 						MTP_int(0), // min_id
 						MTP_long(0)) // hash
 				).done([=](const MTPmessages_Messages &result) {
+					if (revision != _searchRevision) {
+						finish();
+						return;
+					}
 					_historiesRequest = 0;
-					searchReceived(type, result, process);
+					searchReceived(
+						type,
+						result,
+						process,
+						false,
+						revision);
 					finish();
 				}).fail([=](const MTP::Error &error) {
+					if (revision != _searchRevision) {
+						finish();
+						return;
+					}
 					_historiesRequest = 0;
 					searchFailed(type, error, process);
 					finish();
@@ -3266,11 +3332,34 @@ void Widget::searchRequested(SearchRequestDelay delay) {
 	if (search(true, delay)) {
 		return;
 	} else if (delay == SearchRequestDelay::Instant) {
-		_searchTimer.cancel();
+		cancelSearchTimer();
 		search();
 	} else {
-		_searchTimer.callOnce(kSearchRequestDelay);
+		scheduleSearchTimer(SearchTimerAction::Restart);
 	}
+}
+
+void Widget::scheduleSearchTimer(SearchTimerAction action) {
+	if (action == SearchTimerAction::More
+		&& _searchTimerAction == SearchTimerAction::Restart) {
+		return;
+	}
+	_searchTimerAction = action;
+	_searchTimer.callOnce(kSearchRequestDelay);
+}
+
+void Widget::searchTimerFired() {
+	const auto action = base::take(_searchTimerAction);
+	if (action == SearchTimerAction::Restart) {
+		search();
+	} else if (action == SearchTimerAction::More) {
+		searchMoreNow();
+	}
+}
+
+void Widget::cancelSearchTimer() {
+	_searchTimer.cancel();
+	_searchTimerAction = SearchTimerAction::None;
 }
 
 void Widget::showMainMenu() {
@@ -3361,12 +3450,26 @@ void Widget::searchTopics() {
 
 void Widget::searchMore() {
 	const auto process = currentSearchProcess();
+	if (_searchQueryMessageTypes) {
+		if (process->requestId || _historiesRequest) {
+			return;
+		} else if (!process->full
+			|| (_searchInMigrated && !_migratedProcess.full)) {
+			scheduleSearchTimer(SearchTimerAction::More);
+		}
+		return;
+	}
+	searchMoreNow();
+}
+
+void Widget::searchMoreNow() {
+	const auto process = currentSearchProcess();
 	if (process->requestId
-		|| _historiesRequest
-		|| _searchTimer.isActive()) {
+		|| _historiesRequest) {
 		return;
 	} else if (!process->full) {
 		if (const auto peer = searchInPeer()) {
+			const auto revision = _searchRevision;
 			auto &histories = session().data().histories();
 			const auto topic = searchInTopic();
 			const auto type = Data::Histories::RequestType::History;
@@ -3414,12 +3517,25 @@ void Widget::searchMore() {
 						MTP_int(0), // min_id
 						MTP_long(0)) // hash
 				).done([=](const MTPmessages_Messages &result) {
-					searchReceived(type, result, process);
+					if (revision != _searchRevision) {
+						finish();
+						return;
+					}
 					_historiesRequest = 0;
+					searchReceived(
+						type,
+						result,
+						process,
+						false,
+						revision);
 					finish();
 				}).fail([=](const MTP::Error &error) {
-					searchFailed(type, error, process);
+					if (revision != _searchRevision) {
+						finish();
+						return;
+					}
 					_historiesRequest = 0;
+					searchFailed(type, error, process);
 					finish();
 				}).send();
 				if (!process->lastId) {
@@ -3435,6 +3551,7 @@ void Widget::searchMore() {
 			requestMessages(false);
 		}
 	} else if (_searchInMigrated && !_migratedProcess.full) {
+		const auto revision = _searchRevision;
 		auto &histories = session().data().histories();
 		const auto type = Data::Histories::RequestType::History;
 		const auto history = _searchInMigrated;
@@ -3468,12 +3585,25 @@ void Widget::searchMore() {
 					MTP_int(0), // min_id
 					MTP_long(0)) // hash
 			).done([=](const MTPmessages_Messages &result) {
-				searchReceived(type, result, &_migratedProcess);
+				if (revision != _searchRevision) {
+					finish();
+					return;
+				}
 				_historiesRequest = 0;
+				searchReceived(
+					type,
+					result,
+					&_migratedProcess,
+					false,
+					revision);
 				finish();
 			}).fail([=](const MTP::Error &error) {
-				searchFailed(type, error, &_migratedProcess);
+				if (revision != _searchRevision) {
+					finish();
+					return;
+				}
 				_historiesRequest = 0;
+				searchFailed(type, error, &_migratedProcess);
 				finish();
 			}).send();
 			return _migratedProcess.requestId;
@@ -3586,7 +3716,11 @@ void Widget::searchReceived(
 		SearchRequestType type,
 		const MTPmessages_Messages &result,
 		not_null<SearchProcessState*> process,
-		bool cacheResults) {
+		bool cacheResults,
+		uint64 revision) {
+	if (revision && revision != _searchRevision) {
+		return;
+	}
 	const auto state = _inner->state();
 	if (!cacheResults
 		&& (state == WidgetState::Filtered)
@@ -3597,7 +3731,10 @@ void Widget::searchReceived(
 			process->queries.erase(i);
 		}
 	}
-	const auto inject = (type.start && !type.posts && !type.migrated)
+	const auto inject = (type.start
+		&& !type.posts
+		&& !type.migrated
+		&& !_searchQueryMessageTypes)
 		? *_singleMessageSearch.lookup(_searchQuery)
 		: nullptr;
 	if (cacheResults && process->requestId) {
@@ -3606,9 +3743,10 @@ void Widget::searchReceived(
 	if (type.start) {
 		process->lastPeer = nullptr;
 		process->lastId = 0;
+		process->matchedCount = 0;
 	}
 	const auto processList = [&](const MTPVector<MTPMessage> &messages) {
-		auto result = std::vector<not_null<HistoryItem*>>();
+		auto filtered = std::vector<not_null<HistoryItem*>>();
 		for (const auto &message : messages.v) {
 			const auto msgId = IdFromMessage(message);
 			const auto peerId = PeerFromMessage(message);
@@ -3619,8 +3757,11 @@ void Widget::searchReceived(
 						message,
 						MessageFlags(),
 						NewMessageType::Existing);
-					if (item) {
-						result.push_back(item);
+					if (item && MatchesMessageSearchTypes(
+							item,
+							_searchQueryMessageTypes)) {
+						filtered.push_back(item);
+						++process->matchedCount;
 					}
 				}
 				process->lastPeer = peer;
@@ -3630,7 +3771,7 @@ void Widget::searchReceived(
 			}
 			process->lastId = msgId;
 		}
-		return result;
+		return filtered;
 	};
 	auto fullCount = 0;
 	auto messages = result.match([&](const MTPDmessages_messages &data) {
@@ -3655,12 +3796,13 @@ void Widget::searchReceived(
 				peer->processTopics(data.vtopics());
 			}
 		}
+		const auto rawEmpty = data.vmessages().v.empty();
 		auto list = processList(data.vmessages());
 		const auto nextRate = data.vnext_rate();
 		const auto rateUpdated = nextRate
 			&& (nextRate->v != process->nextRate);
 		const auto finished = (type.peer || type.migrated || type.posts)
-			? list.empty()
+			? rawEmpty
 			: !rateUpdated;
 		if (rateUpdated) {
 			process->nextRate = nextRate->v;
@@ -3690,8 +3832,9 @@ void Widget::searchReceived(
 					"was passed! (Widget::searchReceived)"));
 			}
 		}
+		const auto rawEmpty = data.vmessages().v.empty();
 		auto list = processList(data.vmessages());
-		if (list.empty()) {
+		if (rawEmpty) {
 			process->full = true;
 		}
 		fullCount = data.vcount().v;
@@ -3702,7 +3845,15 @@ void Widget::searchReceived(
 		process->full = true;
 		return std::vector<not_null<HistoryItem*>>();
 	});
-	_inner->searchReceived(messages, inject, type, fullCount);
+	if (_searchQueryMessageTypes) {
+		fullCount = process->matchedCount;
+	}
+	const auto waitForMore = _searchQueryMessageTypes
+		&& messages.empty()
+		&& !process->full;
+	if (!waitForMore) {
+		_inner->searchReceived(messages, inject, type, fullCount);
+	}
 
 	process->requestId = 0;
 	listScrollUpdated();
@@ -3738,6 +3889,15 @@ void Widget::searchFailed(
 	} else {
 		process->requestId = 0;
 		process->full = true;
+		if (_searchQueryMessageTypes) {
+			_inner->searchReceived(
+				{},
+				nullptr,
+				type,
+				process->matchedCount);
+			listScrollUpdated();
+			update();
+		}
 	}
 }
 
@@ -4115,6 +4275,13 @@ bool Widget::applySearchState(SearchState state) {
 	if (!state.tags.empty()) {
 		state.inChat = session().data().history(session().user());
 	}
+	const auto ignoresChat = (state.tab == ChatSearchTab::MyMessages)
+		|| (state.tab == ChatSearchTab::PublicPosts)
+		|| (state.tab == ChatSearchTab::Archive)
+		|| (state.tab == ChatSearchTab::ThisCommunity);
+	if (ignoresChat || !state.fromPeer) {
+		state.messageTypes = 0;
+	}
 
 	const auto clearQuery = state.fromPeer
 		&& (_lastSearchText == HistoryView::SwitchToChooseFromQuery());
@@ -4125,6 +4292,8 @@ bool Widget::applySearchState(SearchState state) {
 	const auto inChatChanged = (_searchState.inChat != state.inChat);
 	const auto communityChanged = (_searchState.community != state.community);
 	const auto fromPeerChanged = (_searchState.fromPeer != state.fromPeer);
+	const auto messageTypesChanged = (_searchState.messageTypes
+		!= state.messageTypes);
 	const auto tagsChanged = (_searchState.tags != state.tags);
 	const auto queryChanged = (_searchState.query != state.query);
 	const auto tabChanged = (_searchState.tab != state.tab);
@@ -4231,6 +4400,10 @@ bool Widget::applySearchState(SearchState state) {
 		|| tagsChanged
 		|| tabChanged) {
 		clearSearchCache(searchCleared);
+	} else if (messageTypesChanged) {
+		_searchProcess.queries.clear();
+		_migratedProcess.queries.clear();
+		cancelSearchRequest();
 	}
 	if (state.query.isEmpty()) {
 		_peerSearch.clear();
@@ -4281,6 +4454,7 @@ void Widget::clearSearchCache(bool clearPosts) {
 	}
 	_searchQuery = QString();
 	_searchQueryFrom = nullptr;
+	_searchQueryMessageTypes = 0;
 	_searchQueryTags.clear();
 	if (clearPosts) {
 		_postsProcess.cache.clear();
@@ -4866,6 +5040,8 @@ void Widget::scrollToEntry(const RowDescriptor &entry) {
 }
 
 void Widget::cancelSearchRequest() {
+	cancelSearchTimer();
+	++_searchRevision;
 	session().api().request(base::take(_searchProcess.requestId)).cancel();
 	session().api().request(base::take(_migratedProcess.requestId)).cancel();
 	session().api().request(base::take(_postsProcess.requestId)).cancel();

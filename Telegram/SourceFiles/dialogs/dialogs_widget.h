@@ -170,7 +170,14 @@ private:
 		MsgId lastId = 0;
 		int32 nextRate = 0;
 		mtpRequestId requestId = 0;
+		int matchedCount = 0;
 		bool full = false;
+	};
+
+	enum class SearchTimerAction {
+		None,
+		Restart,
+		More,
 	};
 
 	void chosenRow(const ChosenRow &row);
@@ -187,16 +194,21 @@ private:
 	[[nodiscard]] int currentSearchQueryCursorPosition() const;
 	void clearSearchField();
 	void searchRequested(SearchRequestDelay delay);
+	void scheduleSearchTimer(SearchTimerAction action);
+	void searchTimerFired();
+	void cancelSearchTimer();
 	bool search(bool inCache = false, SearchRequestDelay after = {});
 	void searchTopics();
 	void searchMore();
+	void searchMoreNow();
 
 	void slideFinished();
 	void searchReceived(
 		SearchRequestType type,
 		const MTPmessages_Messages &result,
 		not_null<SearchProcessState*> process,
-		bool cacheResults = false);
+		bool cacheResults = false,
+		uint64 revision = 0);
 	void peerSearchReceived(Api::PeerSearchResult result);
 	void escape();
 	void submit();
@@ -412,6 +424,8 @@ private:
 	bool _postponeProcessSearchFocusChange = false;
 
 	base::Timer _searchTimer;
+	SearchTimerAction _searchTimerAction = SearchTimerAction::None;
+	uint64 _searchRevision = 0;
 
 	QString _topicSearchQuery;
 	TimeId _topicSearchOffsetDate = 0;
@@ -422,6 +436,7 @@ private:
 
 	QString _searchQuery;
 	PeerData *_searchQueryFrom = nullptr;
+	MessageSearchTypes _searchQueryMessageTypes = 0;
 	std::vector<Data::ReactionId> _searchQueryTags;
 	ChatSearchTab _searchQueryTab = {};
 	ChannelData *_searchQueryCommunity = nullptr;

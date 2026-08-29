@@ -17,6 +17,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/dynamic_image.h"
 #include "ui/painter.h"
 #include "styles/style_dialogs.h"
+#include "styles/style_menu_icons.h"
 #include "styles/style_window.h"
 
 namespace Dialogs {
@@ -35,6 +36,7 @@ public:
 	not_null<QAction*> action() const override;
 
 	void handleKeyPress(not_null<QKeyEvent*> e) override;
+	void setChecked(bool checked);
 
 protected:
 	QPoint prepareRippleStartPosition() const override;
@@ -58,6 +60,129 @@ private:
 	bool _checked = false;
 
 };
+
+class TagFilterThumbnail final : public Ui::DynamicImage {
+public:
+	std::shared_ptr<Ui::DynamicImage> clone() override;
+
+	QImage image(int size) override;
+	void subscribeToUpdates(Fn<void()> callback) override;
+
+private:
+	int _paletteVersion = 0;
+	QImage _frame;
+
+};
+
+std::shared_ptr<Ui::DynamicImage> TagFilterThumbnail::clone() {
+	return std::make_shared<TagFilterThumbnail>();
+}
+
+QImage TagFilterThumbnail::image(int size) {
+	const auto good = (_frame.width() == size * _frame.devicePixelRatio());
+	const auto paletteVersion = style::PaletteVersion();
+	if (!good || _paletteVersion != paletteVersion) {
+		_paletteVersion = paletteVersion;
+		const auto ratio = style::DevicePixelRatio();
+		if (!good) {
+			_frame = QImage(
+				QSize(size, size) * ratio,
+				QImage::Format_ARGB32_Premultiplied);
+			_frame.setDevicePixelRatio(ratio);
+		}
+		_frame.fill(Qt::transparent);
+		auto p = Painter(&_frame);
+		st::menuIconTagFilter.paintInCenter(p, QRect(0, 0, size, size));
+	}
+	return _frame;
+}
+
+void TagFilterThumbnail::subscribeToUpdates(Fn<void()> callback) {
+	if (!callback) {
+		_frame = {};
+	}
+}
+
+[[nodiscard]] std::shared_ptr<Ui::DynamicImage> MakeTagFilterThumbnail() {
+	return std::make_shared<TagFilterThumbnail>();
+}
+
+[[nodiscard]] const std::vector<MessageSearchType> &MessageSearchTypeList() {
+	static const auto result = std::vector{
+		MessageSearchType::Photo,
+		MessageSearchType::Video,
+		MessageSearchType::File,
+		MessageSearchType::Link,
+		MessageSearchType::Music,
+		MessageSearchType::Voice,
+		MessageSearchType::RoundVideo,
+		MessageSearchType::Gif,
+		MessageSearchType::Poll,
+		MessageSearchType::Mention,
+		MessageSearchType::Location,
+		MessageSearchType::Pinned,
+	};
+	return result;
+}
+
+[[nodiscard]] QString MessageSearchTypeLabel(MessageSearchType type) {
+	switch (type) {
+	case MessageSearchType::Photo:
+		return tr::lng_media_type_photos(tr::now);
+	case MessageSearchType::Video:
+		return tr::lng_media_type_videos(tr::now);
+	case MessageSearchType::File:
+		return tr::lng_media_type_files(tr::now);
+	case MessageSearchType::Link:
+		return tr::lng_media_type_links(tr::now);
+	case MessageSearchType::Music:
+		return tr::lng_media_type_songs(tr::now);
+	case MessageSearchType::Voice:
+		return tr::lng_media_type_audios(tr::now);
+	case MessageSearchType::RoundVideo:
+		return tr::lng_media_type_rounds(tr::now);
+	case MessageSearchType::Gif:
+		return tr::lng_media_type_gifs(tr::now);
+	case MessageSearchType::Poll:
+		return tr::lng_media_type_polls(tr::now);
+	case MessageSearchType::Mention:
+		return tr::lng_message_search_filter_mentions(tr::now);
+	case MessageSearchType::Location:
+		return tr::lng_message_search_filter_locations(tr::now);
+	case MessageSearchType::Pinned:
+		return tr::lng_settings_events_pinned(tr::now);
+	case MessageSearchType::kCount:
+		break;
+	}
+	Unexpected("MessageSearchType in MessageSearchTypeLabel.");
+}
+
+[[nodiscard]] int MessageSearchTypesCount(MessageSearchTypes types) {
+	auto result = 0;
+	for (const auto type : MessageSearchTypeList()) {
+		if (types & MessageSearchTypeBit(type)) {
+			++result;
+		}
+	}
+	return result;
+}
+
+[[nodiscard]] QString MessageSearchTypesLabel(MessageSearchTypes types) {
+	const auto count = MessageSearchTypesCount(types);
+	if (!count) {
+		return tr::lng_message_search_filter_all(tr::now);
+	} else if (count == 1) {
+		for (const auto type : MessageSearchTypeList()) {
+			if (types & MessageSearchTypeBit(type)) {
+				return MessageSearchTypeLabel(type);
+			}
+		}
+	}
+	return tr::lng_message_search_filter_selected(
+		tr::now,
+		lt_count,
+		count);
+}
 
 [[nodiscard]] QString TabLabel(
 		ChatSearchTab tab,
@@ -202,6 +327,13 @@ void Action::handleKeyPress(not_null<QKeyEvent*> e) {
 	}
 }
 
+void Action::setChecked(bool checked) {
+	if (_checked != checked) {
+		_checked = checked;
+		update();
+	}
+}
+
 } // namespace
 
 FixedHashtagSearchQuery FixHashtagSearchQuery(
@@ -268,6 +400,9 @@ ChatSearchIn::ChatSearchIn(QWidget *parent)
 	_in.clicks.events() | rpl::on_next([=] {
 		showMenu();
 	}, lifetime());
+	_messageTypesSection.clicks.events() | rpl::on_next([=] {
+		showMessageTypesMenu();
+	}, lifetime());
 }
 
 ChatSearchIn::~ChatSearchIn() = default;
@@ -277,7 +412,9 @@ void ChatSearchIn::apply(
 		ChatSearchTab active,
 		ChatSearchPeerTabType peerTabType,
 		std::shared_ptr<Ui::DynamicImage> fromUserpic,
-		QString fromName) {
+		QString fromName,
+		bool messageTypesAvailable,
+		MessageSearchTypes messageTypes) {
 	_tabs = std::move(tabs);
 	_peerTabType = peerTabType;
 	_active = active;
@@ -295,6 +432,9 @@ void ChatSearchIn::apply(
 		tr::semibold(fromName),
 		tr::marked);
 	updateSection(&_from, std::move(fromUserpic), std::move(text));
+	_messageTypesAvailable = messageTypesAvailable;
+	_messageTypes = _messageTypesAvailable ? messageTypes : 0;
+	updateMessageTypesSection();
 
 	resizeToWidth(width());
 }
@@ -311,11 +451,16 @@ rpl::producer<> ChatSearchIn::changeFromRequests() const {
 	return _from.clicks.events();
 }
 
+rpl::producer<MessageSearchTypes> ChatSearchIn::messageTypesChanges() const {
+	return _messageTypesChanges.events();
+}
+
 rpl::producer<ChatSearchTab> ChatSearchIn::tabChanges() const {
 	return _active.changes();
 }
 
 void ChatSearchIn::showMenu() {
+	_messageTypesMenuRefresh.clear();
 	_menu = base::make_unique_q<Ui::PopupMenu>(
 		this,
 		st::dialogsSearchInMenu);
@@ -353,6 +498,78 @@ void ChatSearchIn::showMenu() {
 	}
 }
 
+void ChatSearchIn::showMessageTypesMenu() {
+	if (!_messageTypesSection.outer) {
+		return;
+	}
+	_messageTypesMenuRefresh.clear();
+	_menu = base::make_unique_q<Ui::PopupMenu>(
+		this,
+		st::dialogsSearchInMenu);
+	const auto add = [&](QString label, std::optional<MessageSearchType> type) {
+		auto action = base::make_unique_q<Action>(
+			_menu.get(),
+			MakeTagFilterThumbnail(),
+			label,
+			type
+				? bool(_messageTypes & MessageSearchTypeBit(*type))
+				: !_messageTypes);
+		const auto raw = action.get();
+		raw->setPreventClose(true);
+		raw->setActionTriggered([=] {
+			if (!type) {
+				setMessageTypes(0);
+			} else {
+				const auto bit = MessageSearchTypeBit(*type);
+				setMessageTypes((_messageTypes & bit)
+					? (_messageTypes & ~bit)
+					: (_messageTypes | bit));
+			}
+		});
+		_messageTypesMenuRefresh.push_back([=](MessageSearchTypes types) {
+			raw->setChecked(type
+				? bool(types & MessageSearchTypeBit(*type))
+				: !types);
+		});
+		_menu->addAction(std::move(action));
+	};
+	add(tr::lng_message_search_filter_all(tr::now), std::nullopt);
+	for (const auto type : MessageSearchTypeList()) {
+		add(MessageSearchTypeLabel(type), type);
+	}
+	const auto point = mapToGlobal(
+		_messageTypesSection.outer->pos()
+		+ QPoint(0, _messageTypesSection.outer->height()));
+	_menu->popup(point);
+}
+
+void ChatSearchIn::setMessageTypes(MessageSearchTypes types) {
+	if (_messageTypes == types) {
+		return;
+	}
+	_messageTypes = types;
+	updateMessageTypesSection();
+	refreshMessageTypesMenu();
+	resizeToWidth(width());
+	_messageTypesChanges.fire_copy(types);
+}
+
+void ChatSearchIn::updateMessageTypesSection() {
+	updateSection(
+		&_messageTypesSection,
+		_messageTypesAvailable
+			? MakeTagFilterThumbnail()
+			: nullptr,
+		tr::semibold(MessageSearchTypesLabel(_messageTypes)),
+		false);
+}
+
+void ChatSearchIn::refreshMessageTypesMenu() {
+	for (const auto &refresh : _messageTypesMenuRefresh) {
+		refresh(_messageTypes);
+	}
+}
+
 void ChatSearchIn::paintEvent(QPaintEvent *e) {
 	auto p = Painter(this);
 	const auto top = QRect(0, 0, width(), st::searchedBarHeight);
@@ -384,13 +601,25 @@ int ChatSearchIn::resizeGetHeight(int newWidth) {
 		_from.shadow->setGeometry(0, result, newWidth, st::lineWidth);
 		result += st::lineWidth;
 	}
+	if (const auto raw = _messageTypesSection.outer.get()) {
+		raw->resizeToWidth(newWidth);
+		raw->move(0, result);
+		result += raw->height();
+		_messageTypesSection.shadow->setGeometry(
+			0,
+			result,
+			newWidth,
+			st::lineWidth);
+		result += st::lineWidth;
+	}
 	return result;
 }
 
 void ChatSearchIn::updateSection(
 		not_null<Section*> section,
 		std::shared_ptr<Ui::DynamicImage> image,
-		TextWithEntities text) {
+		TextWithEntities text,
+		bool cancelable) {
 	if (section->subscribed) {
 		section->image->subscribeToUpdates(nullptr);
 		section->subscribed = false;
@@ -429,9 +658,12 @@ void ChatSearchIn::updateSection(
 				section->image->image(size));
 
 			const auto x = left + size + st::dialogsSearchInSkip;
+			const auto cancelWidth = section->cancel
+				? section->cancel->width()
+				: 0;
 			const auto available = outer
 				- st::dialogsSearchInSkip
-				- section->cancel->width()
+				- cancelWidth
 				- 2 * st::dialogsSearchInDownSkip
 				- st::dialogsSearchInDown.width()
 				- x;
@@ -451,18 +683,21 @@ void ChatSearchIn::updateSection(
 		section->shadow = std::make_unique<Ui::PlainShadow>(this);
 		section->shadow->show();
 
-		const auto st = &st::dialogsCancelSearchInPeer;
-		section->cancel = std::make_unique<Ui::IconButton>(raw, *st);
-		section->cancel->setAccessibleName(tr::lng_cancel(tr::now));
-		section->cancel->show();
-		raw->sizeValue() | rpl::on_next([=](QSize size) {
-			const auto left = size.width() - section->cancel->width();
-			const auto top = (size.height() - st->height) / 2;
-			section->cancel->moveToLeft(left, top);
-		}, section->cancel->lifetime());
-		section->cancel->clicks() | rpl::to_empty | rpl::start_to_stream(
-			section->cancelRequests,
-			section->cancel->lifetime());
+		if (cancelable) {
+			const auto st = &st::dialogsCancelSearchInPeer;
+			section->cancel = std::make_unique<Ui::IconButton>(raw, *st);
+			section->cancel->setAccessibleName(tr::lng_cancel(tr::now));
+			section->cancel->show();
+			raw->sizeValue() | rpl::on_next([=](QSize size) {
+				const auto left = size.width() - section->cancel->width();
+				const auto top = (size.height() - st->height) / 2;
+				section->cancel->moveToLeft(left, top);
+			}, section->cancel->lifetime());
+			section->cancel->clicks(
+			) | rpl::to_empty | rpl::start_to_stream(
+				section->cancelRequests,
+				section->cancel->lifetime());
+		}
 
 		raw->clicks() | rpl::to_empty | rpl::start_to_stream(
 			section->clicks,
@@ -472,6 +707,7 @@ void ChatSearchIn::updateSection(
 	}
 	section->image = std::move(image);
 	section->text.setMarkedText(st::dialogsSearchFromStyle, std::move(text));
+	section->update();
 }
 
 } // namespace Dialogs

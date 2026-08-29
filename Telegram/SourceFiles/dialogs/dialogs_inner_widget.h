@@ -215,6 +215,8 @@ public:
 	[[nodiscard]] rpl::producer<> cancelSearchRequests() const;
 	[[nodiscard]] rpl::producer<> cancelSearchFromRequests() const;
 	[[nodiscard]] rpl::producer<> changeSearchFromRequests() const;
+	[[nodiscard]] auto changeMessageSearchTypesRequests() const
+		-> rpl::producer<MessageSearchTypes>;
 	[[nodiscard]] rpl::producer<ChosenRow> chosenRow() const;
 	[[nodiscard]] rpl::producer<> updated() const;
 
@@ -753,6 +755,7 @@ private:
 	rpl::event_stream<> _cancelSearchRequests;
 	rpl::event_stream<> _cancelSearchFromRequests;
 	rpl::event_stream<> _changeSearchFromRequests;
+	rpl::event_stream<MessageSearchTypes> _changeMessageSearchTypesRequests;
 	object_ptr<Ui::RpWidget> _loadingAnimation = { nullptr };
 	object_ptr<SearchEmpty> _searchEmpty = { nullptr };
 	SearchState _searchEmptyState;

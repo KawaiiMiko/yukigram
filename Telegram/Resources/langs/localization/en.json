@@ -114,5 +114,11 @@
     
     "lng_copy_profile_id": "ID copied to clipboard.",
 
-    "lng_group_requests_ban": "Ban"
+    "lng_group_requests_ban": "Ban",
+
+    "lng_message_search_filter_all": "All messages",
+    "lng_message_search_filter_mentions": "Mentions of me",
+    "lng_message_search_filter_locations": "Locations",
+    "lng_message_search_filter_selected#one": "{count} message type selected",
+    "lng_message_search_filter_selected#other": "{count} message types selected"
 }

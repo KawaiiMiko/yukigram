@@ -8,6 +8,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #pragma once
 
 #include "base/unique_qptr.h"
+#include "dialogs/dialogs_search_types.h"
 #include "ui/rp_widget.h"
 
 namespace Ui {
@@ -48,11 +49,14 @@ public:
 		ChatSearchTab active,
 		ChatSearchPeerTabType peerTabType,
 		std::shared_ptr<Ui::DynamicImage> fromUserpic,
-		QString fromName);
+		QString fromName,
+		bool messageTypesAvailable,
+		MessageSearchTypes messageTypes);
 
 	[[nodiscard]] rpl::producer<> cancelInRequests() const;
 	[[nodiscard]] rpl::producer<> cancelFromRequests() const;
 	[[nodiscard]] rpl::producer<> changeFromRequests() const;
+	[[nodiscard]] rpl::producer<MessageSearchTypes> messageTypesChanges() const;
 	[[nodiscard]] rpl::producer<ChatSearchTab> tabChanges() const;
 
 private:
@@ -72,17 +76,27 @@ private:
 	int resizeGetHeight(int newWidth) override;
 	void paintEvent(QPaintEvent *e) override;
 	void showMenu();
+	void showMessageTypesMenu();
+	void setMessageTypes(MessageSearchTypes types);
+	void updateMessageTypesSection();
+	void refreshMessageTypesMenu();
 
 	void updateSection(
 		not_null<Section*> section,
 		std::shared_ptr<Ui::DynamicImage> image,
-		TextWithEntities text);
+		TextWithEntities text,
+		bool cancelable = true);
 
 	Section _in;
 	Section _from;
+	Section _messageTypesSection;
 	rpl::variable<ChatSearchTab> _active;
+	bool _messageTypesAvailable = false;
+	MessageSearchTypes _messageTypes = 0;
+	rpl::event_stream<MessageSearchTypes> _messageTypesChanges;
 
 	base::unique_qptr<Ui::PopupMenu> _menu;
+	std::vector<Fn<void(MessageSearchTypes)>> _messageTypesMenuRefresh;
 
 	std::vector<PossibleTab> _tabs;
 	ChatSearchPeerTabType _peerTabType = ChatSearchPeerTabType::Chat;
