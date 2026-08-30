@@ -3086,7 +3086,7 @@ bool Widget::search(bool inCache, SearchRequestDelay delay) {
 	const auto inPeer = searchInPeer();
 	const auto fromPeer = searchFromPeer();
 	const auto messageTypes = _searchState.messageTypes;
-	const auto intersectionType = NativeMessageSearchType(messageTypes);
+	const auto nativeMessageType = NativeMessageSearchType(messageTypes);
 	const auto &inTags = searchInTags();
 	const auto tab = _searchState.tab;
 	const auto community = _searchState.community
@@ -3100,7 +3100,18 @@ bool Widget::search(bool inCache, SearchRequestDelay delay) {
 		.start = true,
 		.peer = (inPeer != nullptr),
 	};
-	if (trimmed.isEmpty() && !fromPeer && inTags.empty()) {
+	const auto onlyMessageTypesChanged = (_searchQuery == query)
+		&& (_searchQueryFrom == fromPeer)
+		&& (_searchQueryMessageTypes != messageTypes)
+		&& (_searchQueryTags == inTags)
+		&& (_searchQueryTab == tab)
+		&& (_searchQueryCommunity == community)
+		&& (_searchQueryFilter == filter)
+		&& (_searchQueryFromArchive == fromArchive);
+	if (trimmed.isEmpty()
+		&& !fromPeer
+		&& !nativeMessageType
+		&& inTags.empty()) {
 		cancelSearchRequest();
 
 		// Otherwise inside first searchApplyEmpty we call searchMode(),
@@ -3122,9 +3133,11 @@ bool Widget::search(bool inCache, SearchRequestDelay delay) {
 		}
 		_peerSearch.clear();
 		_api.request(base::take(_topicSearchRequest)).cancel();
-		peerSearchReceived({});
+		if (!onlyMessageTypesChanged) {
+			peerSearchReceived({});
+		}
 		return true;
-	} else if (inCache && intersectionType) {
+	} else if (inCache && nativeMessageType) {
 		return false;
 	} else if (inCache) {
 		const auto success = messageTypes
@@ -3181,7 +3194,8 @@ bool Widget::search(bool inCache, SearchRequestDelay delay) {
 		process->full = false;
 		_migratedProcess.full = false;
 		cancelSearchRequest();
-		if (inPeer && intersectionType) {
+		if (inPeer && nativeMessageType
+			&& (fromPeer || _searchState.inChat.sublist())) {
 			const auto revision = _searchRevision;
 			const auto topic = searchInTopic();
 			const auto history = session().data().history(inPeer);
@@ -3241,7 +3255,10 @@ bool Widget::search(bool inCache, SearchRequestDelay delay) {
 								Data::ReactionToMTP
 							)),
 						MTP_int(topic ? topic->rootId() : 0),
-						MTP_inputMessagesFilterEmpty(),
+						(nativeMessageType
+							? NativeMessageSearchFilter(*nativeMessageType)
+							: MTPMessagesFilter(
+								MTP_inputMessagesFilterEmpty())),
 						MTP_int(0), // min_date
 						MTP_int(0), // max_date
 						MTP_int(0), // offset_id
@@ -3274,7 +3291,9 @@ bool Widget::search(bool inCache, SearchRequestDelay delay) {
 					searchFailed(type, error, process);
 					finish();
 				}).send();
-				process->queries.emplace(process->requestId, _searchQuery);
+				if (!nativeMessageType) {
+					process->queries.emplace(process->requestId, _searchQuery);
+				}
 				return process->requestId;
 			});
 		} else if (_searchState.tab == ChatSearchTab::PublicPosts) {
@@ -3282,7 +3301,9 @@ bool Widget::search(bool inCache, SearchRequestDelay delay) {
 		} else {
 			requestMessages(true);
 		}
-		_inner->searchRequested(true);
+		if (!onlyMessageTypesChanged) {
+			_inner->searchRequested(true);
+		}
 	} else {
 		_inner->searchRequested(false);
 	}
@@ -3295,7 +3316,9 @@ bool Widget::search(bool inCache, SearchRequestDelay delay) {
 		}, requestType);
 	} else {
 		_peerSearch.clear();
-		peerSearchReceived({});
+		if (!onlyMessageTypesChanged) {
+			peerSearchReceived({});
+		}
 	}
 	const auto peerQuery = Api::ConvertPeerSearchQuery(query);
 	if (searchForTopicsRequired(peerQuery)) {
@@ -3469,11 +3492,12 @@ void Widget::searchMore() {
 
 void Widget::searchMoreNow() {
 	const auto process = currentSearchProcess();
-	if (NativeMessageSearchType(_searchQueryMessageTypes)) {
-		if (_messageSearchIntersection
-			&& _messageSearchIntersection->loading()) {
+	const auto nativeMessageType = NativeMessageSearchType(
+		_searchQueryMessageTypes);
+	if (_messageSearchIntersection) {
+		if (_messageSearchIntersection->loading()) {
 			return;
-		} else if (_messageSearchIntersection) {
+		} else {
 			const auto helperProcess = _messageSearchIntersectionMigrated
 				? &_migratedProcess
 				: process.get();
@@ -3544,7 +3568,10 @@ void Widget::searchMoreNow() {
 								Data::ReactionToMTP
 							)),
 						MTP_int(topic ? topic->rootId() : 0),
-						MTP_inputMessagesFilterEmpty(),
+						(nativeMessageType
+							? NativeMessageSearchFilter(*nativeMessageType)
+							: MTPMessagesFilter(
+								MTP_inputMessagesFilterEmpty())),
 						MTP_int(0), // min_date
 						MTP_int(0), // max_date
 						MTP_int(process->lastId),
@@ -3577,7 +3604,7 @@ void Widget::searchMoreNow() {
 					searchFailed(type, error, process);
 					finish();
 				}).send();
-				if (!process->lastId) {
+				if (!process->lastId && !nativeMessageType) {
 					process->queries.emplace(
 						process->requestId,
 						_searchQuery);
@@ -3614,7 +3641,10 @@ void Widget::searchMoreNow() {
 					MTPInputPeer(), // saved_peer_id
 					MTPVector<MTPReaction>(), // saved_reaction
 					MTPint(), // top_msg_id
-					MTP_inputMessagesFilterEmpty(),
+					(nativeMessageType
+						? NativeMessageSearchFilter(*nativeMessageType)
+						: MTPMessagesFilter(
+							MTP_inputMessagesFilterEmpty())),
 					MTP_int(0), // min_date
 					MTP_int(0), // max_date
 					MTP_int(_migratedProcess.lastId),
@@ -3871,6 +3901,8 @@ void Widget::searchReceived(
 		process->lastId = 0;
 		process->matchedCount = 0;
 	}
+	const auto nativeMessageType = NativeMessageSearchType(
+		_searchQueryMessageTypes);
 	const auto processList = [&](const MTPVector<MTPMessage> &messages) {
 		auto filtered = std::vector<not_null<HistoryItem*>>();
 		for (const auto &message : messages.v) {
@@ -3883,9 +3915,11 @@ void Widget::searchReceived(
 						message,
 						MessageFlags(),
 						NewMessageType::Existing);
-					if (item && MatchesMessageSearchTypes(
-							item,
-							_searchQueryMessageTypes)) {
+					if (item
+						&& (nativeMessageType
+							|| MatchesMessageSearchTypes(
+								item,
+								_searchQueryMessageTypes))) {
 						filtered.push_back(item);
 						++process->matchedCount;
 					}
@@ -3927,8 +3961,10 @@ void Widget::searchReceived(
 		const auto nextRate = data.vnext_rate();
 		const auto rateUpdated = nextRate
 			&& (nextRate->v != process->nextRate);
+		const auto nativeFilterComplete = nativeMessageType
+			&& (process->matchedCount >= data.vcount().v);
 		const auto finished = (type.peer || type.migrated || type.posts)
-			? rawEmpty
+			? (rawEmpty || nativeFilterComplete)
 			: !rateUpdated;
 		if (rateUpdated) {
 			process->nextRate = nextRate->v;
@@ -3960,7 +3996,9 @@ void Widget::searchReceived(
 		}
 		const auto rawEmpty = data.vmessages().v.empty();
 		auto list = processList(data.vmessages());
-		if (rawEmpty) {
+		if (rawEmpty
+			|| (nativeMessageType
+				&& process->matchedCount >= data.vcount().v)) {
 			process->full = true;
 		}
 		fullCount = data.vcount().v;
@@ -3971,7 +4009,8 @@ void Widget::searchReceived(
 		process->full = true;
 		return std::vector<not_null<HistoryItem*>>();
 	});
-	if (_searchQueryMessageTypes) {
+	if (_searchQueryMessageTypes
+		&& !nativeMessageType) {
 		fullCount = process->matchedCount;
 	}
 	const auto waitForMore = _searchQueryMessageTypes
@@ -4407,11 +4446,13 @@ bool Widget::applySearchState(SearchState state) {
 	if (!state.tags.empty()) {
 		state.inChat = session().data().history(session().user());
 	}
-	const auto ignoresChat = (state.tab == ChatSearchTab::MyMessages)
-		|| (state.tab == ChatSearchTab::PublicPosts)
-		|| (state.tab == ChatSearchTab::Archive)
-		|| (state.tab == ChatSearchTab::ThisCommunity);
-	if (ignoresChat || !state.fromPeer) {
+	const auto messageTypesAvailable = (
+		(state.tab == ChatSearchTab::ThisTopic)
+		|| (state.tab == ChatSearchTab::ThisPeer))
+		&& (state.inChat.owningHistory() || _openedForum);
+	if (!messageTypesAvailable
+		|| (!state.fromPeer
+			&& !NativeMessageSearchType(state.messageTypes))) {
 		state.messageTypes = 0;
 	}
 

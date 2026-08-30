@@ -163,7 +163,7 @@ public:
 	void dragLeft();
 	void setNarrowRatio(float64 narrowRatio);
 
-	void clearFilter();
+	void clearFilter(bool updateView = true);
 	void refresh(bool toTop = false);
 	void refreshEmpty();
 	void resizeEmpty();

@@ -51,6 +51,7 @@ public:
 		std::shared_ptr<Ui::DynamicImage> fromUserpic,
 		QString fromName,
 		bool messageTypesAvailable,
+		bool multipleMessageTypesAllowed,
 		MessageSearchTypes messageTypes);
 
 	[[nodiscard]] rpl::producer<> cancelInRequests() const;
@@ -92,6 +93,7 @@ private:
 	Section _messageTypesSection;
 	rpl::variable<ChatSearchTab> _active;
 	bool _messageTypesAvailable = false;
+	bool _multipleMessageTypesAllowed = false;
 	MessageSearchTypes _messageTypes = 0;
 	rpl::event_stream<MessageSearchTypes> _messageTypesChanges;
 

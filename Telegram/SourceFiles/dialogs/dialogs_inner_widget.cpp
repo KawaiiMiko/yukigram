@@ -4176,8 +4176,12 @@ void InnerWidget::applySearchState(SearchState state) {
 	withSameQuery.query = _searchState.query;
 	withSameQuery.messageTypes = _searchState.messageTypes;
 	const auto immediateChanged = (_searchState != withSameQuery);
+	const auto queryChanged = (_searchState.query != state.query);
 	const auto messageTypesChanged = (_searchState.messageTypes
 		!= state.messageTypes);
+	const auto onlyMessageTypesChanged = messageTypesChanged
+		&& !queryChanged
+		&& !immediateChanged;
 	const auto restrictionsChanged = immediateChanged
 		|| messageTypesChanged;
 
@@ -4259,7 +4263,7 @@ void InnerWidget::applySearchState(SearchState state) {
 			&& !_searchState.fromPeer
 			&& _searchState.tags.empty()
 			&& _searchState.tab != ChatSearchTab::PublicPosts) {
-			clearFilter();
+			clearFilter(!onlyMessageTypesChanged);
 		} else {
 			setState(WidgetState::Filtered);
 			_filterResultsGlobal.clear();
@@ -4273,7 +4277,11 @@ void InnerWidget::applySearchState(SearchState state) {
 			? SearchRequestDelay::Instant
 			: SearchRequestDelay::Delayed);
 		if (_searchWaiting) {
-			refresh(true);
+			if (onlyMessageTypesChanged) {
+				searchRequested(true);
+			} else {
+				refresh(true);
+			}
 		}
 	}
 }
@@ -5235,6 +5243,9 @@ void InnerWidget::updateSearchIn() {
 	const auto fromName = _searchFromShown
 		? _searchFromShown->shortName()
 		: QString();
+	const auto messageTypesAvailable = peer
+		&& ((_searchState.tab == ChatSearchTab::ThisTopic)
+			|| (_searchState.tab == ChatSearchTab::ThisPeer));
 	_searchIn->apply({
 		{ ChatSearchTab::ThisTopic, topicIcon },
 		{ ChatSearchTab::ThisPeer, peerIcon },
@@ -5247,6 +5258,7 @@ void InnerWidget::updateSearchIn() {
 		peerTabType,
 		fromImage,
 		fromName,
+		messageTypesAvailable,
 		_searchState.fromPeer != nullptr,
 		_searchState.messageTypes);
 }
@@ -5273,7 +5285,7 @@ bool InnerWidget::computeSearchWithPostsPreview() const {
 		&& !_searchState.inChat;
 }
 
-void InnerWidget::clearFilter() {
+void InnerWidget::clearFilter(bool updateView) {
 	if (_state == WidgetState::Filtered
 		|| _searchState.inChat
 		|| archiveSearchActive()
@@ -5294,7 +5306,9 @@ void InnerWidget::clearFilter() {
 		_trackedHistories.clear();
 		_trackedLifetime.destroy();
 		_filter = QString();
-		refresh(true);
+		if (updateView) {
+			refresh(true);
+		}
 	}
 }
 

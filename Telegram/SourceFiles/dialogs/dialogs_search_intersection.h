@@ -27,6 +27,9 @@ namespace Dialogs {
 [[nodiscard]] std::optional<MessageSearchType> NativeMessageSearchType(
 	MessageSearchTypes selected);
 
+[[nodiscard]] MTPMessagesFilter NativeMessageSearchFilter(
+	MessageSearchType type);
+
 class MessageSearchIntersection final : public base::has_weak_ptr {
 public:
 	struct Request {

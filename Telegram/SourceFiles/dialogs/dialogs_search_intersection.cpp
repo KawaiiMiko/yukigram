@@ -21,9 +21,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "storage/storage_shared_media.h"
 
 namespace Dialogs {
-namespace {
 
-[[nodiscard]] MTPMessagesFilter NativeFilter(MessageSearchType type) {
+MTPMessagesFilter NativeMessageSearchFilter(MessageSearchType type) {
 	switch (type) {
 	case MessageSearchType::Photo:
 		return MTP_inputMessagesFilterPhotos();
@@ -53,8 +52,10 @@ namespace {
 	case MessageSearchType::kCount:
 		break;
 	}
-	Unexpected("MessageSearchType in NativeFilter.");
+	Unexpected("MessageSearchType in NativeMessageSearchFilter.");
 }
+
+namespace {
 
 [[nodiscard]] bool MatchesSender(
 		not_null<HistoryItem*> item,
@@ -236,7 +237,7 @@ struct MessageSearchIntersection::State {
 						MTP_int(copy.topMsgId),
 						(sender
 							? MTPMessagesFilter(MTP_inputMessagesFilterEmpty())
-							: NativeFilter(copy.type)),
+							: NativeMessageSearchFilter(copy.type)),
 						MTP_int(0), // min_date
 						MTP_int(0), // max_date
 						MTP_int(offsetId),

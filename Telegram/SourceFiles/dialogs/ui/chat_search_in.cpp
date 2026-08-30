@@ -453,6 +453,7 @@ void ChatSearchIn::apply(
 		std::shared_ptr<Ui::DynamicImage> fromUserpic,
 		QString fromName,
 		bool messageTypesAvailable,
+		bool multipleMessageTypesAllowed,
 		MessageSearchTypes messageTypes) {
 	_tabs = std::move(tabs);
 	_peerTabType = peerTabType;
@@ -472,6 +473,7 @@ void ChatSearchIn::apply(
 		tr::marked);
 	updateSection(&_from, std::move(fromUserpic), std::move(text));
 	_messageTypesAvailable = messageTypesAvailable;
+	_multipleMessageTypesAllowed = multipleMessageTypesAllowed;
 	_messageTypes = _messageTypesAvailable ? messageTypes : 0;
 	updateMessageTypesSection();
 
@@ -562,9 +564,11 @@ void ChatSearchIn::showMessageTypesMenu() {
 				setMessageTypes(0);
 			} else {
 				const auto bit = MessageSearchTypeBit(*type);
-				setMessageTypes((_messageTypes & bit)
-					? (_messageTypes & ~bit)
-					: (_messageTypes | bit));
+				setMessageTypes(_multipleMessageTypesAllowed
+					? ((_messageTypes & bit)
+						? (_messageTypes & ~bit)
+						: (_messageTypes | bit))
+					: bit);
 			}
 		});
 		_messageTypesMenuRefresh.push_back([=](MessageSearchTypes types) {
@@ -576,6 +580,10 @@ void ChatSearchIn::showMessageTypesMenu() {
 	};
 	add(tr::lng_forum_all_messages(tr::now), std::nullopt);
 	for (const auto type : MessageSearchTypeList()) {
+		if (!_multipleMessageTypesAllowed
+			&& type == MessageSearchType::Sticker) {
+			continue;
+		}
 		add(MessageSearchTypeLabel(type), type);
 	}
 	const auto point = mapToGlobal(
@@ -589,10 +597,8 @@ void ChatSearchIn::setMessageTypes(MessageSearchTypes types) {
 		return;
 	}
 	_messageTypes = types;
-	updateMessageTypesSection();
-	refreshMessageTypesMenu();
-	resizeToWidth(width());
 	_messageTypesChanges.fire_copy(types);
+	refreshMessageTypesMenu();
 }
 
 void ChatSearchIn::updateMessageTypesSection() {
