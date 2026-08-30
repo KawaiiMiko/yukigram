@@ -87,6 +87,7 @@ struct SearchRequestType;
 enum class SearchRequestDelay : uchar;
 class Suggestions;
 class ChatSearchIn;
+class MessageSearchIntersection;
 enum class ChatSearchTab : uchar;
 enum class HashOrCashtag : uchar;
 
@@ -201,6 +202,16 @@ private:
 	void searchTopics();
 	void searchMore();
 	void searchMoreNow();
+	void startMessageSearchIntersection(
+		not_null<History*> history,
+		PeerData *fromPeer,
+		PeerData *savedPeer,
+		std::vector<Data::ReactionId> tags,
+		MsgId topMsgId,
+		SearchRequestType type,
+		not_null<SearchProcessState*> process,
+		uint64 revision,
+		bool migrated);
 	[[nodiscard]] bool messageSearchLoading() const;
 
 	void slideFinished();
@@ -452,6 +463,9 @@ private:
 	SearchProcessState _migratedProcess;
 	SearchProcessState _postsProcess;
 	int _historiesRequest = 0; // Not real mtpRequestId.
+	std::unique_ptr<MessageSearchIntersection> _messageSearchIntersection;
+	rpl::lifetime _messageSearchIntersectionLifetime;
+	bool _messageSearchIntersectionMigrated = false;
 
 	Api::PeerSearch _peerSearch;
 	Api::SingleMessageSearch _singleMessageSearch;
