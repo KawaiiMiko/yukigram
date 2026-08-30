@@ -125,6 +125,8 @@ void TagFilterThumbnail::subscribeToUpdates(Fn<void()> callback) {
 		return st::dialogsSearchInMessageTypeVoice;
 	case MessageSearchType::RoundVideo:
 		return st::dialogsSearchInMessageTypeRoundVideo;
+	case MessageSearchType::Sticker:
+		return st::dialogsSearchInMessageTypeSticker;
 	case MessageSearchType::Gif:
 		return st::dialogsSearchInMessageTypeGif;
 	case MessageSearchType::Poll:
@@ -150,6 +152,7 @@ void TagFilterThumbnail::subscribeToUpdates(Fn<void()> callback) {
 		MessageSearchType::Music,
 		MessageSearchType::Voice,
 		MessageSearchType::RoundVideo,
+		MessageSearchType::Sticker,
 		MessageSearchType::Gif,
 		MessageSearchType::Poll,
 		MessageSearchType::Mention,
@@ -175,6 +178,8 @@ void TagFilterThumbnail::subscribeToUpdates(Fn<void()> callback) {
 		return tr::lng_media_type_audios(tr::now);
 	case MessageSearchType::RoundVideo:
 		return tr::lng_media_type_rounds(tr::now);
+	case MessageSearchType::Sticker:
+		return tr::lng_switch_stickers(tr::now);
 	case MessageSearchType::Gif:
 		return tr::lng_media_type_gifs(tr::now);
 	case MessageSearchType::Poll:

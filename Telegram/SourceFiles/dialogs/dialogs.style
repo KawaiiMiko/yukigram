@@ -489,6 +489,7 @@ dialogsSearchInMessageTypeLink: icon {{ "menu/link", menuIconColor }};
 dialogsSearchInMessageTypeMusic: icon {{ "info/info_media_audio", menuIconColor }};
 dialogsSearchInMessageTypeVoice: icon {{ "info/info_media_voice", menuIconColor }};
 dialogsSearchInMessageTypeRoundVideo: icon {{ "info/info_media_round", menuIconColor }};
+dialogsSearchInMessageTypeSticker: icon {{ "menu/stickers", menuIconColor }};
 dialogsSearchInMessageTypeGif: icon {{ "menu/gif", menuIconColor }};
 dialogsSearchInMessageTypePoll: icon {{ "menu/create_poll", menuIconColor }};
 dialogsSearchInMessageTypeMention: icon {{ "settings/mention", menuIconColor }};

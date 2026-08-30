@@ -79,6 +79,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_session.h"
 #include "data/data_channel.h"
 #include "data/data_chat.h"
+#include "data/data_document.h"
 #include "data/stickers/data_custom_emoji.h"
 #include "data/data_user.h"
 #include "data/data_folder.h"
@@ -131,6 +132,8 @@ constexpr auto kMessageTypeSearchRequestDelay = crl::time(600);
 		return (selected & MessageSearchTypeBit(type))
 			&& shared.test(value);
 	};
+	const auto media = item->media();
+	const auto document = media ? media->document() : nullptr;
 	return matches(MessageSearchType::Photo, Shared::Photo)
 		|| matches(MessageSearchType::Video, Shared::Video)
 		|| matches(MessageSearchType::File, Shared::File)
@@ -138,6 +141,9 @@ constexpr auto kMessageTypeSearchRequestDelay = crl::time(600);
 		|| matches(MessageSearchType::Music, Shared::MusicFile)
 		|| matches(MessageSearchType::Voice, Shared::VoiceFile)
 		|| matches(MessageSearchType::RoundVideo, Shared::RoundFile)
+		|| ((selected & MessageSearchTypeBit(MessageSearchType::Sticker))
+			&& document
+			&& document->sticker())
 		|| matches(MessageSearchType::Gif, Shared::GIF)
 		|| matches(MessageSearchType::Poll, Shared::Poll)
 		|| matches(MessageSearchType::Pinned, Shared::Pinned)

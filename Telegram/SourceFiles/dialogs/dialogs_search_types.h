@@ -19,6 +19,7 @@ enum class MessageSearchType : uchar {
 	Music,
 	Voice,
 	RoundVideo,
+	Sticker,
 	Gif,
 	Poll,
 	Mention,
