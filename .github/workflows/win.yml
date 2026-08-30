@@ -138,6 +138,7 @@ jobs:
           restore-keys: ${{ runner.OS }}-${{ matrix.arch }}-${{ matrix.qt || 'qt' }}-
 
       - name: Libraries.
+        id: build-libs
         run: |
           %TBUILD%\%REPO_NAME%\Telegram\build\prepare\win.bat skip-debug skip-dump-syms silent ${{ matrix.qt }}
 
@@ -262,14 +263,14 @@ jobs:
           file: ${{ steps.package-release.outputs.archive }}
 
       - name: Save ThirdParty cache.
-        if: always() && steps.cache-third-party.outcome == 'success' && steps.cache-third-party.outputs.cache-hit != 'true'
+        if: always() && steps.cache-third-party.outcome == 'success' && steps.build-libs.outcome == 'success' && steps.cache-third-party.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6
         with:
           path: ${{ env.TBUILD }}\ThirdParty
           key: ${{ steps.cache-third-party.outputs.cache-primary-key }}
 
       - name: Save libraries cache.
-        if: always() && steps.cache-libs.outcome == 'success' && steps.cache-libs.outputs.cache-hit != 'true'
+        if: always() && steps.cache-libs.outcome == 'success' && steps.build-libs.outcome == 'success' && steps.cache-libs.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6
         with:
           path: |
@@ -281,7 +282,7 @@ jobs:
           key: ${{ steps.cache-libs.outputs.cache-primary-key }}
 
       - name: Save Qt cache.
-        if: always() && steps.cache-qt.outcome == 'success' && steps.cache-qt.outputs.cache-hit != 'true'
+        if: always() && steps.cache-qt.outcome == 'success' && steps.build-libs.outcome == 'success' && steps.cache-qt.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6
         with:
           path: |

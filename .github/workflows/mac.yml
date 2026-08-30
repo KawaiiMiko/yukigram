@@ -55,6 +55,7 @@ jobs:
           restore-keys: ${{ runner.OS }}-libs-
 
       - name: Libraries.
+        id: build-libs
         run: |
           ./$REPO_NAME/Telegram/build/prepare/mac.sh skip-debug silent
 
@@ -62,7 +63,7 @@ jobs:
         run: find Libraries '(' '(' ! '(' -name '*.a' -o -name '*.h' -o -name '*.hpp' -o -name '*.inc' -o -name '*.cmake' -o -name '*.pc' -o -path '*/include/*' -o -path '*/objects-*' -o -path '*/cache_keys/*' -o -path '*/patches/*' -o -perm +111 ')' -type f ')' -o -empty ')' -delete
 
       - name: Save libraries cache.
-        if: always() && steps.cache-libs.outcome == 'success' && steps.cache-libs.outputs.cache-hit != 'true'
+        if: always() && steps.cache-libs.outcome == 'success' && steps.build-libs.outcome == 'success' && steps.cache-libs.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6
         with:
           path: |
@@ -170,12 +171,3 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           release_id: ${{ github.event.release.id }}
           file: ${{ steps.package-release.outputs.archive }}
-
-      - name: Save libraries cache.
-        if: always() && steps.cache-libs.outcome == 'success' && steps.cache-libs.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v5
-        with:
-          path: |
-            Libraries
-            ThirdParty
-          key: ${{ steps.cache-libs.outputs.cache-primary-key }}
