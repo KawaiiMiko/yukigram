@@ -835,6 +835,11 @@ void ShareBox::showMenu(not_null<Ui::RpWidget*> parent) {
 		forwardOptions,
 		[=](Ui::ForwardOptions value) { setForwardOptions(value); },
 		{
+			.show = _descriptor.forwardOptions.hasOnlySpoilerableMedia,
+			.add = _addSpoiler,
+			.addChanged = [=, this](bool add) { setAddSpoiler(add); },
+		},
+		{
 			.show = _descriptor.forwardOptions.hasMediaForGrouping,
 			.option = static_cast<Ui::ForwardGroupingOption>(
 				_groupingOptions),
@@ -916,6 +921,10 @@ void ShareBox::setForwardOptions(Ui::ForwardOptions forwardOptions) {
 void ShareBox::setGroupingOptions(
 		Data::GroupingOptions groupingOptions) {
 	_groupingOptions = groupingOptions;
+}
+
+void ShareBox::setAddSpoiler(bool addSpoiler) {
+	_addSpoiler = addSpoiler;
 }
 
 void ShareBox::applyFilterUpdate(const QString &query) {
@@ -1034,13 +1043,18 @@ void ShareBox::submit(Api::SendOptions options) {
 			: _forwardOptions.dropNames
 			? Data::ForwardOptions::NoSenderNames
 			: Data::ForwardOptions::PreserveInfo;
+		const auto effectiveForwardOptions = (_addSpoiler
+			&& forwardOptions == Data::ForwardOptions::PreserveInfo)
+			? Data::ForwardOptions::NoSenderNames
+			: forwardOptions;
 		onstack(
 			std::move(threads),
 			checkPaid,
 			std::move(comment),
 			options,
-			forwardOptions,
-			_groupingOptions);
+			effectiveForwardOptions,
+			_groupingOptions,
+			_addSpoiler);
 	}
 }
 
@@ -2145,7 +2159,8 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 			TextWithTags comment,
 			Api::SendOptions options,
 			Data::ForwardOptions forwardOptions,
-			Data::GroupingOptions groupingOptions) {
+			Data::GroupingOptions groupingOptions,
+			bool addSpoiler) {
 		if (!state->requests.empty()) {
 			return; // Share clicked already.
 		}
@@ -2172,11 +2187,13 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 		} else if (!checkPaid()) {
 			return;
 		}
-		if (groupingOptions != Data::GroupingOptions::GroupAsIs) {
+		if (addSpoiler
+			|| groupingOptions != Data::GroupingOptions::GroupAsIs) {
 			const auto donePhraseArgs = CreateForwardedMessagePhraseArgs(
 				result,
 				msgIds);
 			const auto draftOptions = (no_quote
+				|| addSpoiler
 				|| (groupingOptions == Data::GroupingOptions::RegroupAll
 					&& forwardOptions == Data::ForwardOptions::PreserveInfo))
 				? Data::ForwardOptions::NoSenderNames
@@ -2211,6 +2228,7 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 					.ids = existingIds,
 					.options = draftOptions,
 					.groupOptions = groupingOptions,
+					.addSpoiler = addSpoiler,
 				});
 				history->session().api().forwardMessages(
 					std::move(draft),
@@ -2482,6 +2500,8 @@ void FastShareMessage(
 	const auto canCopyLink = item->hasDirectLink() || isGame;
 
 	const auto items = owner->idsToItems(msgIds);
+	const auto hasOnlySpoilerableMedia
+		= HistoryView::Controls::HasOnlySpoilerableMedia(items);
 	const auto hasMediaForGrouping = [&] {
 		if (msgIds.size() < 2) {
 			return false;
@@ -2577,6 +2597,7 @@ void FastShareMessage(
 			.show = !hasOnlyForcedForwardedInfo
 				&& canShowRichForwardOptions,
 			.hasMediaForGrouping = hasMediaForGrouping,
+			.hasOnlySpoilerableMedia = hasOnlySpoilerableMedia,
 		},
 		.moneyRestrictionError = ShareMessageMoneyRestrictionError(),
 	}), Ui::LayerOption::CloseOther);
@@ -2653,7 +2674,8 @@ void FastShareLink(
 			TextWithTags &&comment,
 			Api::SendOptions options,
 			::Data::ForwardOptions,
-			::Data::GroupingOptions) {
+			::Data::GroupingOptions,
+			bool) {
 		if (*sending || result.empty()) {
 			return;
 		}

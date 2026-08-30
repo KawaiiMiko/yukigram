@@ -411,6 +411,7 @@ struct ForwardDraft {
 	MessageIdsList ids;
 	ForwardOptions options = ForwardOptions::PreserveInfo;
 	GroupingOptions groupOptions = GroupingOptions::GroupAsIs;
+	bool addSpoiler = false;
 
 	friend inline auto operator<=>(
 		const ForwardDraft&,
@@ -421,6 +422,7 @@ struct ResolvedForwardDraft {
 	HistoryItemsList items;
 	ForwardOptions options = ForwardOptions::PreserveInfo;
 	GroupingOptions groupOptions = GroupingOptions::GroupAsIs;
+	bool addSpoiler = false;
 };
 
 } // namespace Data

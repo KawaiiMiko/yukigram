@@ -7264,6 +7264,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_forward_show_senders" = "Show sender names";
 "lng_forward_show_caption" = "Show caption";
 "lng_forward_show_captions" = "Show captions";
+"lng_forward_add_spoiler" = "Add spoiler";
 "lng_forward_regroup_media" = "Regroup Media";
 "lng_forward_separate_messages" = "Separate Messages";
 "lng_forward_change_recipient" = "Change recipient";

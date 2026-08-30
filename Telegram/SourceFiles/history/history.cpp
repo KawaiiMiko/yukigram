@@ -535,6 +535,7 @@ Data::ResolvedForwardDraft History::resolveForwardDraft(
 		.items = owner().idsToItems(draft.ids),
 		.options = draft.options,
 		.groupOptions = draft.groupOptions,
+		.addSpoiler = draft.addSpoiler,
 	};
 }
 
@@ -548,6 +549,7 @@ Data::ResolvedForwardDraft History::resolveForwardDraft(
 			.ids = owner().itemsToIds(result.items),
 			.options = result.options,
 			.groupOptions = result.groupOptions,
+			.addSpoiler = result.addSpoiler,
 		});
 	}
 	return result;

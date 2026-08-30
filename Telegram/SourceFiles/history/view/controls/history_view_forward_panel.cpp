@@ -59,7 +59,8 @@ void ForwardPanel::update(
 	if (_to == to
 		&& _data.items == draft.items
 		&& _data.options == draft.options
-		&& _data.groupOptions == draft.groupOptions) {
+		&& _data.groupOptions == draft.groupOptions
+		&& _data.addSpoiler == draft.addSpoiler) {
 		return;
 	}
 	_dataLifetime.destroy();
@@ -241,14 +242,18 @@ void ForwardPanel::applyOptions(Data::ForwardOptions options) {
 		return;
 	}
 	options = NormalizeForwardOptions(&_to->session(), _data.items, options);
-	if (_data.options != options) {
+	const auto addSpoiler = _data.addSpoiler
+		&& (options != Data::ForwardOptions::PreserveInfo);
+	if (_data.options != options || _data.addSpoiler != addSpoiler) {
 		const auto topicRootId = _to->topicRootId();
 		const auto monoforumPeerId = _to->monoforumPeerId();
 		_data.options = options;
+		_data.addSpoiler = addSpoiler;
 		_to->owningHistory()->setForwardDraft(topicRootId, monoforumPeerId, {
 			.ids = _to->owner().itemsToIds(_data.items),
 			.options = options,
 			.groupOptions = _data.groupOptions,
+			.addSpoiler = addSpoiler,
 		});
 		_repaint();
 	}
@@ -476,6 +481,15 @@ bool HasDropForwardedInfoSetting(const HistoryItemsList &list) {
 		}
 	}
 	return false;
+}
+
+bool HasOnlySpoilerableMedia(const HistoryItemsList &list) {
+	return !list.empty() && ranges::all_of(list, [](auto item) {
+		const auto media = item->media();
+		return media
+			&& media->canBeGrouped()
+			&& (media->photo() || media->document());
+	});
 }
 
 bool HasRichPage(const HistoryItemsList &list) {

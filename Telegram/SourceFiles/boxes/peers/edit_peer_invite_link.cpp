@@ -1504,7 +1504,8 @@ object_ptr<Ui::BoxContent> ShareInviteLinkBox(
 			TextWithTags &&comment,
 			Api::SendOptions options,
 			Data::ForwardOptions,
-			Data::GroupingOptions) {
+			Data::GroupingOptions,
+			bool) {
 		if (*sending || result.empty()) {
 			return;
 		}

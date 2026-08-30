@@ -92,6 +92,7 @@ void EditWebPageOptions(
 [[nodiscard]] bool HasOnlyForcedForwardedInfo(const HistoryItemsList &list);
 [[nodiscard]] bool HasOnlyDroppedForwardedInfo(const HistoryItemsList &list);
 [[nodiscard]] bool HasDropForwardedInfoSetting(const HistoryItemsList &list);
+[[nodiscard]] bool HasOnlySpoilerableMedia(const HistoryItemsList &list);
 [[nodiscard]] bool HasRichPage(const HistoryItemsList &list);
 [[nodiscard]] bool CanHideForwardAuthor(
 	not_null<Main::Session*> session,

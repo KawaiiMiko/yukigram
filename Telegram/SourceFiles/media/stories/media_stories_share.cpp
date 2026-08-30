@@ -91,7 +91,8 @@ namespace Media::Stories {
 			TextWithTags &&comment,
 			Api::SendOptions options,
 			Data::ForwardOptions forwardOptions,
-			Data::GroupingOptions) {
+			Data::GroupingOptions,
+			bool) {
 		if (state->requests) {
 			return; // Share clicked already.
 		}

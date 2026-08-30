@@ -3213,6 +3213,8 @@ void ShowNewForwardMessagesBox(
 		&& (item->media()->game() != nullptr);
 
 	const auto items = owner->idsToItems(msgIds);
+	const auto hasOnlySpoilerableMedia
+		= HistoryView::Controls::HasOnlySpoilerableMedia(items);
 	const auto hasMediaForGrouping = [&] {
 		if (msgIds.size() < 2) {
 			return false;
@@ -3269,6 +3271,8 @@ void ShowNewForwardMessagesBox(
 							.captionsCount = ItemsForwardCaptionsCount(items),
 							.show = !hasOnlyForcedForwardedInfo,
 							.hasMediaForGrouping = hasMediaForGrouping,
+							.hasOnlySpoilerableMedia
+								= hasOnlySpoilerableMedia,
 						},
 						.moneyRestrictionError = WriteMoneyRestrictionError,
 					}), Ui::LayerOption::CloseOther);
@@ -3284,6 +3288,8 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 	const auto msgIds = owner->itemsToIds(itemsList);
 	const auto sendersCount = ItemsForwardSendersCount(itemsList);
 	const auto captionsCount = ItemsForwardCaptionsCount(itemsList);
+	const auto hasOnlySpoilerableMedia
+		= HistoryView::Controls::HasOnlySpoilerableMedia(itemsList);
 	const auto hasRichPage = HistoryView::Controls::HasRichPage(itemsList);
 	const auto hasMediaForGrouping = [&] {
 		if (itemsList.size() < 2) {
@@ -3313,6 +3319,7 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		itemsList,
 		draft.options);
 	draft.groupOptions = Data::GroupingOptions::GroupAsIs;
+	draft.addSpoiler = false;
 	if (msgIds.empty()) {
 		return nullptr;
 	}
@@ -3363,6 +3370,12 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		void setGroupingOptions(Data::GroupingOptions groupingOptions) {
 			_groupingOptions = groupingOptions;
 		}
+		[[nodiscard]] bool addSpoiler() const {
+			return _addSpoiler;
+		}
+		void setAddSpoiler(bool addSpoiler) {
+			_addSpoiler = addSpoiler;
+		}
 
 		not_null<PeerListContent*> peerListContent() const {
 			return PeerListBox::content();
@@ -3396,6 +3409,7 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 			= Data::GroupingOptions::GroupAsIs;
 		FilterId _filterId = 0;
 		bool _recentFilter = false;
+		bool _addSpoiler = false;
 
 	};
 
@@ -3808,7 +3822,9 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		auto chosen = [show, draft = std::move(draft), state](
 				not_null<Data::Thread*> thread) mutable {
 			draft.groupOptions = state->box->groupingOptions();
-			if (draft.groupOptions == Data::GroupingOptions::RegroupAll
+			draft.addSpoiler = state->box->addSpoiler();
+			if ((draft.addSpoiler
+					|| draft.groupOptions == Data::GroupingOptions::RegroupAll)
 				&& draft.options == Data::ForwardOptions::PreserveInfo) {
 				draft.options = Data::ForwardOptions::NoSenderNames;
 			}
@@ -3945,7 +3961,8 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 			std::move(comment),
 			options,
 			forwardOptions,
-			state->box->groupingOptions());
+			state->box->groupingOptions(),
+			state->box->addSpoiler());
 		if (!state->submit && successCallback) {
 			successCallback();
 		}
@@ -4000,6 +4017,13 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 			forwardOptions,
 			[=](Ui::ForwardOptions options) {
 				state->box->setForwardOptions(options);
+			},
+			{
+				.show = hasOnlySpoilerableMedia,
+				.add = state->box->addSpoiler(),
+				.addChanged = [=](bool add) {
+					state->box->setAddSpoiler(add);
+				},
 			},
 			{
 				.show = hasMediaForGrouping,

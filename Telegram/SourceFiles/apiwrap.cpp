@@ -3870,8 +3870,13 @@ void ApiWrap::forwardMessages(
 		_session,
 		draft.items,
 		draft.options);
-	if (draft.options != Data::ForwardOptions::PreserveInfo
-		&& draft.groupOptions == Data::GroupingOptions::RegroupAll) {
+	if (draft.addSpoiler
+		&& draft.options == Data::ForwardOptions::PreserveInfo) {
+		draft.options = Data::ForwardOptions::NoSenderNames;
+	}
+	if (draft.addSpoiler
+		|| (draft.options != Data::ForwardOptions::PreserveInfo
+			&& draft.groupOptions == Data::GroupingOptions::RegroupAll)) {
 		forwardMessagesUnquoted(
 			std::move(draft),
 			action,
@@ -4190,8 +4195,10 @@ void ApiWrap::forwardMessagesUnquoted(
 	auto fallback = Data::ResolvedForwardDraft{
 		.options = draft.options,
 		.groupOptions = Data::GroupingOptions::GroupAsIs,
+		.addSpoiler = false,
 	};
 	auto previousWasEligible = false;
+	auto previousItem = static_cast<HistoryItem*>(nullptr);
 	for (const auto &item : draft.items) {
 		const auto media = item->media();
 		const auto eligible = media
@@ -4200,16 +4207,26 @@ void ApiWrap::forwardMessagesUnquoted(
 		if (!eligible) {
 			fallback.items.push_back(item);
 			previousWasEligible = false;
+			previousItem = nullptr;
 			continue;
 		}
 		const auto type = albumType(item);
-		if (!previousWasEligible
-			|| albums.back().type != type
-			|| albums.back().items.size() == 10) {
+		const auto sameOriginalGroup = previousItem
+			&& item->groupId()
+			&& (item->history() == previousItem->history())
+			&& (item->groupId() == previousItem->groupId());
+		const auto append = previousWasEligible
+			&& (albums.back().type == type)
+			&& (albums.back().items.size() < 10)
+			&& (draft.groupOptions == Data::GroupingOptions::RegroupAll
+				|| (draft.groupOptions == Data::GroupingOptions::GroupAsIs
+					&& sameOriginalGroup));
+		if (!append) {
 			albums.push_back({ .type = type });
 		}
 		albums.back().items.push_back(item);
 		previousWasEligible = true;
+		previousItem = item;
 	}
 	if (shared) {
 		shared->requestsLeft = int(albums.size())
@@ -4240,14 +4257,19 @@ void ApiWrap::forwardMessagesUnquoted(
 		localIds.reserve(album.items.size());
 		for (const auto &item : album.items) {
 			const auto media = item->media();
+			const auto spoiler = draft.addSpoiler || media->hasSpoiler();
 			const auto inputMedia = media->photo()
 				? MTP_inputMediaPhoto(
-					MTP_flags(0),
+					MTP_flags(spoiler
+						? MTPDinputMediaPhoto::Flag::f_spoiler
+						: MTPDinputMediaPhoto::Flag()),
 					media->photo()->mtpInput(),
 					MTPint(),
 					MTPInputDocument())
 				: MTP_inputMediaDocument(
-					MTP_flags(0),
+					MTP_flags(spoiler
+						? MTPDinputMediaDocument::Flag::f_spoiler
+						: MTPDinputMediaDocument::Flag()),
 					media->document()->mtpInput(),
 					MTPInputPhoto(),
 					MTPint(),
@@ -4293,6 +4315,7 @@ void ApiWrap::forwardMessagesUnquoted(
 				.postAuthor = NewMessagePostAuthor(action),
 				.groupedId = groupedId,
 				.suggest = HistoryMessageSuggestInfo(action.options),
+				.mediaSpoiler = spoiler,
 			};
 			if (const auto photo = media->photo()) {
 				history->addNewLocalMessage(

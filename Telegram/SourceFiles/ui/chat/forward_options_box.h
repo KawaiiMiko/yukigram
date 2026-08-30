@@ -33,12 +33,19 @@ struct ForwardGroupingOptions {
 	Fn<void(ForwardGroupingOption)> optionChanged;
 };
 
+struct ForwardSpoilerOptions {
+	bool show = false;
+	bool add = false;
+	Fn<void(bool)> addChanged;
+};
+
 [[nodiscard]] bool FillForwardOptions(
 	Fn<not_null<AbstractCheckView*>(
 		rpl::producer<QString> &&,
 		bool)> createView,
 	ForwardOptions options,
 	Fn<void(ForwardOptions)> optionsChanged,
+	ForwardSpoilerOptions spoiler,
 	ForwardGroupingOptions grouping,
 	Fn<void()> addSeparator,
 	rpl::lifetime &lifetime);

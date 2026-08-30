@@ -115,7 +115,8 @@ public:
 		TextWithTags&&,
 		Api::SendOptions,
 		Data::ForwardOptions,
-		Data::GroupingOptions)>;
+		Data::GroupingOptions,
+		bool addSpoiler)>;
 	using FilterCallback = Fn<bool(not_null<Data::Thread*>)>;
 
 	[[nodiscard]] static auto DefaultForwardCountMessages(
@@ -144,6 +145,7 @@ public:
 			int captionsCount = 0;
 			bool show = false;
 			bool hasMediaForGrouping = false;
+			bool hasOnlySpoilerableMedia = false;
 		} forwardOptions;
 
 		using MoneyRestrictionError = RecipientMoneyRestrictionError;
@@ -177,6 +179,7 @@ private:
 	void createButtons();
 	void setForwardOptions(Ui::ForwardOptions forwardOptions);
 	void setGroupingOptions(Data::GroupingOptions groupingOptions);
+	void setAddSpoiler(bool addSpoiler);
 	int getTopScrollSkip() const;
 	int getBottomScrollSkip() const;
 	int contentHeight() const;
@@ -202,6 +205,7 @@ private:
 	base::unique_qptr<Ui::PopupMenu> _menu;
 	Ui::ForwardOptions _forwardOptions;
 	Data::GroupingOptions _groupingOptions = {};
+	bool _addSpoiler = false;
 
 	class Inner;
 	QPointer<Inner> _inner;
