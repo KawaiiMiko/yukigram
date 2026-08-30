@@ -42,6 +42,10 @@ bool DisableAutoFetchWebPagePreviewGlobalValue() {
 	return GetEnhancedBool(u"disable_auto_fetch_webpage_preview"_q);
 }
 
+bool RemoveMediaSpoilerGlobalValue() {
+	return GetEnhancedBool(u"remove_media_spoiler"_q);
+}
+
 bool HideBlockedMessagesGlobalValue() {
 	return GetEnhancedBool(u"blocked_user_spoiler_mode"_q);
 }
@@ -89,6 +93,14 @@ void HideBlockedMessagesValueChanged(
 	});
 }
 
+void RemoveMediaSpoilerValueChanged(
+		not_null<PeerData*> peer,
+		bool) {
+	ForEachLoadedHistory(peer, [](not_null<History*> history) {
+		history->refreshMediaSpoilerViews();
+	});
+}
+
 constexpr auto kChatFeatureDescriptors = std::array{
 	ChatFeatureDescriptor{
 		.feature = ChatFeature::ForceShowWebPagePreview,
@@ -100,6 +112,12 @@ constexpr auto kChatFeatureDescriptors = std::array{
 		.feature = ChatFeature::DisableAutoFetchWebPagePreview,
 		.storageKey = "disable_auto_fetch_webpage_preview",
 		.globalValue = DisableAutoFetchWebPagePreviewGlobalValue,
+	},
+	ChatFeatureDescriptor{
+		.feature = ChatFeature::RemoveMediaSpoiler,
+		.storageKey = "remove_media_spoiler",
+		.globalValue = RemoveMediaSpoilerGlobalValue,
+		.valueChanged = RemoveMediaSpoilerValueChanged,
 	},
 	ChatFeatureDescriptor{
 		.feature = ChatFeature::HideBlockedMessages,

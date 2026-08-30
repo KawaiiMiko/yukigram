@@ -196,6 +196,12 @@ void Histories::refreshRichMessageViews() {
 	}
 }
 
+void Histories::refreshMediaSpoilerViews() {
+	for (const auto &[peerId, history] : _map) {
+		history->refreshMediaSpoilerViews();
+	}
+}
+
 void Histories::refreshStickerViews() {
 	for (const auto &[peerId, history] : _map) {
 		history->refreshStickerViews();

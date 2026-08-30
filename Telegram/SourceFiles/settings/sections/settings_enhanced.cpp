@@ -203,6 +203,20 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
+			.id = u"enhanced/remove-media-spoiler"_q,
+			.title = tr::lng_settings_remove_media_spoiler(tr::now),
+			.keywords = {
+				u"media"_q,
+				u"spoiler"_q,
+				u"remove"_q,
+				u"show"_q,
+			},
+			.deeplink = u"tg://settings/enhanced/remove-media-spoiler"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
 			.id = u"enhanced/disable-link-warning"_q,
 			.title = tr::lng_settings_disable_link_warning(tr::now),
 			.keywords = { u"link"_q, u"warning"_q, u"confirm"_q },
@@ -627,6 +641,25 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			EnhancedSettings::NotifyChatFeatureChange(
 				nullptr,
 				EnhancedSettings::ChatFeature::DisableAutoFetchWebPagePreview);
+		}, container->lifetime());
+
+		const auto removeMediaSpoiler = AddButtonWithIcon(
+				messagesInner,
+				tr::lng_settings_remove_media_spoiler(),
+				st::settingsButtonNoIcon);
+		registerHighlight(
+			u"enhanced/remove-media-spoiler"_q,
+			removeMediaSpoiler);
+		removeMediaSpoiler->toggleOn(
+				rpl::single(GetEnhancedBool("remove_media_spoiler"))
+		)->toggledChanges(
+		) | rpl::filter([=](bool toggled) {
+			return (toggled != GetEnhancedBool("remove_media_spoiler"));
+		}) | rpl::on_next([=](bool toggled) {
+			SetEnhancedValue("remove_media_spoiler", toggled);
+			EnhancedSettings::Write();
+			App::wnd()->sessionController()->session().data().histories()
+				.refreshMediaSpoilerViews();
 		}, container->lifetime());
 
 		const auto disableLinkWarning = AddButtonWithIcon(

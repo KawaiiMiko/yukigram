@@ -157,6 +157,7 @@ public:
 	void restoreBlockedHiddenMessages();
 	void refreshRichMessageViews();
 	void refreshForceShowWebPagePreviewViews();
+	void refreshMediaSpoilerViews();
 	void refreshStickerViews();
 	void destroyMessagesByTopic(MsgId topicRootId);
 	void refreshHiddenReplyData(const std::vector<MsgId> &ids);

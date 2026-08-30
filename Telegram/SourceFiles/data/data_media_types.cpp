@@ -77,6 +77,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "main/main_session_settings.h"
 #include "calls/calls_instance.h"
 #include "core/application.h"
+#include "core/chat_enhanced_settings.h"
 #include "core/click_handler_types.h" // ClickHandlerContext
 #include "lang/lang_keys.h"
 #include "storage/file_upload.h"
@@ -101,6 +102,12 @@ struct AlbumCounts {
 	int audios = 0;
 	int files = 0;
 };
+
+[[nodiscard]] bool ShouldRemoveMediaSpoiler(not_null<HistoryItem*> item) {
+	return EnhancedSettings::ResolveChatFeature(
+		item->history()->peer,
+		EnhancedSettings::ChatFeature::RemoveMediaSpoiler);
+}
 
 [[nodiscard]] TextWithEntities WithCaptionNotificationText(
 		TextWithEntities attachType,
@@ -1073,7 +1080,7 @@ std::unique_ptr<HistoryView::Media> MediaPhoto::createView(
 		message,
 		realParent,
 		_photo,
-		_spoiler);
+		_spoiler && !ShouldRemoveMediaSpoiler(realParent));
 }
 
 MediaFile::MediaFile(
@@ -1470,6 +1477,7 @@ std::unique_ptr<HistoryView::Media> MediaFile::createView(
 		not_null<HistoryView::Element*> message,
 		not_null<HistoryItem*> realParent,
 		HistoryView::Element *replacing) {
+	const auto spoiler = _spoiler && !ShouldRemoveMediaSpoiler(realParent);
 	if (_document->sticker()) {
 		return std::make_unique<HistoryView::UnwrappedMedia>(
 			message,
@@ -1494,14 +1502,14 @@ std::unique_ptr<HistoryView::Media> MediaFile::createView(
 				message,
 				realParent,
 				_document,
-				_spoiler);
+				spoiler);
 		}
 	} else if (_document->isAnimation() || _document->isVideoFile()) {
 		return std::make_unique<HistoryView::Gif>(
 			message,
 			realParent,
 			_document,
-			_spoiler);
+			spoiler);
 	} else if (_document->isTheme() && _document->hasThumbnail()) {
 		return std::make_unique<HistoryView::ThemeDocument>(
 			message,

@@ -866,6 +866,20 @@ void History::refreshForceShowWebPagePreviewViews() {
 	}
 }
 
+void History::refreshMediaSpoilerViews() {
+	auto items = std::vector<not_null<HistoryItem*>>();
+	items.reserve(_items.size());
+	for (const auto &message : _items) {
+		const auto media = message->media();
+		if (media && media->hasSpoiler()) {
+			items.push_back(message.get());
+		}
+	}
+	for (const auto &item : items) {
+		owner().requestItemViewRefresh(item);
+	}
+}
+
 void History::refreshStickerViews() {
 	auto items = std::vector<not_null<HistoryItem*>>();
 	items.reserve(_items.size());

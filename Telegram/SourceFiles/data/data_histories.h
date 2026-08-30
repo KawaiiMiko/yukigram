@@ -61,6 +61,7 @@ public:
 	void syncBlockedPeerMessages(PeerData* peer, bool hide);
 	void restoreBlockedHiddenMessages();
 	void refreshRichMessageViews();
+	void refreshMediaSpoilerViews();
 	void refreshStickerViews();
 
 	void readInbox(not_null<History*> history);

@@ -15,6 +15,7 @@ namespace EnhancedSettings {
 enum class ChatFeature {
 	ForceShowWebPagePreview,
 	DisableAutoFetchWebPagePreview,
+	RemoveMediaSpoiler,
 	HideBlockedMessages,
 	ShowScheduledButton,
 	Count,
