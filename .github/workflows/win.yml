@@ -9,7 +9,7 @@ jobs:
 
   windows:
     name: Windows
-    runs-on: ${{ matrix.arch == 'arm64' && 'windows-11-arm' || 'windows-latest' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'windows-11-arm' || 'avrea-windows-2025-8-vcpu' }}
     permissions:
       contents: write
 
@@ -35,7 +35,11 @@ jobs:
       - name: Prepare directories.
         run: |
           if "${{ matrix.arch }}"=="x64" (
-            set "TBUILD_TARGET=D:\TBuild"
+            if exist "D:\" (
+              set "TBUILD_TARGET=D:\TBuild"
+            ) else (
+              set "TBUILD_TARGET=%userprofile%\TBuild"
+            )
           ) else (
             set "TBUILD_TARGET=%userprofile%\TBuild"
           )
@@ -57,7 +61,7 @@ jobs:
         with:
           submodules: recursive
           ref: ${{ github.event_name == 'release' && github.event.release.tag_name || github.ref }}
-          path: ${{ env.TBUILD }}\${{ env.REPO_NAME }}
+          path: TBuild/${{ env.REPO_NAME }}
 
       - name: First set up.
         shell: bash
