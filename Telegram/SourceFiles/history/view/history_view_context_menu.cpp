@@ -2416,6 +2416,9 @@ void AddHideMessageAction(
 		not_null<Ui::PopupMenu*> menu,
 		not_null<HistoryItem*> item,
 		std::optional<MessageExtraState::HiddenScope> scope) {
+	if (!item->isHistoryEntry() || item->isEmpty()) {
+		return;
+	}
 	menu->addAction(
 		tr::lng_context_hide_message(tr::now),
 		[=] {

@@ -3622,7 +3622,9 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 						Api::AddOfferToMessage(_controller->uiShow(), itemId);
 					}, &st::menuIconTagSell);
 				}
-				if (HasExtraContextMenuOption(ExtraContextMenuOption::HideMessage)) {
+				if (HasExtraContextMenuOption(ExtraContextMenuOption::HideMessage)
+					&& item->isHistoryEntry()
+					&& !item->isEmpty()) {
 					HistoryView::AddHideMessageAction(_menu, item);
 				}
 				if (item->canDelete()) {
@@ -4084,7 +4086,9 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 						Api::AddOfferToMessage(_controller->uiShow(), itemId);
 					}, &st::menuIconTagSell);
 				}
-				if (HasExtraContextMenuOption(ExtraContextMenuOption::HideMessage)) {
+				if (HasExtraContextMenuOption(ExtraContextMenuOption::HideMessage)
+					&& item->isHistoryEntry()
+					&& !item->isEmpty()) {
 					HistoryView::AddHideMessageAction(_menu, item);
 				}
 				if (canDelete) {
