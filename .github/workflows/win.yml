@@ -17,7 +17,7 @@ jobs:
       matrix:
         arch: [x64, arm64]
         qt: ["", qt6]
-        generator: [""]
+        generator: ["Ninja Multi-Config"]
         exclude:
           - arch: arm64
             qt: ""
@@ -171,7 +171,6 @@ jobs:
           if [ -n "${{ matrix.generator }}" ]; then
             GENERATOR="-G \"${{ matrix.generator }}\""
             echo "Generator from matrix: $GENERATOR"
-            ARTIFACT_NAME="${ARTIFACT_NAME}_${VERSION}_${ARCH}_${{ matrix.generator }}"
           fi
           echo "TDESKTOP_BUILD_GENERATOR=$GENERATOR" >> $GITHUB_ENV
 
