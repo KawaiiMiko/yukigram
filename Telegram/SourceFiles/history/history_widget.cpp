@@ -2727,7 +2727,7 @@ void HistoryWidget::setupShortcuts() {
 				if (_previewDrawPreview) {
 					_preview->apply({ .removed = true });
 				} else {
-					_preview->apply({}, true);
+					_preview->restore();
 				}
 				return true;
 			});
@@ -5924,7 +5924,7 @@ void HistoryWidget::sendTextWithTags(
 	auto message = Api::MessageToSend(prepareSendAction(options));
 	message.textWithTags = textWithTags;
 	if (useWebPageDraft && _preview) {
-		message.webPage = _preview->draft();
+		message.webPage = _preview->draftForSending();
 	}
 	const auto ephemeral = session().ephemeralMessages().wouldSend(message);
 	if (options.scheduled && ephemeral) {

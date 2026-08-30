@@ -183,6 +183,26 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
+			.id = u"enhanced/disable-auto-fetch-webpage-preview"_q,
+			.title = tr::lng_settings_disable_auto_fetch_webpage_preview(
+				tr::now),
+			.keywords = {
+				u"automatic"_q,
+				u"disable"_q,
+				u"fetch"_q,
+				u"link"_q,
+				u"preview"_q,
+				u"url"_q,
+				u"web page"_q,
+				u"webpage"_q,
+			},
+			.deeplink
+				= u"tg://settings/enhanced/disable-auto-fetch-webpage-preview"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
 			.id = u"enhanced/disable-link-warning"_q,
 			.title = tr::lng_settings_disable_link_warning(tr::now),
 			.keywords = { u"link"_q, u"warning"_q, u"confirm"_q },
@@ -583,6 +603,30 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 					}
 				}
 			}
+		}, container->lifetime());
+
+		const auto disableAutoFetchWebPagePreview = AddButtonWithIcon(
+				messagesInner,
+				tr::lng_settings_disable_auto_fetch_webpage_preview(),
+				st::settingsButtonNoIcon);
+		registerHighlight(
+			u"enhanced/disable-auto-fetch-webpage-preview"_q,
+			disableAutoFetchWebPagePreview);
+		disableAutoFetchWebPagePreview->toggleOn(
+				rpl::single(GetEnhancedBool(
+					"disable_auto_fetch_webpage_preview"))
+		)->toggledChanges(
+		) | rpl::filter([=](bool toggled) {
+			return (toggled != GetEnhancedBool(
+				"disable_auto_fetch_webpage_preview"));
+		}) | rpl::on_next([=](bool toggled) {
+			SetEnhancedValue(
+				"disable_auto_fetch_webpage_preview",
+				toggled);
+			EnhancedSettings::Write();
+			EnhancedSettings::NotifyChatFeatureChange(
+				nullptr,
+				EnhancedSettings::ChatFeature::DisableAutoFetchWebPagePreview);
 		}, container->lifetime());
 
 		const auto disableLinkWarning = AddButtonWithIcon(

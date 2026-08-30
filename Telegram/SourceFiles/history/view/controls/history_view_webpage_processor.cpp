@@ -8,6 +8,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/view/controls/history_view_webpage_processor.h"
 
 #include "base/unixtime.h"
+#include "core/chat_enhanced_settings.h"
 #include "data/data_chat_participant_status.h"
 #include "data/data_file_origin.h"
 #include "data/data_session.h"
@@ -193,7 +194,9 @@ WebpageProcessor::WebpageProcessor(
 , _resolver(std::make_shared<WebpageResolver>(&history->session()))
 , _parser(field)
 , _timer([=] {
-	if (!ShowWebPagePreview(_data) || _link.isEmpty()) {
+	if (!ShowWebPagePreview(_data)
+		|| _link.isEmpty()
+		|| (!_draft.manual && automaticFetchDisabled())) {
 		return;
 	}
 	_resolver->request(_link, true);
@@ -220,9 +223,21 @@ WebpageProcessor::WebpageProcessor(
 		checkPreview();
 	}, _lifetime);
 
+	EnhancedSettings::ChatFeatureChanges(
+	) | rpl::filter([=](const EnhancedSettings::ChatFeatureChange &change) {
+		return (change.feature
+				== EnhancedSettings::ChatFeature::DisableAutoFetchWebPagePreview)
+			&& (!change.peer
+				|| (change.peer->migrateToOrMe()
+					== _history->peer->migrateToOrMe()));
+	}) | rpl::on_next([=] {
+		checkPreview();
+	}, _lifetime);
+
 	_resolver->resolved() | rpl::on_next([=](QString link) {
 		if (_link != link
 			|| _draft.removed
+			|| (!_draft.manual && automaticFetchDisabled())
 			|| (_draft.manual && _draft.url != link)) {
 			return;
 		}
@@ -244,6 +259,12 @@ rpl::producer<> WebpageProcessor::repaintRequests() const {
 
 Data::WebPageDraft WebpageProcessor::draft() const {
 	return _draft;
+}
+
+Data::WebPageDraft WebpageProcessor::draftForSending() const {
+	return (!_draft.manual && automaticFetchDisabled())
+		? Data::WebPageDraft{ .removed = true }
+		: _draft;
 }
 
 std::shared_ptr<WebpageResolver> WebpageProcessor::resolver() const {
@@ -341,6 +362,22 @@ void WebpageProcessor::setDisabled(bool disabled) {
 	}
 }
 
+void WebpageProcessor::restore() {
+	if (!automaticFetchDisabled()) {
+		apply({}, true);
+		return;
+	}
+	_parser.parseNow();
+	if (_parsedLinks.empty()) {
+		apply({}, true);
+		return;
+	}
+	apply({
+		.url = _parsedLinks.front(),
+		.manual = true,
+	}, false);
+}
+
 void WebpageProcessor::checkNow(bool force) {
 	_parser.parseNow();
 	if (force) {
@@ -353,6 +390,12 @@ void WebpageProcessor::checkNow(bool force) {
 		}
 	}
 	checkPreview();
+}
+
+bool WebpageProcessor::automaticFetchDisabled() const {
+	return EnhancedSettings::ResolveChatFeature(
+		_history->peer,
+		EnhancedSettings::ChatFeature::DisableAutoFetchWebPagePreview);
 }
 
 void WebpageProcessor::checkPreview() {
@@ -368,6 +411,20 @@ void WebpageProcessor::checkPreview() {
 		_draft.removed = false;
 		return;
 	} else if (_draft.manual) {
+		return;
+	} else if (automaticFetchDisabled()) {
+		_resolver->cancel(_link);
+		const auto hadPreview = _data
+			|| !_link.isEmpty()
+			|| !_links.isEmpty()
+			|| (_draft != Data::WebPageDraft());
+		_data = nullptr;
+		_links = QStringList();
+		_link = QString();
+		_draft = {};
+		if (hadPreview) {
+			updateFromData();
+		}
 		return;
 	} else if (_links == _parsedLinks) {
 		return;

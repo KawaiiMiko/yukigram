@@ -1840,6 +1840,14 @@ void RegisterSettingsHandlers(Router &router) {
 	});
 
 	router.add(u"settings"_q, {
+		.path = u"enhanced/disable-auto-fetch-webpage-preview"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/disable-auto-fetch-webpage-preview"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
 		.path = u"enhanced/disable-link-warning"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),

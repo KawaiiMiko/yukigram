@@ -84,6 +84,7 @@ public:
 
 	void setDisabled(bool disabled);
 	void checkNow(bool force);
+	void restore();
 
 	// If editing a message without a preview we don't want to show
 	// parsed preview until links set is changed in the message.
@@ -92,6 +93,7 @@ public:
 	// unless preview was removed in the draft or manual.
 	void apply(Data::WebPageDraft draft, bool reparse = true);
 	[[nodiscard]] Data::WebPageDraft draft() const;
+	[[nodiscard]] Data::WebPageDraft draftForSending() const;
 	[[nodiscard]] std::shared_ptr<WebpageResolver> resolver() const;
 	[[nodiscard]] const std::vector<MessageLinkRange> &links() const;
 	[[nodiscard]] QString link() const;
@@ -104,6 +106,7 @@ public:
 	}
 
 private:
+	[[nodiscard]] bool automaticFetchDisabled() const;
 	void updateFromData();
 	void checkPreview();
 

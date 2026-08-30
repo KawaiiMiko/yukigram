@@ -4449,7 +4449,7 @@ void ComposeControls::initVoiceRecordBar() {
 				if (_previewShown) {
 					_preview->apply({ .removed = true });
 				} else {
-					_preview->apply({}, true);
+					_preview->restore();
 				}
 				saveDraftWithTextNow();
 				return true;
@@ -6186,7 +6186,9 @@ void ComposeControls::initForwardProcess() {
 }
 
 Data::WebPageDraft ComposeControls::webPageDraft() const {
-	return _preview ? _preview->draft() : Data::WebPageDraft();
+	return _preview
+		? _preview->draftForSending()
+		: Data::WebPageDraft();
 }
 
 rpl::producer<FullReplyTo> ComposeControls::jumpToItemRequests() const {

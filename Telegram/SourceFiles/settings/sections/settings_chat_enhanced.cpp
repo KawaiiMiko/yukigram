@@ -140,6 +140,10 @@ rpl::producer<QString> ForceShowWebPagePreviewTitle() {
 	return tr::lng_settings_force_show_webpage_preview();
 }
 
+rpl::producer<QString> DisableAutoFetchWebPagePreviewTitle() {
+	return tr::lng_settings_disable_auto_fetch_webpage_preview();
+}
+
 rpl::producer<QString> HideBlockedMessagesTitle() {
 	return tr::lng_settings_hide_messages();
 }
@@ -150,6 +154,10 @@ rpl::producer<QString> ShowScheduledButtonTitle() {
 
 bool ForceShowWebPagePreviewAvailable(not_null<PeerData*> peer) {
 	return !peer->isSelf();
+}
+
+bool DisableAutoFetchWebPagePreviewAvailable(not_null<PeerData*> peer) {
+	return Data::CanSendTexts(peer);
 }
 
 bool HideBlockedMessagesAvailable(not_null<PeerData*> peer) {
@@ -169,6 +177,12 @@ constexpr auto kFeatureDescriptors = std::array{
 		.group = Group::Messages,
 		.title = ForceShowWebPagePreviewTitle,
 		.available = ForceShowWebPagePreviewAvailable,
+	},
+	FeatureDescriptor{
+		.feature = Feature::DisableAutoFetchWebPagePreview,
+		.group = Group::Messages,
+		.title = DisableAutoFetchWebPagePreviewTitle,
+		.available = DisableAutoFetchWebPagePreviewAvailable,
 	},
 	FeatureDescriptor{
 		.feature = Feature::HideBlockedMessages,

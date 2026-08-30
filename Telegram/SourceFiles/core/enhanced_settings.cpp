@@ -327,6 +327,7 @@ namespace EnhancedSettings {
 		settings.insert(qsl("show_seconds"), false);
 		settings.insert(qsl("rich_message_preview_max_blocks"), 0);
 		settings.insert(qsl("force_show_webpage_preview"), false);
+		settings.insert(qsl("disable_auto_fetch_webpage_preview"), false);
 		settings.insert(qsl("sticker_height"), 0);
 		settings.insert(qsl("hide_counter"), false);
 		settings.insert(qsl("use_gt_api"), false);
@@ -395,6 +396,7 @@ namespace EnhancedSettings {
 		settings.insert(qsl("show_seconds"), GetEnhancedBool("show_seconds"));
 		settings.insert(qsl("rich_message_preview_max_blocks"), RichMessagePreviewBlocksLimit());
 		settings.insert(qsl("force_show_webpage_preview"), GetEnhancedBool("force_show_webpage_preview"));
+		settings.insert(qsl("disable_auto_fetch_webpage_preview"), GetEnhancedBool("disable_auto_fetch_webpage_preview"));
 		settings.insert(qsl("sticker_height"), StickerHeight());
 		settings.insert(qsl("hide_counter"), GetEnhancedBool("hide_counter"));
 		settings.insert(qsl("use_gt_api"), GetEnhancedBool("use_gt_api"));

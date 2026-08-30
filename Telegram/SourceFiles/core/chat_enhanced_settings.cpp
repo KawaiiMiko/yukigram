@@ -38,6 +38,10 @@ bool ForceShowWebPagePreviewGlobalValue() {
 	return GetEnhancedBool(u"force_show_webpage_preview"_q);
 }
 
+bool DisableAutoFetchWebPagePreviewGlobalValue() {
+	return GetEnhancedBool(u"disable_auto_fetch_webpage_preview"_q);
+}
+
 bool HideBlockedMessagesGlobalValue() {
 	return GetEnhancedBool(u"blocked_user_spoiler_mode"_q);
 }
@@ -91,6 +95,11 @@ constexpr auto kChatFeatureDescriptors = std::array{
 		.storageKey = "force_show_webpage_preview",
 		.globalValue = ForceShowWebPagePreviewGlobalValue,
 		.valueChanged = ForceShowWebPagePreviewValueChanged,
+	},
+	ChatFeatureDescriptor{
+		.feature = ChatFeature::DisableAutoFetchWebPagePreview,
+		.storageKey = "disable_auto_fetch_webpage_preview",
+		.globalValue = DisableAutoFetchWebPagePreviewGlobalValue,
 	},
 	ChatFeatureDescriptor{
 		.feature = ChatFeature::HideBlockedMessages,
