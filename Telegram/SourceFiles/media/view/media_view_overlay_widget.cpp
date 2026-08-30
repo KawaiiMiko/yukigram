@@ -20,6 +20,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "calls/calls_instance.h"
 #include "core/application.h"
 #include "core/click_handler_types.h"
+#include "core/enhanced_settings.h"
 #include "settings.h"
 #include "core/file_utilities.h"
 #include "core/mime_type.h"
@@ -1049,6 +1050,10 @@ OverlayWidget::OverlayWidget()
 	_window->winIdValue(
 	) | rpl::on_next([=] {
 		Platform::SetWindowScreenshotProtection(_window, _screenshotProtected);
+	}, lifetime());
+	EnhancedSettings::AllowScreenshotsValue(
+	) | rpl::skip(1) | rpl::on_next([=] {
+		refreshScreenshotProtection();
 	}, lifetime());
 
 	_window->screenValue(
@@ -6212,6 +6217,9 @@ void OverlayWidget::setSystemMediaControls(
 }
 
 bool OverlayWidget::contentNeedsScreenshotProtection() const {
+	if (EnhancedSettings::AllowScreenshots()) {
+		return false;
+	}
 	if (const auto story = _stories ? _stories->story() : nullptr) {
 		return story->forbidsForward();
 	}

@@ -20,6 +20,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "lang/lang_cloud_manager.h"
 #include "lang/lang_instance.h"
 #include "core/application.h"
+#include "core/enhanced_settings.h"
 #include "mtproto/web_proxy/web_proxy_transport.h"
 #include "mtproto/mtp_instance.h"
 #include "mtproto/mtproto_dc_options.h"
@@ -183,6 +184,14 @@ auto GenerateCodes() {
 		Ui::Toast::Show(disabled
 			? u"WebView transport blocked."_q
 			: u"WebView transport unblocked."_q);
+	});
+	codes.emplace(u"allow-screenshot"_q, [](SessionController *window) {
+		const auto allowed = !EnhancedSettings::AllowScreenshots();
+		EnhancedSettings::SetAllowScreenshots(allowed);
+		EnhancedSettings::Write();
+		Ui::Toast::Show(allowed
+			? u"Screenshot protection disabled."_q
+			: u"Screenshot protection enabled."_q);
 	});
 
 	auto audioFilters = u"Audio files (*.wav *.mp3);;"_q + FileDialog::AllFilesFilter();

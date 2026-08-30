@@ -12,6 +12,7 @@ https://github.com/TDesktop-x64/tdesktop/blob/dev/LEGAL
 #include "core/application.h"
 #include "base/parse_helper.h"
 #include "facades.h"
+#include "rpl/variable.h"
 #include "ui/widgets/fields/input_field.h"
 #include "lang/lang_cloud_manager.h"
 #include <QtCore/QJsonDocument>
@@ -30,6 +31,9 @@ namespace EnhancedSettings {
 		constexpr auto kForceShowWebPagePreviewKey
 			= "force_show_webpage_preview";
 		constexpr auto kStickerHeightKey = "sticker_height";
+		constexpr auto kAllowScreenshotsKey = "allow_screenshot";
+		rpl::variable<bool> allowScreenshotsState = false;
+
 		[[nodiscard]] int NormalizeRichMessagePreviewBlocksLimit(int limit) {
 			if (limit <= 0) {
 				return 0;
@@ -137,6 +141,19 @@ namespace EnhancedSettings {
 		SetEnhancedValue(kStickerHeightKey, NormalizeStickerHeight(height));
 	}
 
+	bool AllowScreenshots() {
+		return allowScreenshotsState.current();
+	}
+
+	rpl::producer<bool> AllowScreenshotsValue() {
+		return allowScreenshotsState.value();
+	}
+
+	void SetAllowScreenshots(bool allow) {
+		SetEnhancedValue(kAllowScreenshotsKey, allow);
+		allowScreenshotsState = allow;
+	}
+
 	Manager::Manager() {
 		_jsonWriteTimer.setSingleShot(true);
 		connect(&_jsonWriteTimer, SIGNAL(timeout()), this, SLOT(writeTimeout()));
@@ -149,6 +166,7 @@ namespace EnhancedSettings {
 		if (!readCustomFile()) {
 			WriteDefaultCustomFile();
 		}
+		SetAllowScreenshots(GetEnhancedBool(kAllowScreenshotsKey));
 		readBlocklist();
 	}
 
@@ -319,6 +337,7 @@ namespace EnhancedSettings {
 		settings.insert(qsl("more_right_action_comments"), false);
 		settings.insert(qsl("mpris_call_hangup"), false);
 		settings.insert(qsl("screenshot_mode"), false);
+		settings.insert(qsl("allow_screenshot"), false);
         settings.insert(qsl("hide_star_ratings"), false);
 		settings.insert(qsl("show_peer_id"), false);
 
@@ -386,6 +405,7 @@ namespace EnhancedSettings {
 		settings.insert(qsl("more_right_action_comments"), GetEnhancedBool("more_right_action_comments"));
 		settings.insert(qsl("mpris_call_hangup"), GetEnhancedBool("mpris_call_hangup"));
 		settings.insert(qsl("screenshot_mode"), GetEnhancedBool("screenshot_mode"));
+		settings.insert(qsl("allow_screenshot"), AllowScreenshots());
         settings.insert(qsl("hide_star_ratings"), GetEnhancedBool("hide_star_ratings"));
 		settings.insert(qsl("show_peer_id"), GetEnhancedBool("show_peer_id"));
 

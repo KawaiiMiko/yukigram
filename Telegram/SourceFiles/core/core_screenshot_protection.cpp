@@ -7,6 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "core/core_screenshot_protection.h"
 
+#include "core/enhanced_settings.h"
 #include "platform/platform_specific.h"
 
 #include <QtWidgets/QApplication>
@@ -48,6 +49,10 @@ ScreenshotProtection::ScreenshotProtection() {
 	_active.value(
 	) | rpl::on_next([=](bool active) {
 		apply(active);
+	}, _lifetime);
+	EnhancedSettings::AllowScreenshotsValue(
+	) | rpl::on_next([=] {
+		refresh();
 	}, _lifetime);
 }
 
@@ -93,9 +98,10 @@ rpl::producer<bool> ScreenshotProtection::activeValue() const {
 }
 
 void ScreenshotProtection::refresh() {
-	_active = ranges::any_of(_reasons, [](const auto &reason) {
-		return reason.second;
-	});
+	_active = !EnhancedSettings::AllowScreenshots()
+		&& ranges::any_of(_reasons, [](const auto &reason) {
+			return reason.second;
+		});
 }
 
 void ScreenshotProtection::apply(bool enabled) {
