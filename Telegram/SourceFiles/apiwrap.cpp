@@ -4166,6 +4166,7 @@ void ApiWrap::forwardMessagesUnquoted(
 		Media,
 		Music,
 		Document,
+		Gif,
 	};
 	struct Album {
 		AlbumType type;
@@ -4175,7 +4176,9 @@ void ApiWrap::forwardMessagesUnquoted(
 	const auto albumType = [](not_null<HistoryItem*> item) {
 		const auto media = item->media();
 		Expects(media != nullptr);
-		if (media->photo()
+		if (media->document() && media->document()->isGifv()) {
+			return AlbumType::Gif;
+		} else if (media->photo()
 			|| (media->document() && media->document()->isVideoFile())) {
 			return AlbumType::Media;
 		} else if (media->document()
@@ -4216,6 +4219,7 @@ void ApiWrap::forwardMessagesUnquoted(
 			&& (item->history() == previousItem->history())
 			&& (item->groupId() == previousItem->groupId());
 		const auto append = previousWasEligible
+			&& (type != AlbumType::Gif)
 			&& (albums.back().type == type)
 			&& (albums.back().items.size() < 10)
 			&& (draft.groupOptions == Data::GroupingOptions::RegroupAll
@@ -4244,6 +4248,28 @@ void ApiWrap::forwardMessagesUnquoted(
 	}
 
 	for (const auto &album : albums) {
+		if (album.type == AlbumType::Gif) {
+			const auto item = album.items.front();
+			const auto media = item->media();
+			const auto caption = (draft.options
+					!= Data::ForwardOptions::NoNamesAndCaptions)
+				? item->originalText()
+				: TextWithEntities();
+			auto message = MessageToSend(action);
+			message.action.options.mediaSpoiler
+				= draft.addSpoiler || media->hasSpoiler();
+			message.textWithTags = {
+				caption.text,
+				TextUtilities::ConvertEntitiesToTextTags(caption.entities),
+			};
+			SendExistingDocument(
+				std::move(message),
+				media->document());
+			if (shared && !--shared->requestsLeft) {
+				shared->callback();
+			}
+			continue;
+		}
 		const auto starsPaid = std::min(
 			starsApproved,
 			int(album.items.size() * peer->starsPerMessageChecked()));
