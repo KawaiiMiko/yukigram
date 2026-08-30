@@ -114,8 +114,10 @@ namespace Dialogs {
 namespace {
 
 constexpr auto kSearchPerPage = 50;
+constexpr auto kMessageTypeSearchPerPage = 80;
 constexpr auto kStoriesExpandDuration = crl::time(200);
 constexpr auto kSearchRequestDelay = crl::time(900);
+constexpr auto kMessageTypeSearchRequestDelay = crl::time(600);
 
 [[nodiscard]] bool MatchesMessageSearchTypes(
 		not_null<HistoryItem*> item,
@@ -3248,7 +3250,9 @@ bool Widget::search(bool inCache, SearchRequestDelay delay) {
 						MTP_int(0), // max_date
 						MTP_int(0), // offset_id
 						MTP_int(0), // add_offset
-						MTP_int(kSearchPerPage),
+						MTP_int(messageTypes
+							? kMessageTypeSearchPerPage
+							: kSearchPerPage),
 						MTP_int(0), // max_id
 						MTP_int(0), // min_id
 						MTP_long(0)) // hash
@@ -3345,7 +3349,9 @@ void Widget::scheduleSearchTimer(SearchTimerAction action) {
 		return;
 	}
 	_searchTimerAction = action;
-	_searchTimer.callOnce(kSearchRequestDelay);
+	_searchTimer.callOnce(_searchState.messageTypes
+		? kMessageTypeSearchRequestDelay
+		: kSearchRequestDelay);
 }
 
 void Widget::searchTimerFired() {
@@ -3512,7 +3518,9 @@ void Widget::searchMoreNow() {
 						MTP_int(0), // max_date
 						MTP_int(process->lastId),
 						MTP_int(0), // add_offset
-						MTP_int(kSearchPerPage),
+						MTP_int(_searchQueryMessageTypes
+							? kMessageTypeSearchPerPage
+							: kSearchPerPage),
 						MTP_int(0), // max_id
 						MTP_int(0), // min_id
 						MTP_long(0)) // hash
@@ -3580,7 +3588,9 @@ void Widget::searchMoreNow() {
 					MTP_int(0), // max_date
 					MTP_int(_migratedProcess.lastId),
 					MTP_int(0), // add_offset
-					MTP_int(kSearchPerPage),
+					MTP_int(_searchQueryMessageTypes
+						? kMessageTypeSearchPerPage
+						: kSearchPerPage),
 					MTP_int(0), // max_id
 					MTP_int(0), // min_id
 					MTP_long(0)) // hash
