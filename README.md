@@ -15,15 +15,22 @@ In addition, Yurigram includes the following features, listed in the order they 
  3. Translate messages with Google Translate
  4. Allow non-premium users to save custom emoji sets freely
  5. Ability to hide user stars rating
- 6. Additional Fluent Emoji Packs
- 7. Ability to temporarily hide messages and restore them easily
- 8. Ability to add or edit webpage previews with custom URLs (with shortcut Ctrl+Shift+K)
+ 6. **Additional Fluent Emoji Packs (Flat & Color)**
+ 7. **Add new menu option to temporarily hide any messages and restore them easily**
+ 8. **Ability to add or edit webpage previews with custom URLs (with shortcut Ctrl+Shift+K)**
  9. Quickly create or edit inline user mentions with shortcuts (click with Ctrl/Ctrl+Shift)
  10. Ability to set a custom render limit for rich message blocks
- 11. Remember message forwarding targets in forward dialog
+ 11. **Remember message forwarding targets in forward dialog**
  12. Add options to force regrouping or separating photos on media group forwarding
  13. Add option to adjust sticker size in chat
  14. Allow to open the same chat in multiple new windows
+ 15. Ability to force generate webpage preview of incoming messages
+ 16. Ability to disable auto fetch webpage preview of outgoing messages
+ 17. **Chat Enhanced Settings: Override global enhanced setting options on chat level**
+ 18. Add new shortcut keys to quickly edit self-editable messages (Alt+Shift+Up/Down)
+ 19. Add new option to show detailed media metadata information in media viewer
+ 20. **Ability to search messages with both user and message type filters enabled in groups**
+ 21. Add new forward option to add spoiler to forwarded media
 
 And more new features will ~~(may)~~ be added in the future.
 
