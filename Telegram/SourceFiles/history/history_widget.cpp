@@ -175,6 +175,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "media/player/media_player_instance.h"
 #include "core/application.h"
 #include "apiwrap.h"
+#include "settings.h"
 #include "base/options.h"
 #include "base/qthelp_regex.h"
 #include "ui/boxes/report_box_graphics.h"
@@ -5947,8 +5948,13 @@ void HistoryWidget::sendTextWithTags(
 		return;
 	}
 
-	const auto nextLocalMessageId = session().data().nextLocalMessageId();
 	const auto hasText = !message.textWithTags.text.trimmed().isEmpty();
+	const auto deferCommentLocalMessageId = hasText
+		&& GetEnhancedBool("send_comment_after_forwarding")
+		&& !_forwardPanel->empty();
+	const auto nextLocalMessageId = deferCommentLocalMessageId
+		? std::optional<MsgId>()
+		: std::make_optional(session().data().nextLocalMessageId());
 
 	if (hasText
 		&& message.webPage.url.isEmpty()

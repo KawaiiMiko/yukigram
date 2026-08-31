@@ -64,6 +64,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "api/api_editing.h"
 #include "api/api_sending.h"
 #include "apiwrap.h"
+#include "settings.h"
 #include "boxes/premium_preview_box.h"
 #include "data/business/data_shortcut_messages.h"
 #include "settings/business/settings_quick_replies.h"
@@ -2600,8 +2601,13 @@ void ChatWidget::sendTextWithTags(
 		}
 	}
 
-	const auto nextLocalMessageId = session().data().nextLocalMessageId();
 	const auto hasText = !message.textWithTags.text.trimmed().isEmpty();
+	const auto deferCommentLocalMessageId = hasText
+		&& GetEnhancedBool("send_comment_after_forwarding")
+		&& _composeControls->readyToForward();
+	const auto nextLocalMessageId = deferCommentLocalMessageId
+		? std::optional<MsgId>()
+		: std::make_optional(session().data().nextLocalMessageId());
 
 	if (const auto field = _composeControls->fieldForMention(); field
 		&& hasText
