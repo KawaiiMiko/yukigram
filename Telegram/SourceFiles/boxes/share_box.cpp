@@ -71,6 +71,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "main/main_session.h"
 #include "core/application.h"
 #include "core/core_settings.h"
+#include "settings.h"
 #include "styles/style_calls.h"
 #include "styles/style_chat.h"
 #include "styles/style_chat_helpers.h"
@@ -91,6 +92,26 @@ struct ForwardRecentTabsState final {
 	bool recent = true;
 	rpl::lifetime rebuildLifetime;
 };
+
+Api::SendAction ForwardCommentAction(
+		not_null<Data::Thread*> thread,
+		Api::SendOptions options) {
+	auto action = Api::SendAction(thread, std::move(options));
+	if (const auto sublistPeer = thread->maybeSublistPeer()) {
+		action.replyTo.monoforumPeerId = sublistPeer->id;
+	}
+	action.clearDraft = false;
+	return action;
+}
+
+void SendForwardComment(
+		not_null<Main::Session*> session,
+		Api::SendAction action,
+		const TextWithTags &comment) {
+	auto message = Api::MessageToSend(std::move(action));
+	message.textWithTags = comment;
+	session->api().sendMessage(std::move(message));
+}
 
 } // namespace
 
@@ -2187,6 +2208,9 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 		} else if (!checkPaid()) {
 			return;
 		}
+		const auto hasComment = !comment.text.isEmpty();
+		const auto sendCommentAfter = hasComment
+			&& GetEnhancedBool("send_comment_after_forwarding");
 		if (addSpoiler
 			|| groupingOptions != Data::GroupingOptions::GroupAsIs) {
 			const auto donePhraseArgs = CreateForwardedMessagePhraseArgs(
@@ -2213,12 +2237,14 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 					}
 					return thread;
 				}();
-				if (!comment.text.isEmpty()) {
-					auto message = Api::MessageToSend(
-						Api::SendAction(effectiveThread, options));
-					message.textWithTags = comment;
-					message.action.clearDraft = false;
-					history->session().api().sendMessage(std::move(message));
+				const auto commentAction = ForwardCommentAction(
+					effectiveThread,
+					options);
+				if (hasComment && !sendCommentAfter) {
+					SendForwardComment(
+						&history->session(),
+						commentAction,
+						comment);
 				}
 				auto action = Api::SendAction(effectiveThread, options);
 				action.clearDraft = false;
@@ -2234,6 +2260,12 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 					std::move(draft),
 					std::move(action),
 					[=] {
+						if (sendCommentAfter) {
+							SendForwardComment(
+								&history->session(),
+								commentAction,
+								comment);
+						}
 						state->requests.remove(requestKey);
 						if (state->requests.empty() && show->valid()) {
 							show->hideLayer();
@@ -2272,7 +2304,6 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 		if (ranges.empty()) {
 			return;
 		}
-		auto &api = history->session().api();
 		auto &histories = history->owner().histories();
 		const auto donePhraseArgs = CreateForwardedMessagePhraseArgs(
 			result,
@@ -2280,6 +2311,10 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 		const auto showRecentForwardsToSelf = result.size() == 1
 			&& result.front()->peer()->isSelf()
 			&& history->session().premium();
+		struct ForwardTargetState final {
+			int pendingRequests = 0;
+			bool failed = false;
+		};
 		for (const auto &thread : result) {
 			const auto peer = thread->peer();
 			const auto threadHistory = thread->owningHistory();
@@ -2297,13 +2332,16 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 				return thread;
 			}();
 
-			if (!comment.text.isEmpty()) {
-				auto message = Api::MessageToSend(
-					Api::SendAction(effectiveThread, options));
-				message.textWithTags = comment;
-				message.action.clearDraft = false;
-				api.sendMessage(std::move(message));
+			const auto commentAction = ForwardCommentAction(
+				effectiveThread,
+				options);
+			if (hasComment && !sendCommentAfter) {
+				SendForwardComment(
+					&history->session(),
+					commentAction,
+					comment);
 			}
+			const auto targetState = std::make_shared<ForwardTargetState>();
 
 			const auto topicRootId = effectiveThread->topicRootId();
 			const auto sublistPeer = needNewTopic
@@ -2431,6 +2469,7 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 				};
 				const auto requestKey = ++state->nextRequestKey;
 				state->requests.insert(requestKey);
+				++targetState->pendingRequests;
 				histories.sendPreparedMessage(
 					threadHistory,
 					FullReplyTo{ .topicRootId = topicRootId },
@@ -2439,10 +2478,22 @@ ShareBox::SubmitCallback ShareBox::DefaultForwardCallback(
 					[=](const MTPUpdates &updates,
 							const MTP::Response &) {
 						requestDone(updates, requestKey);
+						const auto allTargetRequestsFinished
+							= (--targetState->pendingRequests == 0);
+						if (allTargetRequestsFinished
+							&& !targetState->failed
+							&& sendCommentAfter) {
+							SendForwardComment(
+								&history->session(),
+								commentAction,
+								comment);
+						}
 					},
 					[=](const MTP::Error &error,
 							const MTP::Response &) {
+						targetState->failed = true;
 						requestFail(error, requestKey);
+						--targetState->pendingRequests;
 					});
 			}
 		}

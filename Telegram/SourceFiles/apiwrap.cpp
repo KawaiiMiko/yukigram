@@ -75,6 +75,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/call_delayed.h"
 #include "lang/lang_keys.h"
 #include "mainwidget.h"
+#include "settings.h"
 #include "boxes/add_contact_box.h"
 #include "mtproto/mtproto_config.h"
 #include "history/history.h"
@@ -5048,6 +5049,9 @@ void ApiWrap::sendMessage(
 		return;
 	}
 	local().saveRecentSentHashtags(textWithTags.text);
+	if (GetEnhancedBool("send_comment_after_forwarding")) {
+		finishForwarding(action);
+	}
 
 	auto sending = TextWithEntities();
 	auto left = TextWithEntities {

@@ -8766,6 +8766,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_settings_force_mobile" = "Force use mobile-like layout";
 "lng_settings_show_similar_on_joined" = "Show similar channels on join message";
 "lng_settings_more_right_action_comments" = "Move comments button to the right";
+"lng_settings_send_comment_after_forwarding" = "Send comment after forwarding";
 "lng_settings_mpris_call_hangup" = "Use media controls to accept or hangup";
 "lng_settings_enhanced" = "Enhanced Settings";
 "lng_settings_show_media_metadata" = "Show metadata info in media viewer";

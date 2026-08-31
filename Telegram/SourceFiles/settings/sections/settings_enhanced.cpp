@@ -132,6 +132,16 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
+			.id = u"enhanced/send-comment-after-forwarding"_q,
+			.title = tr::lng_settings_send_comment_after_forwarding(tr::now),
+			.keywords = { u"forward"_q, u"comment"_q, u"order"_q },
+			.deeplink
+				= u"tg://settings/enhanced/send-comment-after-forwarding"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
 			.id = u"enhanced/extra-context-menu-options"_q,
 			.title = tr::lng_settings_extra_context_menu_options(tr::now),
 			.keywords = {
@@ -571,6 +581,24 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			SetEnhancedValue("more_right_action_comments", toggled);
 			EnhancedSettings::Write();
 			Core::Restart();
+		}, container->lifetime());
+
+		const auto sendCommentAfterForwarding = AddButtonWithIcon(
+				behaviorInner,
+				tr::lng_settings_send_comment_after_forwarding(),
+				st::settingsButtonNoIcon);
+		registerHighlight(
+			u"enhanced/send-comment-after-forwarding"_q,
+			sendCommentAfterForwarding);
+		sendCommentAfterForwarding->toggleOn(
+			rpl::single(GetEnhancedBool("send_comment_after_forwarding"))
+		)->toggledChanges(
+		) | rpl::filter([=](bool toggled) {
+			return toggled
+				!= GetEnhancedBool("send_comment_after_forwarding");
+		}) | rpl::on_next([=](bool toggled) {
+			SetEnhancedValue("send_comment_after_forwarding", toggled);
+			EnhancedSettings::Write();
 		}, container->lifetime());
 
 		const auto disableCloudDraftSync = AddButtonWithIcon(
