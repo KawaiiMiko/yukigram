@@ -1848,6 +1848,30 @@ void RegisterSettingsHandlers(Router &router) {
 	});
 
 	router.add(u"settings"_q, {
+		.path = u"enhanced/remove-media-spoiler"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/remove-media-spoiler"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/show-media-metadata"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/show-media-metadata"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
+		.path = u"enhanced/send-comment-after-forwarding"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/send-comment-after-forwarding"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
 		.path = u"enhanced/disable-link-warning"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
