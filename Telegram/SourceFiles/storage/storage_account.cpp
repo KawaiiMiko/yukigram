@@ -3753,6 +3753,14 @@ void Account::clearPref(std::string_view key) {
 	writePrefsDelayed();
 }
 
+void Account::clearPrefs() {
+	if (_prefs.empty()) {
+		return;
+	}
+	_prefs.clear();
+	writePrefsDelayed();
+}
+
 void Account::writePrefGeneric(
 		std::string_view key,
 		const QByteArray &value) {

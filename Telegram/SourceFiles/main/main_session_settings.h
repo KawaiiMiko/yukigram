@@ -33,6 +33,7 @@ public:
 
 	[[nodiscard]] QByteArray serialize() const;
 	void addFromSerialized(const QByteArray &serialized);
+	void resetToDefaults();
 
 	void setSupportSwitch(Support::SwitchSettings value) {
 		_supportSwitch = value;

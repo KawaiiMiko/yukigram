@@ -170,6 +170,14 @@ namespace EnhancedSettings {
 		readBlocklist();
 	}
 
+	void Manager::reset() {
+		writing();
+		cSetEnhancedOptions({});
+		writeDefaultFile();
+		SetAllowScreenshots(GetEnhancedBool(kAllowScreenshotsKey));
+		writeCurrentSettings();
+	}
+
 	void Manager::write(bool force) {
 		if (force && _jsonWriteTimer.isActive()) {
 			_jsonWriteTimer.stop();
@@ -441,6 +449,12 @@ namespace EnhancedSettings {
 		if (!Data) return;
 
 		Data->write();
+	}
+
+	void Reset() {
+		if (!Data) return;
+
+		Data->reset();
 	}
 
 	void Finish() {

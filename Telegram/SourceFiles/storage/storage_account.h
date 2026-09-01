@@ -187,6 +187,7 @@ public:
 		writePrefImpl<Type>(key, std::forward<Other>(value));
 	}
 	void clearPref(std::string_view key);
+	void clearPrefs();
 
 	template <typename Type>
 	[[nodiscard]] std::optional<Type> readPrefOptional(

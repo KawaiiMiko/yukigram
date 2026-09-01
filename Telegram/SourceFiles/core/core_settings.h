@@ -144,6 +144,7 @@ public:
 
 	[[nodiscard]] QByteArray serialize() const;
 	void addFromSerialized(const QByteArray &serialized);
+	void resetToDefaults();
 
 	[[nodiscard]] bool adaptiveForWide() const {
 		return _adaptiveForWide.current();

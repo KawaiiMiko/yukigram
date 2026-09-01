@@ -33,6 +33,10 @@ SessionSettings::SessionSettings()
 , _setupEmailState(Data::SetupEmailState::None) {
 }
 
+void SessionSettings::resetToDefaults() {
+	addFromSerialized(SessionSettings().serialize());
+}
+
 QByteArray SessionSettings::serialize() const {
 	const auto autoDownload = _autoDownload.serialize();
 	auto size = sizeof(qint32) // kVersionTag

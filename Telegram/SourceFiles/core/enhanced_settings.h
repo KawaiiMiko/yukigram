@@ -32,6 +32,7 @@ namespace EnhancedSettings {
 		Manager();
 
 		void fill();
+		void reset();
 
 		void write(bool force = false);
 
@@ -61,6 +62,8 @@ namespace EnhancedSettings {
 	void Start();
 
 	void Write();
+
+	void Reset();
 
 	void Finish();
 

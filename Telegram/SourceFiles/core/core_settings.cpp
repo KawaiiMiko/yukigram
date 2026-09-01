@@ -165,6 +165,10 @@ Settings::Settings()
 
 Settings::~Settings() = default;
 
+void Settings::resetToDefaults() {
+	addFromSerialized(Settings().serialize());
+}
+
 QByteArray Settings::serialize() const {
 	const auto themesAccentColors = _themesAccentColors.serialize();
 	const auto windowPosition = Serialize(_windowPosition);

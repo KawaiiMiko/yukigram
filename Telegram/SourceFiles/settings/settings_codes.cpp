@@ -13,9 +13,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_session.h"
 #include "data/data_cloud_themes.h"
 #include "history/history_item_components.h"
-#include "main/main_session.h"
 #include "main/main_account.h"
 #include "main/main_domain.h"
+#include "main/main_session.h"
+#include "main/main_session_settings.h"
 #include "ui/boxes/confirm_box.h"
 #include "lang/lang_cloud_manager.h"
 #include "lang/lang_instance.h"
@@ -37,6 +38,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/custom_app_icon.h"
 #include "base/options.h"
 #include "boxes/abstract_box.h" // Ui::show().
+#include "styles/style_layers.h"
 
 #include <zlib.h>
 
@@ -192,6 +194,35 @@ auto GenerateCodes() {
 		Ui::Toast::Show(allowed
 			? u"Screenshot protection disabled."_q
 			: u"Screenshot protection enabled."_q);
+	});
+	codes.emplace(u"resetapp"_q, [](SessionController *window) {
+		if (!window) {
+			return;
+		}
+		const auto weak = base::make_weak(&window->session().account());
+		Ui::show(Ui::MakeConfirmBox({
+			.text = u"Do you want to reset all settings and remembered "
+				"preferences? Telegram will restart."_q,
+			.confirmed = [=] {
+				const auto account = weak.get();
+				if (!account || !account->sessionExists()) {
+					return;
+				}
+				auto &session = account->session();
+				Core::App().settings().resetToDefaults();
+				session.settings().resetToDefaults();
+				account->local().clearPrefs();
+				EnhancedSettings::Reset();
+				base::options::reset();
+				QFile(cWorkingDir()
+					+ u"tdata/experimental_options.json"_q).remove();
+				Core::App().saveSettings();
+				session.saveSettings();
+				Core::Restart();
+			},
+			.confirmText = tr::lng_passkey_confirm(tr::now),
+			.confirmStyle = &st::attentionBoxButton,
+		}));
 	});
 
 	auto audioFilters = u"Audio files (*.wav *.mp3);;"_q + FileDialog::AllFilesFilter();
