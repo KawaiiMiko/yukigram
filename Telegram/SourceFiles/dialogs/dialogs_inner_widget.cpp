@@ -1627,7 +1627,8 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 				? (_searchState.query.isEmpty()
 					? tr::lng_posts_subtitle_empty(tr::now)
 					: tr::lng_posts_subtitle(tr::now))
-				: _searchState.messageTypes
+				: (_searchState.messageTypes
+					&& !_searchResultsFullCountKnown)
 				? tr::lng_group_call_invite_search_results(tr::now)
 				: tr::lng_search_found_results(
 					tr::now,
@@ -4390,6 +4391,7 @@ void InnerWidget::clearSearchResults(bool alsoPeerSearchResults) {
 	}
 	_searchResults.clear();
 	_searchedCount = _searchedMigratedCount = 0;
+	_searchResultsFullCountKnown = false;
 }
 
 void InnerWidget::clearPeerSearchResults() {
@@ -4689,7 +4691,8 @@ void InnerWidget::searchReceived(
 		HistoryItem *inject,
 		SearchRequestType type,
 		int fullCount,
-		bool loading) {
+		bool loading,
+		bool fullCountKnown) {
 	_searchWaiting = false;
 	_searchLoading = loading;
 
@@ -4701,6 +4704,9 @@ void InnerWidget::searchReceived(
 	}
 	if (!withPreview || toPreview) {
 		clearPreviewResults();
+	}
+	if (fullCountKnown && !toPreview) {
+		_searchResultsFullCountKnown = true;
 	}
 
 	const auto globalSearch = (_searchState.tab == ChatSearchTab::MyMessages)

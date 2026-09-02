@@ -146,7 +146,8 @@ public:
 		HistoryItem *inject,
 		SearchRequestType type,
 		int fullCount,
-		bool loading = false);
+		bool loading = false,
+		bool fullCountKnown = false);
 	void peerSearchReceived(Api::PeerSearchResult result);
 
 	[[nodiscard]] FilterId filterId() const;
@@ -736,6 +737,7 @@ private:
 	std::vector<std::unique_ptr<FakeRow>> _searchResults;
 	int _searchedCount = 0;
 	int _searchedMigratedCount = 0;
+	bool _searchResultsFullCountKnown = false;
 	int _searchedSelected = -1;
 	int _searchedPressed = -1;
 

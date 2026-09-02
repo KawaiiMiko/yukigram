@@ -4022,7 +4022,8 @@ void Widget::searchReceived(
 			inject,
 			type,
 			fullCount,
-			messageSearchLoading());
+			messageSearchLoading(),
+			nativeMessageType.has_value());
 	}
 
 	process->requestId = 0;
