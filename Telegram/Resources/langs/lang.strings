@@ -8782,6 +8782,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_settings_force_show_webpage_preview" = "Force show webpage preview";
 "lng_settings_disable_auto_fetch_webpage_preview" = "Disable auto fetch webpage preview";
 "lng_settings_remove_media_spoiler" = "Remove media spoiler";
+"lng_settings_hide_delete_for_others_checkbox" = "Hide delete for others checkbox";
 "lng_settings_rich_message_preview_blocks" = "Custom rich message blocks limit";
 "lng_settings_rich_message_preview_blocks_desc" = "Limit the number of blocks shown for rich messages in chats. Use Show more to open the full message.";
 "lng_settings_rich_message_preview_blocks_count#one" = "{count} block";

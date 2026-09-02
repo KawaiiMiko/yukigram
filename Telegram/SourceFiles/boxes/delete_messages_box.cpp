@@ -22,6 +22,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "main/main_app_config.h"
 #include "main/main_session.h"
 #include "menu/menu_ttl_validator.h"
+#include "settings.h"
 #include "ui/boxes/confirm_box.h"
 #include "ui/layers/generic_box.h"
 #include "ui/text/text_utilities.h"
@@ -192,11 +193,17 @@ void DeleteMessagesBox::prepare() {
 				const auto &settings = Core::App().settings();
 				const auto revokeByDefault
 					= !settings.rememberedDeleteMessageOnlyForYou();
-				_revoke.create(
-					this,
-					revoke->checkbox,
-					revokeByDefault,
-					st::defaultBoxCheckbox);
+				const auto hideRevoke = peer->isUser()
+					&& GetEnhancedBool("hide-delete-for-others-checkbox");
+
+				if (!hideRevoke) {
+					_revoke.create(
+						this,
+						revoke->checkbox,
+						revokeByDefault,
+						st::defaultBoxCheckbox);
+				}
+
 				_revokeRemember.create(
 					this,
 					object_ptr<Ui::Checkbox>(
@@ -205,12 +212,14 @@ void DeleteMessagesBox::prepare() {
 						false,
 						st::defaultBoxCheckbox));
 				_revokeRemember->hide(anim::type::instant);
-				_revoke->checkedValue(
-				) | rpl::on_next([=](bool checked) {
-					_revokeRemember->toggle(
-						checked != revokeByDefault,
-						anim::type::normal);
-				}, _revokeRemember->lifetime());
+				if (_revoke) {
+					_revoke->checkedValue(
+					) | rpl::on_next([=](bool checked) {
+						_revokeRemember->toggle(
+							checked != revokeByDefault,
+							anim::type::normal);
+					}, _revokeRemember->lifetime());
+				}
 				_revokeRemember->heightValue(
 				) | rpl::on_next([=](int h) {
 					setDimensions(st::boxWidth, _fullHeight + h);
@@ -527,8 +536,18 @@ void DeleteMessagesBox::deleteAndClear() {
 			!_revoke->checked());
 		Core::App().saveSettingsDelayed();
 	}
+	const auto hiddenRevoke = [&] {
+		if (const auto peer = checkFromSinglePeer()) {
+			return peer->isUser()
+				&& GetEnhancedBool("hide-delete-for-others-checkbox")
+				&& revokeText(peer).has_value();
+		}
+		return false;
+	}();
 	const auto revoke = _revoke
 		? _revoke->checked()
+		: hiddenRevoke
+		? !Core::App().settings().rememberedDeleteMessageOnlyForYou()
 		: (_revokeForBot || _revokeJustClearForChannel);
 	const auto session = _session;
 	const auto invokeCallbackAndClose = [&] {

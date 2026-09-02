@@ -227,6 +227,21 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
+			.id = u"enhanced/hide-delete-for-others-checkbox"_q,
+			.title = tr::lng_settings_hide_delete_for_others_checkbox(tr::now),
+			.keywords = {
+				u"delete"_q,
+				u"private"_q,
+				u"chat"_q,
+				u"other"_q,
+			},
+			.deeplink
+				= u"tg://settings/enhanced/hide-delete-for-others-checkbox"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
 			.id = u"enhanced/disable-link-warning"_q,
 			.title = tr::lng_settings_disable_link_warning(tr::now),
 			.keywords = { u"link"_q, u"warning"_q, u"confirm"_q },
@@ -1306,6 +1321,24 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			SetEnhancedValue("force_mobile", toggled);
 			EnhancedSettings::Write();
 			Core::Restart();
+		}, interfaceContainer->lifetime());
+
+		const auto hideDeleteForOthersCheckbox = AddButtonWithIcon(
+				interfaceContainer,
+				tr::lng_settings_hide_delete_for_others_checkbox(),
+				st::settingsButtonNoIcon);
+		registerHighlight(
+			u"enhanced/hide-delete-for-others-checkbox"_q,
+			hideDeleteForOthersCheckbox);
+		hideDeleteForOthersCheckbox->toggleOn(
+			rpl::single(GetEnhancedBool("hide-delete-for-others-checkbox"))
+		)->toggledChanges(
+		) | rpl::filter([=](bool toggled) {
+			return toggled
+				!= GetEnhancedBool("hide-delete-for-others-checkbox");
+		}) | rpl::on_next([=](bool toggled) {
+			SetEnhancedValue("hide-delete-for-others-checkbox", toggled);
+			EnhancedSettings::Write();
 		}, interfaceContainer->lifetime());
 
 		const auto communityChatClick = AddButtonWithIcon(

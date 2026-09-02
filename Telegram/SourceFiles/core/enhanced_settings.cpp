@@ -32,6 +32,8 @@ namespace EnhancedSettings {
 			= "force_show_webpage_preview";
 		constexpr auto kStickerHeightKey = "sticker_height";
 		constexpr auto kAllowScreenshotsKey = "allow_screenshot";
+		constexpr auto kHideDeleteForOthersCheckboxKey
+			= "hide-delete-for-others-checkbox";
 		rpl::variable<bool> allowScreenshotsState = false;
 
 		[[nodiscard]] int NormalizeRichMessagePreviewBlocksLimit(int limit) {
@@ -163,6 +165,7 @@ namespace EnhancedSettings {
 		if (!DefaultFileIsValid()) {
 			writeDefaultFile();
 		}
+		SetEnhancedValue(kHideDeleteForOthersCheckboxKey, false);
 		if (!readCustomFile()) {
 			WriteDefaultCustomFile();
 		}
@@ -337,6 +340,7 @@ namespace EnhancedSettings {
 		settings.insert(qsl("force_show_webpage_preview"), false);
 		settings.insert(qsl("disable_auto_fetch_webpage_preview"), false);
 		settings.insert(qsl("remove_media_spoiler"), false);
+		settings.insert(qsl("hide-delete-for-others-checkbox"), false);
 		settings.insert(qsl("sticker_height"), 0);
 		settings.insert(qsl("hide_counter"), false);
 		settings.insert(qsl("use_gt_api"), false);
@@ -408,6 +412,7 @@ namespace EnhancedSettings {
 		settings.insert(qsl("force_show_webpage_preview"), GetEnhancedBool("force_show_webpage_preview"));
 		settings.insert(qsl("disable_auto_fetch_webpage_preview"), GetEnhancedBool("disable_auto_fetch_webpage_preview"));
 		settings.insert(qsl("remove_media_spoiler"), GetEnhancedBool("remove_media_spoiler"));
+		settings.insert(qsl("hide-delete-for-others-checkbox"), GetEnhancedBool("hide-delete-for-others-checkbox"));
 		settings.insert(qsl("sticker_height"), StickerHeight());
 		settings.insert(qsl("hide_counter"), GetEnhancedBool("hide_counter"));
 		settings.insert(qsl("use_gt_api"), GetEnhancedBool("use_gt_api"));

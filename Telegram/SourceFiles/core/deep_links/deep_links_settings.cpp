@@ -1856,6 +1856,14 @@ void RegisterSettingsHandlers(Router &router) {
 	});
 
 	router.add(u"settings"_q, {
+		.path = u"enhanced/hide-delete-for-others-checkbox"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/hide-delete-for-others-checkbox"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
 		.path = u"enhanced/show-media-metadata"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
