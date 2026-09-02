@@ -192,7 +192,8 @@ base::options::toggle CtrlClickChatNewWindow({
 		: state.fromPeer;
 	const auto waiting = trimmed.isEmpty()
 		&& state.tags.empty()
-		&& !fromPeer;
+		&& !fromPeer
+		&& !state.messageTypes;
 	const auto suggestAllChats = !waiting
 		&& state.tab == ChatSearchTab::MyMessages
 		&& (state.filter != ChatTypeFilter::All || !state.fromArchive);
