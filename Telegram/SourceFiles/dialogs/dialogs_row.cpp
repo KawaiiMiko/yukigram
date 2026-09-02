@@ -46,6 +46,13 @@ constexpr auto kBottomLayer = 1;
 constexpr auto kNoneLayer = 0;
 constexpr auto kBlurRadius = 24;
 
+[[nodiscard]] bool ShowGroupSenderAvatar(PeerData *peer) {
+	return peer
+		&& GetEnhancedBool("show_group_sender_avatar")
+		&& !peer->isForum()
+		&& (peer->isChat() || peer->isMegagroup());
+}
+
 [[nodiscard]] int SubscriptionCutSkip() {
 	const auto width = st::dialogsSubscriptionBadgeOutlineTwice / 2.;
 	return int(std::ceil(width)) + 1;
@@ -482,7 +489,7 @@ void Row::updateCornerBadgeShown(
 				|| Data::ChannelHasSubscriptionUntilDate(channel)
 				|| (!insideCommunity && channel->linkedCommunityId()))) {
 			return kTopLayer;
-		} else if (!peer->isForum() && (peer->isChat() || peer->isMegagroup()) && GetEnhancedBool("show_group_sender_avatar")){
+		} else if (ShowGroupSenderAvatar(peer)) {
 			return kTopLayer;
 		} else if (hidden) {
 			return kHiddenLayer;
@@ -814,6 +821,7 @@ void Row::paintUserpic(
 		badgeChannel);
 	const auto communityMember = peer
 		&& Data::PeerLinkedCommunityId(peer)
+		&& !ShowGroupSenderAvatar(peer)
 		&& !(badgeChannel && Data::ChannelHasActiveCall(badgeChannel))
 		&& !(badgeUser && Data::IsUserOnline(badgeUser))
 		&& !subscribed
@@ -825,6 +833,7 @@ void Row::paintUserpic(
 		|| !_cornerBadgeUserpic->layersManager.isFinished()
 		|| (activeMatters && _cornerBadgeUserpic->active != active)
 		|| _cornerBadgeUserpic->hidden != (hidden ? 1 : 0)
+		|| _cornerBadgeUserpic->communityMember != (communityMember ? 1 : 0)
 		|| _cornerBadgeUserpic->frameIndex != frameIndex
 		|| _cornerBadgeUserpic->storiesCount != storiesCount
 		|| _cornerBadgeUserpic->storiesUnreadCount != storiesUnreadCount
@@ -834,6 +843,7 @@ void Row::paintUserpic(
 		_cornerBadgeUserpic->paletteVersion = paletteVersion;
 		_cornerBadgeUserpic->active = active;
 		_cornerBadgeUserpic->hidden = hidden ? 1 : 0;
+		_cornerBadgeUserpic->communityMember = communityMember ? 1 : 0;
 		_cornerBadgeUserpic->storiesCount = storiesCount;
 		_cornerBadgeUserpic->storiesUnreadCount = storiesUnreadCount;
 		_cornerBadgeUserpic->storiesHasVideoStream = storiesHasVideoStream;
@@ -873,7 +883,7 @@ void Row::paintUserpic(
 	p.setOpacity(
 		_cornerBadgeUserpic->layersManager.progressForLayer(kTopLayer));
 	p.translate(context.st->padding.left(), context.st->padding.top());
-	if(_hasVideoCall){
+	if (_hasVideoCall) {
 		actionPainter->paintSpeaking(
 			p,
 			context.st->photoSize - skip.x() - size,
@@ -882,7 +892,12 @@ void Row::paintUserpic(
 			bg,
 			context.now);
 	} else if (const auto lastMessage = history->lastMessage()) {
-		lastMessage->from()->paintUserpic(p, userpicCornerView(), context.st->photoSize - skip.x() - size, context.st->photoSize - skip.y() - size, size);
+		lastMessage->from()->paintUserpic(
+			p,
+			userpicCornerView(),
+			context.st->photoSize - skip.x() - size,
+			context.st->photoSize - skip.y() - size,
+			size);
 	}
 	p.translate(-context.st->padding.left(), -context.st->padding.top());
 	p.setOpacity(1.);

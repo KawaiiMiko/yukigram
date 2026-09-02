@@ -196,6 +196,7 @@ private:
 		uint32 storiesHasVideoStream : 1 = 0;
 		uint32 active : 1 = 0;
 		uint32 hidden : 1 = 0;
+		uint32 communityMember : 1 = 0;
 	};
 
 	void setCornerBadgeShown(
