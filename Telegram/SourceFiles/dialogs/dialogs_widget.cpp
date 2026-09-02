@@ -4454,6 +4454,9 @@ bool Widget::applySearchState(SearchState state) {
 		|| (!state.fromPeer
 			&& !NativeMessageSearchType(state.messageTypes))) {
 		state.messageTypes = 0;
+	} else if (peer && !peer->isChat() && !peer->isMegagroup()) {
+		state.messageTypes &= ~MessageSearchTypeBit(
+			MessageSearchType::Mention);
 	}
 
 	const auto clearQuery = state.fromPeer

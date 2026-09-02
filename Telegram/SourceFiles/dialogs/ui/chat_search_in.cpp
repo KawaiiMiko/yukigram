@@ -580,6 +580,10 @@ void ChatSearchIn::showMessageTypesMenu() {
 	};
 	add(tr::lng_forum_all_messages(tr::now), std::nullopt);
 	for (const auto type : MessageSearchTypeList()) {
+		if (_peerTabType != ChatSearchPeerTabType::Group
+			&& type == MessageSearchType::Mention) {
+			continue;
+		}
 		if (!_multipleMessageTypesAllowed
 			&& type == MessageSearchType::Sticker) {
 			continue;
