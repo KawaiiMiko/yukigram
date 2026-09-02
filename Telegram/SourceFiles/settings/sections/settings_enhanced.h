@@ -39,12 +39,11 @@ namespace Settings {
 
 	private:
 		void setupContent();
-		void SetupEnhancedChat(not_null<Ui::VerticalLayout *> container);
-		void SetupEnhancedCompose(not_null<Ui::VerticalLayout *> container);
-		void SetupEnhancedVoiceChat(not_null<Ui::VerticalLayout *> container);
-		void SetupEnhancedApplication(
-			not_null<Ui::VerticalLayout *> interfaceContainer,
-			not_null<Ui::VerticalLayout *> behaviorContainer);
+		void setupMessages(not_null<Ui::VerticalLayout*> content);
+		void setupInterface(not_null<Ui::VerticalLayout*> content);
+		void setupBehavior(not_null<Ui::VerticalLayout*> content);
+		void setupTranslation(not_null<Ui::VerticalLayout*> content);
+		void setupVoiceChat(not_null<Ui::VerticalLayout*> page);
 		void reqBlocked(int offset);
 		void writeBlocklistFile();
 		void registerHighlight(
