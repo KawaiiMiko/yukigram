@@ -79,4 +79,19 @@ void PaintUserpic(
 	int size,
 	bool paused);
 
+void PaintUserpicWithOnlineBadge(
+	Painter &p,
+	not_null<PeerData*> peer,
+	VideoUserpic *videoUserpic,
+	PeerUserpicView &view,
+	int x,
+	int y,
+	int outerWidth,
+	int size,
+	bool paused,
+	int onlineBadgeSize,
+	int onlineBadgeStroke,
+	QPoint onlineBadgeSkip,
+	float64 onlineProgress);
+
 } // namespace Dialogs::Ui

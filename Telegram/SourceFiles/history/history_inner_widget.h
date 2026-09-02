@@ -571,6 +571,16 @@ private:
 	bool showCopyRestrictionForSelected();
 	[[nodiscard]] bool hasSelectRestriction() const;
 
+	struct SenderOnlineState {
+		Ui::Animations::Simple animation;
+		bool shown = false;
+	};
+
+	void repaintUserpic(not_null<PeerData*> peer);
+	[[nodiscard]] float64 senderOnlineProgress(
+		not_null<PeerData*> peer);
+	void updateSenderOnline(not_null<UserData*> user);
+	void updateSenderOnlineSetting();
 	VideoUserpic *validateVideoUserpic(not_null<PeerData*> peer);
 
 	// Does any of the shown histories has this flag set.
@@ -649,6 +659,7 @@ private:
 	base::flat_map<
 		not_null<PeerData*>,
 		std::unique_ptr<VideoUserpic>> _videoUserpics;
+	base::flat_map<not_null<UserData*>, SenderOnlineState> _senderOnline;
 
 	std::unique_ptr<HistoryView::Reactions::Manager> _reactionsManager;
 	rpl::variable<HistoryItem*> _reactionsItem;

@@ -901,6 +901,17 @@ private:
 		Painter &p,
 		const Ui::ChatPaintContext &context,
 		QRect clip);
+	struct SenderOnlineState {
+		Ui::Animations::Simple animation;
+		bool shown = false;
+	};
+
+	[[nodiscard]] PeerData *senderOnlineGroup() const;
+	void repaintUserpic(not_null<PeerData*> peer);
+	[[nodiscard]] float64 senderOnlineProgress(
+		not_null<PeerData*> peer);
+	void updateSenderOnline(not_null<UserData*> user);
+	void updateSenderOnlineSetting();
 	VideoUserpic *validateVideoUserpic(not_null<PeerData*> peer);
 	void paintDates(
 		Painter &p,
@@ -979,6 +990,7 @@ private:
 	base::flat_map<
 		not_null<PeerData*>,
 		std::unique_ptr<VideoUserpic>> _videoUserpics;
+	base::flat_map<not_null<UserData*>, SenderOnlineState> _senderOnline;
 
 	const std::unique_ptr<Ui::PathShiftGradient> _pathGradient;
 	QPainterPath _highlightPathCache;

@@ -48,6 +48,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "core/application.h"
 #include "core/click_handler_types.h"
 #include "core/core_settings.h"
+#include "core/enhanced_settings.h"
 #include "core/phone_click_handler.h"
 #include "apiwrap.h"
 #include "api/api_who_reacted.h"
@@ -102,6 +103,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_message_reactions.h"
 #include "data/data_peer_values.h"
 #include "styles/style_chat.h"
+#include "styles/style_dialogs.h"
 #include "styles/style_window.h" // columnMaximalWidthLeft
 
 #include <QtWidgets/QApplication>
@@ -588,6 +590,23 @@ ListWidget::ListWidget(
 		Core::App().inAppKeyPressed(
 		) | rpl::on_next([=] {
 			registerReadMetricsActivity();
+		}, lifetime());
+	}
+	if (senderOnlineGroup()) {
+		EnhancedSettings::ShowGroupSenderOnlineStatusValue(
+		) | rpl::skip(
+			1
+		) | rpl::on_next([=] {
+			updateSenderOnlineSetting();
+		}, lifetime());
+
+		_session->changes().peerUpdates(
+			Data::PeerUpdate::Flag::OnlineStatus
+		) | rpl::on_next([=](const Data::PeerUpdate &update) {
+			if (const auto user = update.peer->asUser();
+				user && _senderOnline.contains(not_null{ user })) {
+				updateSenderOnline(user);
+			}
 		}, lifetime());
 	}
 
@@ -1530,6 +1549,7 @@ void ListWidget::visibleTopBottomUpdated(
 	// Unload userpics.
 	if (_userpics.size() > kClearUserpicsAfter) {
 		_userpicsCache = std::move(_userpics);
+		_senderOnline.clear();
 	}
 
 	if (initializing) {
@@ -3274,7 +3294,7 @@ void ListWidget::paintUserpics(
 						st::msgPhotoSize));
 			}
 			if (const auto from = view->displayFrom()) {
-				Dialogs::Ui::PaintUserpic(
+				Dialogs::Ui::PaintUserpicWithOnlineBadge(
 					p,
 					from,
 					validateVideoUserpic(from),
@@ -3283,7 +3303,11 @@ void ListWidget::paintUserpics(
 					userpicTop,
 					view->width(),
 					st::msgPhotoSize,
-					context.paused);
+					context.paused,
+					st::historySenderOnlineBadgeSize,
+					st::historySenderOnlineBadgeStroke,
+					st::historySenderOnlineBadgeSkip,
+					senderOnlineProgress(from));
 			} else if (const auto info = item->displayHiddenSenderInfo()) {
 				if (info->customUserpic.empty()) {
 					info->emptyUserpic.paintCircle(
@@ -3328,32 +3352,137 @@ ListWidget::VideoUserpic *ListWidget::validateVideoUserpic(
 	if (i != end(_videoUserpics)) {
 		return i->second.get();
 	}
-	const auto repaint = [=] {
-		if (_resizePending) {
-			return;
-		}
-		enumerateUserpics([&](not_null<Element*> view, int userpicTop) {
-			if (userpicTop >= _visibleBottom) {
-				return false;
-			}
-			if (userpicTop + st::msgPhotoSize > _visibleTop) {
-				if (const auto from = view->data()->displayFrom()) {
-					if (from == peer) {
-						rtlupdate(
-							st::historyPhotoLeft,
-							userpicTop,
-							st::msgPhotoSize,
-							st::msgPhotoSize);
-					}
-				}
-			}
-			return true;
-		});
-	};
 	return _videoUserpics.emplace(peer, std::make_unique<VideoUserpic>(
 		peer,
-		repaint
+		[=] { repaintUserpic(peer); }
 	)).first->second.get();
+}
+
+PeerData *ListWidget::senderOnlineGroup() const {
+	if (_context != Context::History
+		&& _context != Context::Replies
+		&& _context != Context::Pinned) {
+		return nullptr;
+	}
+	const auto history = _delegate->listTranslateHistory();
+	const auto peer = history ? history->peer.get() : nullptr;
+	return peer && (peer->isChat() || peer->isMegagroup())
+		? peer
+		: nullptr;
+}
+
+void ListWidget::repaintUserpic(not_null<PeerData*> peer) {
+	if (_resizePending) {
+		return;
+	}
+	const auto visibleTop = _visibleTop;
+	const auto visibleBottom = _visibleBottom;
+	enumerateUserpics([&](not_null<Element*> view, int userpicTop) {
+		if (userpicTop >= visibleBottom) {
+			return false;
+		}
+		if (userpicTop + st::msgPhotoSize > visibleTop
+			&& view->data()->displayFrom() == peer) {
+			rtlupdate(
+				st::historyPhotoLeft,
+				userpicTop,
+				st::msgPhotoSize,
+				st::msgPhotoSize);
+		}
+		return true;
+	});
+}
+
+float64 ListWidget::senderOnlineProgress(not_null<PeerData*> peer) {
+	if (!senderOnlineGroup()) {
+		return 0.;
+	}
+	const auto user = peer->asUser();
+	if (!user) {
+		return 0.;
+	}
+	const auto enabled = EnhancedSettings::ShowGroupSenderOnlineStatus();
+	const auto i = _senderOnline.find(user);
+	if (!enabled && i == end(_senderOnline)) {
+		return 0.;
+	}
+	if (i == end(_senderOnline)) {
+		const auto online = Data::IsUserOnline(user);
+		auto state = SenderOnlineState();
+		state.shown = online;
+		const auto added = _senderOnline.emplace(user, std::move(state)).first;
+		if (online) {
+			user->owner().watchForOffline(user);
+		}
+		return added->second.animation.value(online ? 1. : 0.);
+	}
+	if (enabled) {
+		updateSenderOnline(user);
+	}
+	return i->second.animation.value(i->second.shown ? 1. : 0.);
+}
+
+void ListWidget::updateSenderOnline(not_null<UserData*> user) {
+	const auto shown = EnhancedSettings::ShowGroupSenderOnlineStatus()
+		&& Data::IsUserOnline(user);
+	if (shown) {
+		user->owner().watchForOffline(user);
+	}
+	const auto i = _senderOnline.find(user);
+	if (i == end(_senderOnline)) {
+		auto state = SenderOnlineState();
+		const auto added = _senderOnline.emplace(user, std::move(state)).first;
+		if (!shown) {
+			return;
+		}
+		added->second.shown = true;
+		added->second.animation.start(
+			crl::guard(this, [=] { repaintUserpic(user); }),
+			0.,
+			1.,
+			st::dialogsOnlineBadgeDuration);
+		return;
+	}
+	if (i->second.shown == shown) {
+		return;
+	}
+	const auto from = i->second.animation.value(
+		i->second.shown ? 1. : 0.);
+	i->second.shown = shown;
+	i->second.animation.start(
+		crl::guard(this, [=] { repaintUserpic(user); }),
+		from,
+		shown ? 1. : 0.,
+		st::dialogsOnlineBadgeDuration);
+}
+
+void ListWidget::updateSenderOnlineSetting() {
+	auto users = std::vector<not_null<UserData*>>();
+	users.reserve(_senderOnline.size());
+	for (const auto &entry : _senderOnline) {
+		users.push_back(entry.first);
+	}
+	for (const auto &user : users) {
+		updateSenderOnline(user);
+	}
+	if (!EnhancedSettings::ShowGroupSenderOnlineStatus()) {
+		return;
+	}
+	const auto visibleTop = _visibleTop;
+	const auto visibleBottom = _visibleBottom;
+	enumerateUserpics([&](not_null<Element*> view, int userpicTop) {
+		if (userpicTop >= visibleBottom) {
+			return false;
+		}
+		if (userpicTop + st::msgPhotoSize > visibleTop) {
+			if (const auto from = view->data()->displayFrom()) {
+				if (const auto user = from->asUser()) {
+					updateSenderOnline(user);
+				}
+			}
+		}
+		return true;
+	});
 }
 
 void ListWidget::paintDates(

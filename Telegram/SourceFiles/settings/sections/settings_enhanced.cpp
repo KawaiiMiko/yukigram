@@ -300,6 +300,22 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 
 	builder.add(nullptr, [] {
 		return Builder::SearchEntry{
+			.id = u"enhanced/show-group-sender-online-status"_q,
+			.title = tr::lng_settings_show_group_sender_online_status(tr::now),
+			.keywords = {
+				u"group"_q,
+				u"sender"_q,
+				u"avatar"_q,
+				u"online"_q,
+				u"status"_q,
+			},
+			.deeplink
+				= u"tg://settings/enhanced/show-group-sender-online-status"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
 			.id = u"enhanced/use-gt-api"_q,
 			.title = tr::lng_settings_use_gt_api(tr::now),
 			.keywords = { u"translate"_q, u"google"_q, u"api"_q, u"gt"_q },
@@ -739,6 +755,25 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			return (toggled != GetEnhancedBool("show_group_sender_avatar"));
 		}) | rpl::on_next([=](bool toggled) {
 			SetEnhancedValue("show_group_sender_avatar", toggled);
+			EnhancedSettings::Write();
+		}, content->lifetime());
+
+		const auto showGroupSenderOnlineStatus = AddButtonWithIcon(
+				content,
+				tr::lng_settings_show_group_sender_online_status(),
+				st::settingsButtonNoIcon
+		);
+		registerHighlight(
+			u"enhanced/show-group-sender-online-status"_q,
+			showGroupSenderOnlineStatus);
+		showGroupSenderOnlineStatus->toggleOn(
+				EnhancedSettings::ShowGroupSenderOnlineStatusValue()
+		)->toggledChanges(
+		) | rpl::filter([=](bool toggled) {
+			return (toggled
+				!= EnhancedSettings::ShowGroupSenderOnlineStatus());
+		}) | rpl::on_next([=](bool toggled) {
+			EnhancedSettings::SetShowGroupSenderOnlineStatus(toggled);
 			EnhancedSettings::Write();
 		}, content->lifetime());
 

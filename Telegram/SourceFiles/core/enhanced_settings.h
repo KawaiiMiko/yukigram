@@ -24,6 +24,9 @@ namespace EnhancedSettings {
 	[[nodiscard]] bool AllowScreenshots();
 	[[nodiscard]] rpl::producer<bool> AllowScreenshotsValue();
 	void SetAllowScreenshots(bool allow);
+	[[nodiscard]] bool ShowGroupSenderOnlineStatus();
+	[[nodiscard]] rpl::producer<bool> ShowGroupSenderOnlineStatusValue();
+	void SetShowGroupSenderOnlineStatus(bool show);
 
 	class Manager : public QObject {
 	Q_OBJECT

@@ -172,4 +172,72 @@ void PaintUserpic(
 	}
 }
 
+void PaintUserpicWithOnlineBadge(
+		Painter &p,
+		not_null<PeerData*> peer,
+		VideoUserpic *videoUserpic,
+		PeerUserpicView &view,
+		int x,
+		int y,
+		int outerWidth,
+		int size,
+		bool paused,
+		int onlineBadgeSize,
+		int onlineBadgeStroke,
+		QPoint onlineBadgeSkip,
+		float64 onlineProgress) {
+	if (onlineProgress <= 0.) {
+		PaintUserpic(
+			p,
+			peer,
+			videoUserpic,
+			view,
+			x,
+			y,
+			outerWidth,
+			size,
+			paused);
+		return;
+	}
+
+	const auto ratio = style::DevicePixelRatio();
+	auto frame = QImage(
+		QSize(size, size) * ratio,
+		QImage::Format_ARGB32_Premultiplied);
+	frame.setDevicePixelRatio(ratio);
+	frame.fill(Qt::transparent);
+	{
+		auto q = Painter(&frame);
+		PaintUserpic(
+			q,
+			peer,
+			videoUserpic,
+			view,
+			0,
+			0,
+			size,
+			size,
+			paused);
+
+		auto hq = PainterHighQualityEnabler(q);
+		q.setCompositionMode(QPainter::CompositionMode_Source);
+		const auto shrink
+			= (onlineBadgeSize / 2.) * (1. - onlineProgress);
+
+		auto pen = QPen(Qt::transparent);
+		pen.setWidthF(onlineBadgeStroke * onlineProgress);
+		q.setPen(pen);
+		q.setBrush(st::dialogsOnlineBadgeFg);
+		q.drawEllipse(QRectF(
+			size - onlineBadgeSkip.x() - onlineBadgeSize,
+			size - onlineBadgeSkip.y() - onlineBadgeSize,
+			onlineBadgeSize,
+			onlineBadgeSize
+		).marginsRemoved({ shrink, shrink, shrink, shrink }));
+	}
+
+	const auto left = rtl() ? (outerWidth - x - size) : x;
+	p.drawImage(left, y, frame);
+}
+
 } // namespace Dialogs::Ui

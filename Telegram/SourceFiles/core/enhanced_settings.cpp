@@ -32,9 +32,12 @@ namespace EnhancedSettings {
 			= "force_show_webpage_preview";
 		constexpr auto kStickerHeightKey = "sticker_height";
 		constexpr auto kAllowScreenshotsKey = "allow_screenshot";
+		constexpr auto kShowGroupSenderOnlineStatusKey
+			= "show_group_sender_online_status";
 		constexpr auto kHideDeleteForOthersCheckboxKey
 			= "hide-delete-for-others-checkbox";
 		rpl::variable<bool> allowScreenshotsState = false;
+		rpl::variable<bool> showGroupSenderOnlineStatusState = false;
 
 		[[nodiscard]] int NormalizeRichMessagePreviewBlocksLimit(int limit) {
 			if (limit <= 0) {
@@ -156,6 +159,19 @@ namespace EnhancedSettings {
 		allowScreenshotsState = allow;
 	}
 
+	bool ShowGroupSenderOnlineStatus() {
+		return showGroupSenderOnlineStatusState.current();
+	}
+
+	rpl::producer<bool> ShowGroupSenderOnlineStatusValue() {
+		return showGroupSenderOnlineStatusState.value();
+	}
+
+	void SetShowGroupSenderOnlineStatus(bool show) {
+		SetEnhancedValue(kShowGroupSenderOnlineStatusKey, show);
+		showGroupSenderOnlineStatusState = show;
+	}
+
 	Manager::Manager() {
 		_jsonWriteTimer.setSingleShot(true);
 		connect(&_jsonWriteTimer, SIGNAL(timeout()), this, SLOT(writeTimeout()));
@@ -170,6 +186,8 @@ namespace EnhancedSettings {
 			WriteDefaultCustomFile();
 		}
 		SetAllowScreenshots(GetEnhancedBool(kAllowScreenshotsKey));
+		SetShowGroupSenderOnlineStatus(
+			GetEnhancedBool(kShowGroupSenderOnlineStatusKey));
 		readBlocklist();
 	}
 
@@ -178,6 +196,8 @@ namespace EnhancedSettings {
 		cSetEnhancedOptions({});
 		writeDefaultFile();
 		SetAllowScreenshots(GetEnhancedBool(kAllowScreenshotsKey));
+		SetShowGroupSenderOnlineStatus(
+			GetEnhancedBool(kShowGroupSenderOnlineStatusKey));
 		writeCurrentSettings();
 	}
 
@@ -335,6 +355,7 @@ namespace EnhancedSettings {
 		settings.insert(qsl("show_media_metadata"), false);
 		settings.insert(qsl("community_chat_click"), false);
 		settings.insert(qsl("show_group_sender_avatar"), false);
+		settings.insert(qsl("show_group_sender_online_status"), false);
 		settings.insert(qsl("show_seconds"), false);
 		settings.insert(qsl("rich_message_preview_max_blocks"), 0);
 		settings.insert(qsl("force_show_webpage_preview"), false);
@@ -407,6 +428,7 @@ namespace EnhancedSettings {
 		settings.insert(qsl("show_media_metadata"), GetEnhancedBool("show_media_metadata"));
 		settings.insert(qsl("community_chat_click"), GetEnhancedBool("community_chat_click"));
 		settings.insert(qsl("show_group_sender_avatar"), GetEnhancedBool("show_group_sender_avatar"));
+		settings.insert(qsl("show_group_sender_online_status"), ShowGroupSenderOnlineStatus());
 		settings.insert(qsl("show_seconds"), GetEnhancedBool("show_seconds"));
 		settings.insert(qsl("rich_message_preview_max_blocks"), RichMessagePreviewBlocksLimit());
 		settings.insert(qsl("force_show_webpage_preview"), GetEnhancedBool("force_show_webpage_preview"));

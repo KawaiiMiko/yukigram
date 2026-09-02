@@ -10,6 +10,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "api/api_polls.h"
 #include "chat_helpers/stickers_emoji_pack.h"
 #include "core/application.h"
+#include "core/enhanced_settings.h"
 #include "core/file_utilities.h"
 #include "core/msg_extra_state.h"
 #include <core/shortcuts.h>
@@ -137,6 +138,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_changes.h"
 #include "dialogs/ui/dialogs_video_userpic.h"
 #include "styles/style_chat.h"
+#include "styles/style_dialogs.h"
 #include "styles/style_menu_icons.h"
 
 #include <QtGui/QClipboard>
@@ -444,6 +446,23 @@ HistoryInner::HistoryInner(
 			update();
 		}
 	}, lifetime());
+	if (_peer->isChat() || _peer->isMegagroup()) {
+		EnhancedSettings::ShowGroupSenderOnlineStatusValue(
+		) | rpl::skip(
+			1
+		) | rpl::on_next([=] {
+			updateSenderOnlineSetting();
+		}, lifetime());
+
+		session().changes().peerUpdates(
+			Data::PeerUpdate::Flag::OnlineStatus
+		) | rpl::on_next([=](const Data::PeerUpdate &update) {
+			if (const auto user = update.peer->asUser();
+				user && _senderOnline.contains(not_null{ user })) {
+				updateSenderOnline(user);
+			}
+		}, lifetime());
+	}
 
 	using PlayRequest = ChatHelpers::EmojiInteractionPlayRequest;
 	_controller->emojiInteractions().playRequests(
@@ -1738,7 +1757,7 @@ void HistoryInner::paintEvent(QPaintEvent *e) {
 						st::msgPhotoSize));
 			}
 			if (const auto from = item->displayFrom()) {
-				Dialogs::Ui::PaintUserpic(
+				Dialogs::Ui::PaintUserpicWithOnlineBadge(
 					p,
 					from,
 					validateVideoUserpic(from),
@@ -1747,7 +1766,11 @@ void HistoryInner::paintEvent(QPaintEvent *e) {
 					userpicTop,
 					width(),
 					st::msgPhotoSize,
-					context.paused);
+					context.paused,
+					st::historySenderOnlineBadgeSize,
+					st::historySenderOnlineBadgeStroke,
+					st::historySenderOnlineBadgeSkip,
+					senderOnlineProgress(from));
 			} else if (const auto info = item->displayHiddenSenderInfo()) {
 				if (info->customUserpic.empty()) {
 					info->emptyUserpic.paintCircle(
@@ -1895,35 +1918,124 @@ HistoryInner::VideoUserpic *HistoryInner::validateVideoUserpic(
 	if (i != end(_videoUserpics)) {
 		return i->second.get();
 	}
-	const auto repaint = [=] {
-		if (hasPendingResizedItems()) {
-			return;
-		}
-		enumerateUserpics([&](not_null<Element*> view, int userpicTop) {
-			// stop the enumeration if the userpic is below the painted rect
-			if (userpicTop >= _visibleAreaBottom) {
-				return false;
-			}
-
-			// repaint the userpic if it intersects the painted rect
-			if (userpicTop + st::msgPhotoSize > _visibleAreaTop) {
-				if (const auto from = view->data()->displayFrom()) {
-					if (from == peer) {
-						rtlupdate(
-							st::historyPhotoLeft,
-							userpicTop,
-							st::msgPhotoSize,
-							st::msgPhotoSize);
-					}
-				}
-			}
-			return true;
-		});
-	};
 	return _videoUserpics.emplace(peer, std::make_unique<VideoUserpic>(
 		peer,
-		repaint
+		[=] { repaintUserpic(peer); }
 	)).first->second.get();
+}
+
+void HistoryInner::repaintUserpic(not_null<PeerData*> peer) {
+	if (hasPendingResizedItems()) {
+		return;
+	}
+	const auto visibleTop = _visibleAreaTop;
+	const auto visibleBottom = _visibleAreaBottom;
+	enumerateUserpics([&](not_null<Element*> view, int userpicTop) {
+		if (userpicTop >= visibleBottom) {
+			return false;
+		}
+		if (userpicTop + st::msgPhotoSize > visibleTop
+			&& view->data()->displayFrom() == peer) {
+			rtlupdate(
+				st::historyPhotoLeft,
+				userpicTop,
+				st::msgPhotoSize,
+				st::msgPhotoSize);
+		}
+		return true;
+	});
+}
+
+float64 HistoryInner::senderOnlineProgress(not_null<PeerData*> peer) {
+	if (!_peer->isChat() && !_peer->isMegagroup()) {
+		return 0.;
+	}
+	const auto user = peer->asUser();
+	if (!user) {
+		return 0.;
+	}
+	const auto enabled = EnhancedSettings::ShowGroupSenderOnlineStatus();
+	const auto i = _senderOnline.find(user);
+	if (!enabled && i == end(_senderOnline)) {
+		return 0.;
+	}
+	if (i == end(_senderOnline)) {
+		const auto online = Data::IsUserOnline(user);
+		auto state = SenderOnlineState();
+		state.shown = online;
+		const auto added = _senderOnline.emplace(user, std::move(state)).first;
+		if (online) {
+			user->owner().watchForOffline(user);
+		}
+		return added->second.animation.value(online ? 1. : 0.);
+	}
+	if (enabled) {
+		updateSenderOnline(user);
+	}
+	return i->second.animation.value(i->second.shown ? 1. : 0.);
+}
+
+void HistoryInner::updateSenderOnline(not_null<UserData*> user) {
+	const auto shown = EnhancedSettings::ShowGroupSenderOnlineStatus()
+		&& Data::IsUserOnline(user);
+	if (shown) {
+		user->owner().watchForOffline(user);
+	}
+	const auto i = _senderOnline.find(user);
+	if (i == end(_senderOnline)) {
+		auto state = SenderOnlineState();
+		const auto added = _senderOnline.emplace(user, std::move(state)).first;
+		if (!shown) {
+			return;
+		}
+		added->second.shown = true;
+		added->second.animation.start(
+			crl::guard(this, [=] { repaintUserpic(user); }),
+			0.,
+			1.,
+			st::dialogsOnlineBadgeDuration);
+		return;
+	}
+	if (i->second.shown == shown) {
+		return;
+	}
+	const auto from = i->second.animation.value(
+		i->second.shown ? 1. : 0.);
+	i->second.shown = shown;
+	i->second.animation.start(
+		crl::guard(this, [=] { repaintUserpic(user); }),
+		from,
+		shown ? 1. : 0.,
+		st::dialogsOnlineBadgeDuration);
+}
+
+void HistoryInner::updateSenderOnlineSetting() {
+	auto users = std::vector<not_null<UserData*>>();
+	users.reserve(_senderOnline.size());
+	for (const auto &entry : _senderOnline) {
+		users.push_back(entry.first);
+	}
+	for (const auto &user : users) {
+		updateSenderOnline(user);
+	}
+	if (!EnhancedSettings::ShowGroupSenderOnlineStatus()) {
+		return;
+	}
+	const auto visibleTop = _visibleAreaTop;
+	const auto visibleBottom = _visibleAreaBottom;
+	enumerateUserpics([&](not_null<Element*> view, int userpicTop) {
+		if (userpicTop >= visibleBottom) {
+			return false;
+		}
+		if (userpicTop + st::msgPhotoSize > visibleTop) {
+			if (const auto from = view->data()->displayFrom()) {
+				if (const auto user = from->asUser()) {
+					updateSenderOnline(user);
+				}
+			}
+		}
+		return true;
+	});
 }
 
 void HistoryInner::onTouchScrollTimer() {
@@ -4941,6 +5053,7 @@ void HistoryInner::visibleAreaUpdated(int top, int bottom) {
 	// Unload userpics.
 	if (_userpics.size() > kClearUserpicsAfter) {
 		_userpicsCache = std::move(_userpics);
+		_senderOnline.clear();
 	}
 
 	// Unload lottie animations.

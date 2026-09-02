@@ -1912,6 +1912,14 @@ void RegisterSettingsHandlers(Router &router) {
 	});
 
 	router.add(u"settings"_q, {
+		.path = u"enhanced/show-group-sender-online-status"_q,
+		.action = SettingsControl{
+			::Settings::EnhancedId(),
+			u"enhanced/show-group-sender-online-status"_q,
+		},
+	});
+
+	router.add(u"settings"_q, {
 		.path = u"enhanced/use-gt-api"_q,
 		.action = SettingsControl{
 			::Settings::EnhancedId(),
