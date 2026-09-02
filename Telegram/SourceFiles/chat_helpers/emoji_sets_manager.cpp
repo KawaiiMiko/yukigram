@@ -138,7 +138,10 @@ MTP::DedicatedLoader::Location GetDownloadLocation(int id) {
 	const auto i = ranges::find(kSets, id, &Set::id);
 	const auto postId = i->postId;
 	const auto username = (id<= 100 ? kCloudLocationUsername.utf16() : "rua_files"_cs.utf16());
-	return MTP::DedicatedLoader::Location{ username, abs(postId) };
+	return MTP::DedicatedLoader::Location{
+		.username = username,
+		.postId = postId,
+	};
 }
 
 SetState ComputeState(int id) {
