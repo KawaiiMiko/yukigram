@@ -667,7 +667,7 @@ private:
 
 	QRect _leftNav, _leftNavOver, _leftNavIcon;
 	QRect _rightNav, _rightNavOver, _rightNavIcon;
-	QRect _headerNav, _nameNav, _dateNav, _separatorNav;
+	QRect _headerNav, _metadataNav, _nameNav, _dateNav, _separatorNav;
 	QRect _rotateNav, _rotateNavOver, _rotateNavIcon;
 	QRect _shareNav, _shareNavOver, _shareNavIcon;
 	QRect _drawNav, _drawNavOver, _drawNavIcon;
@@ -683,8 +683,9 @@ private:
 	bool _drawVisible = false;
 	bool _recognizeVisible = false;
 	bool _headerHasLink = false;
-	QString _dateText;
 	QString _headerText;
+	QString _metadataText;
+	QString _dateText;
 
 	bool _streamingStartPaused = false;
 	bool _fullScreenVideo = false;

@@ -267,6 +267,8 @@ mediaviewTextLeft: 14px;
 mediaviewTextSkip: 10px;
 mediaviewTextSkipHalf: 5px;
 mediaviewHeaderTop: 47px;
+mediaviewHeaderWithMetadataTop: 68px;
+mediaviewMetadataTop: 47px;
 mediaviewTextTop: 26px;
 
 mediaviewControlSize: 90px;

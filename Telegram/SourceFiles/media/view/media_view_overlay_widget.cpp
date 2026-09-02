@@ -1972,8 +1972,14 @@ void OverlayWidget::updateControls() {
 		_photo,
 		_document,
 		streamingInformation);
-	if (!metadata.isEmpty()) {
-		_dateText += u" · "_q + metadata;
+	_metadataText = metadata;
+	if (_document) {
+		const auto flags = DocumentMetadataFlags(_document);
+		if (!flags.isEmpty()) {
+			_metadataText = _metadataText.isEmpty()
+				? flags
+				: _metadataText + u" | "_q + flags;
+		}
 	}
 	const auto destroyAt = _message ? _message->mediaDestroyAt() : TimeId();
 	if (destroyAt > 0) {
@@ -2025,6 +2031,13 @@ void OverlayWidget::updateControls() {
 			st::mediaviewFont->width(_dateText),
 			st::mediaviewFont->height);
 	}
+	_metadataNav = _metadataText.isEmpty()
+		? QRect()
+		: QRect(
+			st::mediaviewTextLeft,
+			height() - st::mediaviewMetadataTop,
+			st::mediaviewFont->width(_metadataText),
+			st::mediaviewFont->height);
 	updateHeader();
 	refreshNavVisibility();
 	resizeCenteredControls();
@@ -2035,7 +2048,9 @@ void OverlayWidget::updateControls() {
 
 void OverlayWidget::resizeCenteredControls() {
 	const auto bottomSkip = std::max(
-		_dateNav.left() + _dateNav.width(),
+		std::max(
+			_dateNav.left() + _dateNav.width(),
+			_metadataNav.left() + _metadataNav.width()),
 		_headerNav.left() + _headerNav.width())
 		+ st::mediaviewCaptionMargin.width();
 	_groupThumbsAvailableWidth = std::max(
@@ -2762,6 +2777,7 @@ bool OverlayWidget::updateControlsAnimation(crl::time now) {
 			? _stories->sibling(siblingType).layout.geometry
 			: QRect())
 		+ _headerNav
+		+ _metadataNav
 		+ _nameNav
 		+ _separatorNav
 		+ _dateNav
@@ -7300,6 +7316,7 @@ void OverlayWidget::paintFooterContent(
 	// header
 	const auto shift = outer.topLeft() - _headerNav.topLeft();
 	const auto header = _headerNav.translated(shift);
+	const auto metadata = _metadataNav.translated(shift);
 	const auto name = _nameNav.translated(shift);
 	const auto date = _dateNav.translated(shift);
 	if (header.intersects(clip)) {
@@ -7314,6 +7331,13 @@ void OverlayWidget::paintFooterContent(
 	}
 
 	p.setFont(st::mediaviewFont);
+	if (_metadataNav.isValid() && metadata.intersects(clip)) {
+		p.setOpacity(controlOpacity(0.) * opacity);
+		p.drawText(
+			metadata.left(),
+			metadata.top() + st::mediaviewFont->ascent,
+			_metadataText);
+	}
 
 	// name
 	if (_nameNav.isValid() && name.intersects(clip)) {
@@ -7353,7 +7377,8 @@ void OverlayWidget::paintFooterContent(
 }
 
 QRect OverlayWidget::footerGeometry() const {
-	return _headerNav.united(_nameNav).united(_separatorNav).united(_dateNav);
+	return _headerNav.united(_metadataNav).united(_nameNav).united(
+		_separatorNav).united(_dateNav);
 }
 
 void OverlayWidget::paintCaptionContent(
@@ -9179,19 +9204,20 @@ void OverlayWidget::updateHeader() {
 			_headerText = tr::lng_mediaview_single_photo(tr::now);
 		}
 	}
-	if (_document) {
-		const auto flags = DocumentMetadataFlags(_document);
-		if (!flags.isEmpty()) {
-			_headerText += u" | "_q + flags;
-		}
-	}
 	_headerHasLink = computeOverviewType() != std::nullopt;
 	auto hwidth = st::mediaviewThickFont->width(_headerText);
 	if (hwidth > width() / 3) {
 		hwidth = width() / 3;
 		_headerText = st::mediaviewThickFont->elided(_headerText, hwidth, Qt::ElideMiddle);
 	}
-	_headerNav = QRect(st::mediaviewTextLeft, height() - st::mediaviewHeaderTop, hwidth, st::mediaviewThickFont->height);
+	const auto headerTop = _metadataText.isEmpty()
+		? st::mediaviewHeaderTop
+		: st::mediaviewHeaderWithMetadataTop;
+	_headerNav = QRect(
+		st::mediaviewTextLeft,
+		height() - headerTop,
+		hwidth,
+		st::mediaviewThickFont->height);
 }
 
 float64 OverlayWidget::overLevel(Over control) const {
