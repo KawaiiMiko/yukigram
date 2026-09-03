@@ -13,7 +13,7 @@ env:
 jobs:
   image:
     name: Get or Build ARM64 Docker Image
-    runs-on: ubuntu-24.04-arm
+    runs-on: avrea-ubuntu-latest-arm-8-vcpu
     timeout-minutes: 360
     permissions:
       contents: read
