@@ -41,6 +41,7 @@ https://github.com/TDesktop-x64/tdesktop/blob/dev/LEGAL
 #include "data/data_session.h"
 #include "data/data_histories.h"
 #include "history/history.h"
+#include "iv/iv_instance.h"
 #include "main/main_session.h"
 #include "layout/layout_item_base.h"
 #include "facades.h"
@@ -71,6 +72,16 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		tr::now,
 		lt_height,
 		QString::number(height));
+}
+
+[[nodiscard]] QString ConfigForTLViewer(const MTPConfig &config) {
+	auto buffer = mtpBuffer();
+	config.write(buffer);
+	const auto bytes = QByteArray(
+		reinterpret_cast<const char*>(buffer.constData()),
+		buffer.size() * sizeof(mtpPrime));
+	return QString::fromLatin1(
+		bytes.toBase64(QByteArray::Base64UrlEncoding));
 }
 
 [[nodiscard]] not_null<Ui::VerticalLayout*> AddEnhancedGroup(
@@ -498,6 +509,15 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 			},
 			.deeplink
 				= u"tg://settings/enhanced/community-chat-click"_q,
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return Builder::SearchEntry{
+			.id = u"enhanced/show-server-config"_q,
+			.title = tr::lng_settings_show_server_config(tr::now),
+			.keywords = { u"server"_q, u"config"_q, u"tlv"_q },
+			.deeplink = u"tg://settings/enhanced/show-server-config"_q,
 		};
 	});
 });
@@ -1372,6 +1392,29 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		AddSkip(page);
 	}
 
+	void Enhanced::setupOther(not_null<Ui::VerticalLayout*> content) {
+		const auto showServerConfig = AddButtonWithIcon(
+			content,
+			tr::lng_settings_show_server_config(),
+			st::settingsButtonNoIcon);
+		registerHighlight(
+			u"enhanced/show-server-config"_q,
+			showServerConfig);
+		showServerConfig->addClickHandler([=] {
+			controller()->session().api().request(
+				MTPhelp_GetConfig()
+			).done(crl::guard(this, [=](const MTPConfig &config) {
+				Core::App().iv().showTLViewer(
+					MTP::details::kCurrentLayer,
+					ConfigForTLViewer(config));
+			})).fail(crl::guard(this, [=](const MTP::Error &error) {
+				if (!MTP::IgnoreError(error)) {
+					controller()->showToast(error.type());
+				}
+			})).send();
+		});
+	}
+
 	rpl::producer<QString> Enhanced::title() {
 		return tr::lng_settings_enhanced();
 	}
@@ -1391,6 +1434,7 @@ constexpr auto kStickerHeightValuesCount = kStickerHeightMaxIndex + 1;
 		setupBehavior(AddEnhancedGroup(page, tr::lng_settings_behavior()));
 		setupTranslation(AddEnhancedGroup(page, tr::lng_settings_translation()));
 		setupVoiceChat(page);
+		setupOther(AddEnhancedGroup(page, tr::lng_settings_other()));
 
 		Ui::ResizeFitChild(this, page);
 	}

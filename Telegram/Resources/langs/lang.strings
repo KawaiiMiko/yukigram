@@ -875,6 +875,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_settings_interface" = "Interface";
 "lng_settings_behavior" = "Behavior";
 "lng_settings_translation" = "Translation";
+"lng_settings_other" = "Other";
 "lng_settings_themes" = "Themes";
 "lng_settings_theme_day" = "Day";
 "lng_settings_theme_classic" = "Classic";
@@ -8810,6 +8811,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_settings_disable_premium_animation" = "Disable Premium Animation";
 "lng_settings_disable_global_search" = "Disable global search";
 "lng_settings_community_chat_click" = "Open chat instead of community";
+"lng_settings_show_server_config" = "Show server config";
 "lng_settings_show_group_sender_avatar" = "Show sender's avatar in groups";
 "lng_settings_show_group_sender_online_status" = "Show online status on group sender avatars";
 "lng_settings_show_seconds" = "Time with seconds";

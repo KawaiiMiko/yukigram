@@ -44,6 +44,7 @@ namespace Settings {
 		void setupBehavior(not_null<Ui::VerticalLayout*> content);
 		void setupTranslation(not_null<Ui::VerticalLayout*> content);
 		void setupVoiceChat(not_null<Ui::VerticalLayout*> page);
+		void setupOther(not_null<Ui::VerticalLayout*> content);
 		void reqBlocked(int offset);
 		void writeBlocklistFile();
 		void registerHighlight(
