@@ -74,10 +74,14 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include <QtGui/QWindow>
 
+#include <algorithm>
+
 namespace HistoryView {
 namespace {
 
 constexpr auto kEmojiInteractionSeenDuration = 3 * crl::time(1000);
+constexpr auto kOnlineCountRefreshSeconds = 5 * 60;
+constexpr auto kOnlineCountRetrySeconds = 60;
 
 [[nodiscard]] inline bool HasGroupCallMenu(not_null<PeerData*> peer) {
 	return !peer->isUser()
@@ -907,6 +911,8 @@ void TopBarWidget::setActiveChat(
 	update();
 
 	if (peerChanged || topicChanged) {
+		_onlineUpdater.cancel();
+		_onlineCountByChannel.clear();
 		_titleBadge.unload();
 		_titleNameVersion = 0;
 		_emojiInteractionSeen = nullptr;
@@ -1973,12 +1979,10 @@ void TopBarWidget::updateOnlineDisplay() {
 	if (!peer || _activeChat.key.topic()) {
 		return;
 	}
-	const auto isTopic = peer->forum();
 
 	QString text;
 	const auto now = base::unixtime::now();
 	bool titlePeerTextOnline = false;
-	bool delayUpdate = false;
 	if (const auto user = peer->asUser()) {
 		if (session().supportMode()
 			&& !session().supportHelper().infoCurrent(user).text.empty()) {
@@ -2028,46 +2032,119 @@ void TopBarWidget::updateOnlineDisplay() {
 	} else if (peer->isMonoforum()) {
 		text = tr::lng_chat_status_direct(tr::now);
 	} else if (const auto channel = peer->asChannel()) {
-		if (channel->isMegagroup()
-			&& channel->membersCount() > 0) {
-			if (GetEnhancedBool("hide_counter")) {
-				text = tr::lng_chat_status_members(tr::now, lt_count_decimal, channel->membersCount());
-			} else {
-				QMutexLocker locker(&reqMutex);
-				if (!isTopic && lastChatRequest[QString::number(channel->id.value)].requestTime + 60 < now) { // Update every 60 seconds
-					delayUpdate = true;
-					_controller->session().api().request(MTPmessages_GetOnlines(
-							channel->input()
-					)).done([=](const MTPChatOnlines &result) {
-						const auto count = result.c_chatOnlines().vonlines().v;
-						lastChatRequest[QString::number(channel->id.value)].memberCount = count;
-						updateOnlineDisplayIn(crl::time(100)); // To slow down chat status update
-					}).fail([=](const MTP::Error &error) {
-						// if failed, then no any changes :)
-					}).send();
-					lastChatRequest[QString::number(channel->id.value)].requestTime = now;
-				}
-
-				if (channel->membersCount() > 0 && lastChatRequest[QString::number(channel->id.value)].memberCount > 0) {
-					const auto membersCount = tr::lng_chat_status_members(tr::now, lt_count_decimal, channel->membersCount());
-					const auto onlineCount = tr::lng_chat_status_online(tr::now, lt_count, lastChatRequest[QString::number(channel->id.value)].memberCount);
-					text = tr::lng_chat_status_members_online(tr::now, lt_members_count, membersCount, lt_online_count, onlineCount);
-				} else if (channel->membersCount() > 0) {
-					text = tr::lng_chat_status_members(tr::now, lt_count_decimal, channel->membersCount());
-				} else {
-					text = tr::lng_group_status(tr::now);
+		const auto count = channel->membersCount();
+		const auto hideOnlineCount = GetEnhancedBool("hide_counter");
+		const auto countLocally = channel->isMegagroup()
+			&& channel->canViewMembers()
+			&& (count > 0)
+			&& (count <= channel->session().serverConfig().chatSizeMax);
+		if (countLocally) {
+			if (!hideOnlineCount && channel->lastParticipantsRequestNeeded()) {
+				session().api().chatParticipants().requestLast(channel);
+			}
+			const auto self = session().user();
+			auto online = 0;
+			auto onlyMe = true;
+			if (!hideOnlineCount) {
+				for (const auto &participant : channel->mgInfo->lastParticipants) {
+					if (participant->lastseen().isOnline(now)) {
+						++online;
+						if (onlyMe && participant != self) {
+							onlyMe = false;
+						}
+					}
 				}
 			}
-		} else if (channel->membersCount() > 0) {
+			if (online > 0 && !onlyMe) {
+				const auto membersCount = tr::lng_chat_status_members(
+					tr::now,
+					lt_count_decimal,
+					count);
+				const auto onlineCount = tr::lng_chat_status_online(
+					tr::now,
+					lt_count,
+					online);
+				text = tr::lng_chat_status_members_online(
+					tr::now,
+					lt_members_count,
+					membersCount,
+					lt_online_count,
+					onlineCount);
+			} else {
+				text = tr::lng_chat_status_members(
+					tr::now,
+					lt_count_decimal,
+					count);
+			}
+		} else if (channel->isMegagroup() && count > 0) {
+			if (hideOnlineCount) {
+				text = tr::lng_chat_status_members(
+					tr::now,
+					lt_count_decimal,
+					count);
+			} else {
+				const auto key = QString::number(channel->id.value);
+				auto &cached = _onlineCountByChannel[key];
+				if (cached.nextRequestTime <= now) {
+					cached.nextRequestTime = now + kOnlineCountRefreshSeconds;
+					_controller->session().api().request(MTPmessages_GetOnlines(
+							channel->input()
+					)).done(crl::guard(this, [=](const MTPChatOnlines &result) {
+						if (_activeChat.key.peer() != channel
+							|| _activeChat.key.topic()) {
+							return;
+						}
+						auto &cached = _onlineCountByChannel[key];
+						cached.memberCount = result.c_chatOnlines().vonlines().v;
+						cached.nextRequestTime = base::unixtime::now()
+							+ kOnlineCountRefreshSeconds;
+						updateOnlineDisplayIn(crl::time(100));
+					})).fail(crl::guard(this, [=](const MTP::Error &) {
+						if (_activeChat.key.peer() != channel
+							|| _activeChat.key.topic()) {
+							return;
+						}
+						auto &cached = _onlineCountByChannel[key];
+						cached.memberCount = 0;
+						cached.nextRequestTime = base::unixtime::now()
+							+ kOnlineCountRetrySeconds;
+						updateOnlineDisplayIn(crl::time(100));
+					})).send();
+				}
+
+				const auto online = std::clamp(cached.memberCount, 0, count);
+				if (online > 1) {
+					const auto membersCount = tr::lng_chat_status_members(
+						tr::now,
+						lt_count_decimal,
+						count);
+					const auto onlineCount = tr::lng_chat_status_online(
+						tr::now,
+						lt_count,
+						online);
+					text = tr::lng_chat_status_members_online(
+						tr::now,
+						lt_members_count,
+						membersCount,
+						lt_online_count,
+						onlineCount);
+				} else {
+					text = tr::lng_chat_status_members(
+						tr::now,
+						lt_count_decimal,
+						count);
+				}
+			}
+		} else if (count > 0) {
 			text = channel->isMegagroup()
-				? tr::lng_chat_status_members(tr::now, lt_count_decimal, channel->membersCount())
-				: tr::lng_chat_status_subscribers(tr::now, lt_count_decimal, channel->membersCount());
+				? tr::lng_chat_status_members(tr::now, lt_count_decimal, count)
+				: tr::lng_chat_status_subscribers(tr::now, lt_count_decimal, count);
 
 		} else {
 			text = channel->isMegagroup() ? tr::lng_group_status(tr::now) : tr::lng_channel_status(tr::now);
 		}
 	}
-	if (_titlePeerText.toString() != text && !delayUpdate) {
+	if (_titlePeerText.toString() != text) {
 		_titlePeerText.setText(st::dialogsTextStyle, text);
 		_titlePeerTextOnline = titlePeerTextOnline;
 		updateMembersShowArea();
@@ -2094,7 +2171,27 @@ void TopBarWidget::updateOnlineDisplayTimer() {
 		for (const auto &user : chat->participants) {
 			handleUser(user);
 		}
-	} else if (peer->isChannel()) {
+	} else if (const auto channel = peer->asMegagroup()) {
+		const auto count = channel->membersCount();
+		const auto hideOnlineCount = GetEnhancedBool("hide_counter");
+		const auto countLocally = channel->canViewMembers()
+			&& (count > 0)
+			&& (count <= channel->session().serverConfig().chatSizeMax);
+		if (!hideOnlineCount && countLocally) {
+			for (const auto &user : channel->mgInfo->lastParticipants) {
+				handleUser(user);
+			}
+		} else if (!hideOnlineCount && count > 0) {
+			const auto key = QString::number(channel->id.value);
+			const auto i = _onlineCountByChannel.find(key);
+			const auto refreshAt = (i == _onlineCountByChannel.end())
+				? now
+				: i->nextRequestTime;
+			const auto refreshIn = std::max(1, refreshAt - now);
+			accumulate_min(
+				minTimeout,
+				refreshIn * crl::time(1000));
+		}
 	}
 	updateOnlineDisplayIn(minTimeout);
 }

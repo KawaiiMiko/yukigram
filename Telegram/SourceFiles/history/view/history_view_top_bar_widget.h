@@ -294,12 +294,12 @@ private:
 
 	rpl::lifetime _backLifetime;
 
-	struct reqData {
-		int requestTime;
-		int memberCount;
+	struct OnlineCountData {
+		int nextRequestTime = 0;
+		int memberCount = 0;
 	};
-	QMap<QString, reqData> lastChatRequest;
-	mutable QMutex reqMutex;
+	QMap<QString, OnlineCountData> _onlineCountByChannel;
+
 };
 
 } // namespace HistoryView
