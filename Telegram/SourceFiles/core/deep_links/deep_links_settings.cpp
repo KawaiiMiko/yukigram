@@ -145,7 +145,9 @@ void ShowChatEnhancedValue(
 				close();
 				::Settings::ShowChatEnhancedSettings(controller, peer, feature);
 				controller->showToast({
-					.text = tr::lng_settings_shared_value_applied(tr::now),
+					.text = tr::lng_settings_shared_value_applied(
+						tr::now,
+						tr::marked),
 					.iconLottie = u"toast/contact_check"_q,
 					.iconLottieSize = st::toastLottieIconSize,
 				});
@@ -241,7 +243,7 @@ Result HandleEnhancedValue(
 					EnhancedSettings::ControlId(pending.id));
 				controller->showSettings(::Settings::EnhancedId());
 				controller->showToast({
-					.text = std::move(toast),
+					.text = tr::marked(std::move(toast)),
 					.iconLottie = u"toast/contact_check"_q,
 					.iconLottieSize = st::toastLottieIconSize,
 				});
